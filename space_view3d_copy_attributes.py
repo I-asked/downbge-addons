@@ -555,7 +555,7 @@ class CopySelectedObjectConstraints(bpy.types.Operator):
                     new_constraint = obj.constraints.new(\
                        active.constraints[index].type)
                     generic_copy(old_constraint, new_constraint)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 class CopySelectedObjectModifiers(bpy.types.Operator):
@@ -586,7 +586,7 @@ class CopySelectedObjectModifiers(bpy.types.Operator):
                        type=active.modifiers[index].type,
                        name=active.modifiers[index].name)
                     generic_copy(old_modifier, new_modifier)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 object_ops = []
 genops(object_copies, object_ops, "object.copy_", object_poll_func, obLoopExec)

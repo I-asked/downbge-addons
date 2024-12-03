@@ -175,7 +175,7 @@ class TexAtl_RunAuto(Operator):
 
         context.area.type = old_context
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 class TexAtl_RunStart(Operator):
@@ -216,7 +216,7 @@ class TexAtl_RunStart(Operator):
 
         context.area.type = old_context
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 class TexAtl_RunFinish(Operator):
@@ -249,7 +249,7 @@ class TexAtl_RunFinish(Operator):
                 self.report(set(['INFO']), "Not All Objects Are Visible!!!")
 
         context.area.type = old_context
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 class TexAtl_UVLayers(PropertyGroup):
@@ -568,7 +568,7 @@ class TexAtl_CreateLightmap(Operator):
 
         NON_MESH_LIST.clear()  # clear array
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 class TexAtl_MergeObjects(Operator):
@@ -703,7 +703,7 @@ class TexAtl_MergeObjects(Operator):
                     PREF_APPLY_IMAGE=False, PREF_IMG_PX_SIZE=1024, PREF_BOX_DIV=48, PREF_MARGIN_DIV=groupProps.autoUnwrapPrecision)
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 class TexAtl_SeparateObjects(Operator):
@@ -782,7 +782,7 @@ class TexAtl_SeparateObjects(Operator):
             ob_merged.select = True
             bpy.ops.object.delete(use_global=False)
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 def register():

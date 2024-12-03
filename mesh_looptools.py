@@ -3308,7 +3308,7 @@ class Bridge(bpy.types.Operator):
         # cleaning up
         terminate(global_undo)
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 # circle operator
@@ -3466,7 +3466,7 @@ class Circle(bpy.types.Operator):
             bm_mod.free()
         terminate(global_undo)
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 # curve operator
@@ -3598,7 +3598,7 @@ class Curve(bpy.types.Operator):
             bm_mod.free()
         terminate(global_undo)
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 # flatten operator
@@ -3711,7 +3711,7 @@ class Flatten(bpy.types.Operator):
         # cleaning up
         terminate(global_undo)
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 # gstretch operator
@@ -3949,7 +3949,7 @@ class GStretch(bpy.types.Operator):
             bm_mod.free()
         terminate(global_undo)
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 # relax operator
@@ -4041,7 +4041,7 @@ class Relax(bpy.types.Operator):
             bm_mod.free()
         terminate(global_undo)
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 # space operator
@@ -4156,7 +4156,7 @@ class Space(bpy.types.Operator):
             bm_mod.free()
         terminate(global_undo)
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 ##########################################

@@ -1717,7 +1717,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 
@@ -1827,7 +1827,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 self.cleanup_on_interruption()
                 self.stopping_errors = True
 
-                returnset(['CANCELLED'])
+                return set(['CANCELLED'])
         else:
             if len(all_chains_tips_idx) == 2: # If there are 2 tips
                 selection_type = "SINGLE"
@@ -1843,7 +1843,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                     self.cleanup_on_interruption()
                     self.stopping_errors = True
 
-                    returnset(['CANCELLED'])
+                    return set(['CANCELLED'])
             else:
                 # The type of the selection was not identified, the script stops.
                 self.report(set(['WARNING']), "The selection isn't valid.")
@@ -1853,7 +1853,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
                 self.stopping_errors = True
 
-                returnset(['CANCELLED'])
+                return set(['CANCELLED'])
 
 
 
@@ -1864,7 +1864,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             self.cleanup_on_interruption()
             self.stopping_errors = True
 
-            returnset(['CANCELLED'])
+            return set(['CANCELLED'])
 
 
 
@@ -2206,7 +2206,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
             self.stopping_errors = True
 
-            returnset(['CANCELLED'])
+            return set(['CANCELLED'])
 
 
 
@@ -2858,7 +2858,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 
@@ -2941,7 +2941,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
         bpy.context.user_preferences.edit.use_global_undo = self.initial_global_undo_state
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 
@@ -3195,7 +3195,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             if not self.stopping_errors:
                 return set(["FINISHED"])
             else:
-                returnset(["CANCELLED"])
+                return set(["CANCELLED"])
 
         elif self.strokes_type == "SELECTION_ALONE":
             self.is_fill_faces = True
@@ -3217,26 +3217,26 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
         if self.strokes_type == "EXTERNAL_NO_CURVE":
             self.report(set(['WARNING']), "The secondary object is not a Curve.")
-            returnset(["CANCELLED"])
+            return set(["CANCELLED"])
 
         elif self.strokes_type == "MORE_THAN_ONE_EXTERNAL":
             self.report(set(['WARNING']), "There shouldn't be more than one secondary object selected.")
-            returnset(["CANCELLED"])
+            return set(["CANCELLED"])
 
         elif self.strokes_type == "SINGLE_GP_STROKE_NO_SELECTION" or self.strokes_type == "SINGLE_CURVE_STROKE_NO_SELECTION":
             self.report(set(['WARNING']), "It's needed at least one stroke and one selection, or two strokes.")
-            returnset(["CANCELLED"])
+            return set(["CANCELLED"])
 
         elif self.strokes_type == "NO_STROKES":
             self.report(set(['WARNING']), "There aren't any strokes attatched to the object")
-            returnset(["CANCELLED"])
+            return set(["CANCELLED"])
 
         elif self.strokes_type == "CURVE_WITH_NON_BEZIER_SPLINES":
             self.report(set(['WARNING']), "All splines must be Bezier.")
-            returnset(["CANCELLED"])
+            return set(["CANCELLED"])
 
         else:
-            returnset(["CANCELLED"])
+            return set(["CANCELLED"])
 
 
 # Edit strokes operator.
@@ -3295,15 +3295,15 @@ class GPENCIL_OT_SURFSK_edit_strokes(bpy.types.Operator):
 
         elif self.strokes_type == "EXTERNAL_NO_CURVE":
             self.report(set(['WARNING']), "The secondary object is not a Curve.")
-            returnset(["CANCELLED"])
+            return set(["CANCELLED"])
         elif self.strokes_type == "MORE_THAN_ONE_EXTERNAL":
             self.report(set(['WARNING']), "There shouldn't be more than one secondary object selected.")
-            returnset(["CANCELLED"])
+            return set(["CANCELLED"])
         elif self.strokes_type == "NO_STROKES" or self.strokes_type == "SELECTION_ALONE":
             self.report(set(['WARNING']), "There aren't any strokes attatched to the object")
-            returnset(["CANCELLED"])
+            return set(["CANCELLED"])
         else:
-            returnset(["CANCELLED"])
+            return set(["CANCELLED"])
 
 
 

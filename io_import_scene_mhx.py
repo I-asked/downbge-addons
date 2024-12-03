@@ -2854,7 +2854,7 @@ class OBJECT_OT_RigifyMhxButton(bpy.types.Operator):
 
     def execute(self, context):
         rigifyMhx(context)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 #
 #   class RigifyMhxPanel(bpy.types.Panel):
@@ -3129,7 +3129,7 @@ class VIEW3D_OT_MhxEnableAllLayersButton(bpy.types.Operator):
             if type(left) != str:
                 for (n, name, prop) in [left,right]:
                     rig.data.layers[n] = True
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 class VIEW3D_OT_MhxDisableAllLayersButton(bpy.types.Operator):
@@ -3150,7 +3150,7 @@ class VIEW3D_OT_MhxDisableAllLayersButton(bpy.types.Operator):
             layers[0] = True
         if rig:
             rig.data.layers = layers
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 
@@ -3613,7 +3613,7 @@ class VIEW3D_OT_MhxMakeVisemesButton(bpy.types.Operator):
 
     def execute(self, context):
         makeVisemes(context.object, context.scene)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 #
 #    mohoVisemes
@@ -3714,7 +3714,7 @@ class VIEW3D_OT_MhxVisemeButton(bpy.types.Operator):
         (rig, mesh) = getMhxRigMesh(context.object)
         visemes = getVisemeSet(context, rig)
         setVisemeAlpha7(context, self.viseme, visemes, False, context.scene.frame_current)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 def readLipsync(context, filepath, offs, struct):
@@ -3766,7 +3766,7 @@ class VIEW3D_OT_MhxMohoButton(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         readLipsync(context, self.properties.filepath, context.scene.frame_start - 1, MohoVisemes)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
@@ -3850,7 +3850,7 @@ class VIEW3D_OT_MhxUpdateButton(bpy.types.Operator):
 
     def execute(self, context):
         updatePose(context)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 ###################################################################################
@@ -3870,7 +3870,7 @@ class VIEW3D_OT_MhxResetExpressionsButton(bpy.types.Operator):
         shapekeys = getMhmShapekeys(rig, mesh)
         clearMhmProps(rig, shapekeys, self.prefix, context.tool_settings.use_keyframe_insert_auto, context.scene.frame_current)
         updatePose(context)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 class VIEW3D_OT_MhxKeyExpressionsButton(bpy.types.Operator):
@@ -3886,7 +3886,7 @@ class VIEW3D_OT_MhxKeyExpressionsButton(bpy.types.Operator):
         for prop in props:
             rig.keyframe_insert('["%s"]'%prop, frame=frame)
         updatePose(context)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 class VIEW3D_OT_MhxPinExpressionButton(bpy.types.Operator):
@@ -3919,7 +3919,7 @@ class VIEW3D_OT_MhxPinExpressionButton(bpy.types.Operator):
                 else:
                     rig[prop] = 0.0
         updatePose(context)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 def getMhmShapekeys(rig, mesh):
@@ -3985,7 +3985,7 @@ class VIEW3D_OT_MhxMhmButton(bpy.types.Operator):
         prefix,units = getUnitsFromString(self.data)
         setMhmProps(rig, shapekeys, prefix, units, rig.MhxStrength, auto, frame)
         updatePose(context)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 def getProps(rig, prefix):
@@ -4432,7 +4432,7 @@ class VIEW3D_OT_MhxSnapFk2IkButton(bpy.types.Operator):
             snapFkArm(context, self.data)
         elif self.data[:6] == "MhaLeg":
             snapFkLeg(context, self.data)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 class VIEW3D_OT_MhxSnapIk2FkButton(bpy.types.Operator):
@@ -4450,7 +4450,7 @@ class VIEW3D_OT_MhxSnapIk2FkButton(bpy.types.Operator):
             snapIkArm(context, self.data)
         elif self.data[:6] == "MhaLeg":
             snapIkLeg(context, self.data)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 def setSnapProp(rig, data, value, context, isIk):
@@ -4511,7 +4511,7 @@ class VIEW3D_OT_MhxToggleFkIkButton(bpy.types.Operator):
         #if context.tool_settings.use_keyframe_insert_auto:
         #    rig.keyframe_insert('["%s"]' % prop, frame=scn.frame_current)
         updatePose(context)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 #
 #   MHX FK/IK Switch panel
@@ -4719,7 +4719,7 @@ class VIEW3D_OT_MhxUpdateTexturesButton(bpy.types.Operator):
                     prop = mat.path_resolve(driver.data_path)
                     value = driver.evaluate(scn.frame_current)
                     prop[driver.array_index] = value
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 class VIEW3D_OT_MhxAddHidersButton(bpy.types.Operator):
     bl_idname = "mhx.add_hiders"
@@ -4735,7 +4735,7 @@ class VIEW3D_OT_MhxAddHidersButton(bpy.types.Operator):
                 rig[prop] = False
                 addHider(ob, "hide", rig, prop)
                 addHider(ob, "hide_render", rig, prop)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 def addHider(ob, attr, rig, prop):
     fcu = ob.driver_add(attr)
@@ -4762,7 +4762,7 @@ class VIEW3D_OT_MhxRemoveHidersButton(bpy.types.Operator):
                 ob.driver_remove("hide")
                 ob.driver_remove("hide_render")
                 del rig["Mhh%s" % ob.name]
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 ###################################################################################
 #

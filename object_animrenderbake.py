@@ -164,7 +164,7 @@ class OBJECT_OT_animrenderbake(bpy.types.Operator):
 
         print "Baking done!"
 
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 
 def draw(self, context):

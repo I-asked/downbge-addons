@@ -38,7 +38,11 @@ import shutil
 import tempfile
 
 
-def CopyPythonLibs(dst, overwrite_lib, report=print):
+def doprint(*args):
+    print args
+
+
+def CopyPythonLibs(dst, overwrite_lib, report=doprint):
     import platform
 
     # use python module to find pytohn's libpath
@@ -82,7 +86,7 @@ def WriteAppleRuntime(player_path, output_path, copy_python, overwrite_lib):
     # Python doesn't need to be copied for OS X since it's already inside blenderplayer.app
 
 
-def WriteRuntime(player_path, output_path, copy_python, overwrite_lib, copy_dlls, report=print):
+def WriteRuntime(player_path, output_path, copy_python, overwrite_lib, copy_dlls, report=doprint):
     import struct
 
     # Check the paths

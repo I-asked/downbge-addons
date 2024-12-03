@@ -1255,7 +1255,7 @@ class OBJECT_OT_UDKImportArmature(bpy.types.Operator):
                     my_objlist.remove(count)
                     break
                 count += 1
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 class OBJECT_OT_UDKImportA(bpy.types.Operator):
     """This will update the filter of the mesh and armature"""
@@ -1268,7 +1268,7 @@ class OBJECT_OT_UDKImportA(bpy.types.Operator):
             if objd.type == "ARMATURE":
                 print dir(objd)
                 print (objd.data.name)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 def menu_func(self, context):
     self.layout.operator(IMPORT_OT_psk.bl_idname, text="Skeleton Mesh (.psk)")

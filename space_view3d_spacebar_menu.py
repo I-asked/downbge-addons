@@ -1254,7 +1254,7 @@ class VIEW3D_OT_revert_pivot(bpy.types.Operator):
     def execute(self, context):
         bpy.context.space_data.pivot_point = 'MEDIAN_POINT'
         # @todo Change this to 'BOUDNING_BOX_CENTER' if needed...
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 class VIEW3D_MT_CursorMenu(bpy.types.Menu):
     bl_label = "Snap Cursor Menu"

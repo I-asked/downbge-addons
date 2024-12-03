@@ -2012,7 +2012,7 @@ class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
             print "Didn't select Mesh Object!"
             self.report(set(['INFO']), "Didn't Select Mesh Object!")
         print "----------------------------------------"
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 class OBJECT_OT_MeshClearWeights(bpy.types.Operator):
     """Remove all mesh vertex groups weights for the bones"""
@@ -2026,7 +2026,7 @@ class OBJECT_OT_MeshClearWeights(bpy.types.Operator):
                     obj.vertex_groups.remove(vg)
                 self.report(set(['INFO']), "Mesh Vertex Groups Remove!")
                 break
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 def unpack_list(list_of_tuples):
     l = []
@@ -2146,7 +2146,7 @@ class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
         self.report(set(['INFO']), "Rebuild Mesh Finish!")
         print "Finish Mesh Build..."
         print "----------------------------------------"
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 def rebuildarmature(obj):
     currentbone = [] #select armature for roll copy
@@ -2208,7 +2208,7 @@ class OBJECT_OT_UTRebuildArmature(bpy.types.Operator):
         self.report(set(['INFO']), "Rebuild Armature Finish!")
         print "End of Rebuild Armature."
         print "----------------------------------------"
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 class UDKActionSetListPG(bpy.types.PropertyGroup):
     bool    = BoolProperty(default=False)
@@ -2427,7 +2427,7 @@ class OBJECT_OT_UDKObjUpdate(bpy.types.Operator):
 
     def execute(self, context):
         udkupdateobjects()
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 def udkcheckmeshline():
     objmesh = None
@@ -2507,7 +2507,7 @@ class OBJECT_OT_UDKCheckMeshLines(bpy.types.Operator):
     def execute(self, context):
         message = udkcheckmeshline()
         self.report(set(['ERROR']), message)
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 class OBJECT_OT_ActionSetAnimUpdate(bpy.types.Operator):
     """Select Armture to match the action set groups. """ \
@@ -2594,7 +2594,7 @@ class OBJECT_OT_ActionSetAnimUpdate(bpy.types.Operator):
                     my_sett.remove(actioncount);
                     break
                 actioncount += 1
-        returnset(['FINISHED'])
+        return set(['FINISHED'])
 
 class ExportUDKAnimData(bpy.types.Operator):
     """Export Skeleton Mesh / Animation Data file(s). """ \
