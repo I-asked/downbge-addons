@@ -556,7 +556,7 @@ class RigLayers(bpy.types.Panel):
         col = layout.column()
 '''
     rows = {}
-    for i in range(28):
+    for i in xrange(28):
         if layers[i]:
             if layout[i][1] not in rows:
                 rows[layout[i][1]] = []

@@ -57,6 +57,7 @@ with the Escape key. (but a bug prevent the keymap to register correctly at star
 
 """
 
+from __future__ import absolute_import
 import bpy
 from console.complete_import import get_root_modules
 
@@ -228,7 +229,7 @@ def fill_filter_mem():
 
 ######  API Navigator parent class  #######
 
-class ApiNavigator():
+class ApiNavigator(object):
     """Parent class for API Navigator"""
     
     @staticmethod
@@ -258,7 +259,7 @@ class ApiNavigator():
             too_long = False
         
         ApiNavigator.generate_api_doc()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @staticmethod
     def generate_api_doc():
@@ -291,7 +292,7 @@ _____________________________________________\n\
 #############################################"
         doc = current_module.__doc__
         api_doc_ = header + str(doc) + footer
-        return {'FINISHED'}
+        return set(['FINISHED'])
     
     @staticmethod
     def doc_text_datablock():
@@ -310,7 +311,7 @@ _____________________________________________\n\
             space_data.text = doc_text
         
         doc_text.write(text=api_doc_)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 
@@ -331,7 +332,7 @@ class Update(ApiNavigator, bpy.types.Operator):
 
     def execute(self, context):
         api_update()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class BackToBpy(ApiNavigator, bpy.types.Operator):
@@ -348,7 +349,7 @@ class BackToBpy(ApiNavigator, bpy.types.Operator):
         update_filter()
         self.generate_global_values()
         self.doc_text_datablock()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class Down(ApiNavigator, bpy.types.Operator):
@@ -369,7 +370,7 @@ class Down(ApiNavigator, bpy.types.Operator):
         update_filter()
         self.generate_global_values()
         self.doc_text_datablock()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class Parent(ApiNavigator, bpy.types.Operator):
@@ -388,7 +389,7 @@ class Parent(ApiNavigator, bpy.types.Operator):
             self.generate_global_values()
             self.doc_text_datablock()
         
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class ClearFilter(ApiNavigator, bpy.types.Operator):
@@ -398,7 +399,7 @@ class ClearFilter(ApiNavigator, bpy.types.Operator):
     
     def execute(self, context):
         bpy.context.window_manager.api_nav_props.filter = ''
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class FakeButton(ApiNavigator, bpy.types.Operator):
@@ -419,7 +420,7 @@ class Subscript(ApiNavigator, bpy.types.Operator):
         update_filter()
         self.generate_global_values()
         self.doc_text_datablock()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class Toggle_doc(ApiNavigator, bpy.types.Operator):
@@ -442,18 +443,18 @@ class Toggle_doc(ApiNavigator, bpy.types.Operator):
             bpy.data.texts.remove(text)
         except KeyError:
             self.doc_text_datablock()
-            return {'FINISHED'}
+            return set(['FINISHED'])
         
         try :
             text = bpy.data.texts[last_text]
             bpy.context.space_data.text = text
             #line = bpy.ops.text.line_number() # operator doesn't seems to work ???
             #bpy.ops.text.jump(line=line)
-            return {'FINISHED'}
+            return set(['FINISHED'])
         except : pass
         
         bpy.context.space_data.text = None
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 ############ UI Panels ############
     
@@ -462,7 +463,7 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
     bl_space_type = "TEXT_EDITOR"
     bl_region_type = "UI"
     bl_label = "API Navigator"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = set(['DEFAULT_CLOSED'])
     
     
     columns = 3
@@ -478,7 +479,7 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
             current_type = str(module_type)
             
             if current_type == "<class 'str'>":
-                return {'FINISHED'}
+                return set(['FINISHED'])
             
             col = self.layout
             # filter = bpy.context.window_manager.api_nav_props.filter  # UNUSED
@@ -545,7 +546,7 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
                 row.operator('api_navigator.fake_button', text='', emboss=False, icon="DOTSDOWN")
                 row.prop(bpy.context.window_manager.api_nav_props, 'pages', text='Pages')
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
     
     
     
@@ -615,7 +616,7 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
             
             reduced(too_long)
         
-        return {'FINISHED'}
+        return set(['FINISHED'])
     
     
     def draw(self, context):

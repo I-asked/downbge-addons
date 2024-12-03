@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Import EDL",
     "author": "Campbell Barton",
@@ -60,20 +61,20 @@ class ReloadEDL(Operator):
         dummy_fps = 25
 
         if not os.path.exists(filepath):
-            self.report({'ERROR'}, "File Not Found %r" % filepath)
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "File Not Found %r" % filepath)
+            return set(['CANCELLED'])
 
         elist = parse_edl.EditList()
         if not elist.parse(filepath, dummy_fps):
-            self.report({'ERROR'}, "Failed to parse EDL %r" % filepath)
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "Failed to parse EDL %r" % filepath)
+            return set(['CANCELLED'])
 
         scene = context.scene
         edl_import_info = scene.edl_import_info
         bl_reels = edl_import_info.reels
 
-        data_prev = {reel.name: (reel.filepath, reel.frame_offset)
-                     for reel in edl_import_info.reels}
+        data_prev = dict((reel.name, (reel.filepath, reel.frame_offset))
+                     for reel in edl_import_info.reels)
 
         reels = elist.reels_as_dict()
         reels = [k for k in reels.keys() if k not in parse_edl.BLACK_ID]
@@ -88,7 +89,7 @@ class ReloadEDL(Operator):
                 reel.filepath = filepath
                 reel.frame_offset = frame_offset
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class FindReelsEDL(Operator):
@@ -158,10 +159,10 @@ class FindReelsEDL(Operator):
             reel_names.update(reel_names_list)
 
         # debug info
-        print("Searching or %d reels" % len(bl_reels_search))
+        print "Searching or %d reels" % len(bl_reels_search)
         for reel_names, reel_files_found, reel in bl_reels_search:
-            print("Reel: %r --> (%s)" % (reel.name, " ".join(sorted(reel_names))))
-        print()
+            print "Reel: %r --> (%s)" % (reel.name, " ".join(sorted(reel_names)))
+        print
 
         for filename, fileonly in media_file_walker(self.directory):
             for reel_names, reel_files_found, reel in bl_reels_search:
@@ -187,10 +188,10 @@ class FindReelsEDL(Operator):
             else:
                 tot_fail += 1
 
-        self.report({'INFO'} if tot_fail == 0 else {'WARNING'},
+        self.report(set(['INFO']) if tot_fail == 0 else set(['WARNING']),
                     "Found %d clips, missing %d" % (tot_done, tot_fail))
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         import os
@@ -198,9 +199,9 @@ class FindReelsEDL(Operator):
         edl_import_info = scene.edl_import_info
 
         if not FindReelsEDL.missing_reels(context):
-            self.report({'INFO'},
+            self.report(set(['INFO']),
                         "Nothing to do, all reels point to valid files")
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         # default to the EDL path
         if not self.directory and edl_import_info.filepath:
@@ -208,7 +209,7 @@ class FindReelsEDL(Operator):
 
         wm = context.window_manager
         wm.fileselect_add(self)
-        return {"RUNNING_MODAL"}
+        return set(["RUNNING_MODAL"])
 
 
 class ImportEDL(Operator):
@@ -223,14 +224,14 @@ class ImportEDL(Operator):
         edl_import_info = scene.edl_import_info
 
         filepath = edl_import_info.filepath
-        reel_filepaths = {reel.name: reel.filepath
-                          for reel in edl_import_info.reels}
-        reel_offsets = {reel.name: reel.frame_offset
-                        for reel in edl_import_info.reels}
+        reel_filepaths = dict((reel.name, reel.filepath)
+                          for reel in edl_import_info.reels)
+        reel_offsets = dict((reel.name, reel.frame_offset)
+                        for reel in edl_import_info.reels)
 
         if not os.path.exists(filepath):
-            self.report({'ERROR'}, "File Not Found %r" % filepath)
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "File Not Found %r" % filepath)
+            return set(['CANCELLED'])
 
         msg = import_edl.load_edl(
                 scene, filepath,
@@ -238,9 +239,9 @@ class ImportEDL(Operator):
                 edl_import_info.frame_offset)
 
         if msg:
-            self.report({'WARNING'}, msg)
+            self.report(set(['WARNING']), msg)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 # ----------------------------------------------------------------------------

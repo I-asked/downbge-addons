@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
+from io import open
 bl_info = {
     "name": "Export Camera Animation",
     "author": "Campbell Barton",
@@ -66,7 +68,7 @@ def write_cameras(context, filepath, frame_start, frame_end, only_selected=False
 
         cameras.append((obj, obj.data))
 
-    frame_range = range(frame_start, frame_end + 1)
+    frame_range = xrange(frame_start, frame_end + 1)
 
     fw("import bpy\n"
        "cameras = {}\n"
@@ -134,7 +136,7 @@ class CameraExporter(bpy.types.Operator, ExportHelper):
     bl_label = "Export Camera & Markers"
 
     filename_ext = ".py"
-    filter_glob = StringProperty(default="*.py", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.py", options=set(['HIDDEN']))
 
     frame_start = IntProperty(name="Start Frame",
             description="Start frame for export",
@@ -147,7 +149,7 @@ class CameraExporter(bpy.types.Operator, ExportHelper):
 
     def execute(self, context):
         write_cameras(context, self.filepath, self.frame_start, self.frame_end, self.only_selected)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         self.frame_start = context.scene.frame_start
@@ -155,7 +157,7 @@ class CameraExporter(bpy.types.Operator, ExportHelper):
 
         wm = context.window_manager
         wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 
 def menu_export(self, context):

@@ -1,5 +1,7 @@
 # GPL Original by Fourmadmen
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from mathutils import *
 from math import *
@@ -62,7 +64,7 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
             faces.append(face)
 
     # Bridge the rest of the faces.
-    for num in range(total - 1):
+    for num in xrange(total - 1):
         if flipped:
             if fan:
                 face = [vertIdx2[num], vertIdx1[0], vertIdx2[num + 1]]
@@ -103,7 +105,7 @@ def add_star(points, outer_radius, inner_radius, height):
     edgeloop_top = []
     edgeloop_bottom = []
 
-    for index in range(segments):
+    for index in xrange(segments):
         quat = Quaternion(z_axis, (index / segments) * PI_2)
 
         if index % 2:
@@ -138,7 +140,7 @@ class AddStar(bpy.types.Operator):
     """Add a star mesh"""
     bl_idname = "mesh.primitive_star_add"
     bl_label = "Simple Star"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     points = IntProperty(name="Points",
         description="Number of points for the star",
@@ -171,4 +173,4 @@ class AddStar(bpy.types.Operator):
 
         obj = create_mesh_object(context, verts, [], faces, "Star")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])

@@ -34,6 +34,7 @@ Thanks to Campbell Barton and Joshua Leung for hes API additions and fixes
 Daniel 'ZanQdo' Salazar
 -------------------------------------------------------------------------"""
 
+from __future__ import absolute_import
 import bpy
 from bpy.props import *
 
@@ -103,7 +104,7 @@ class VIEW3D_PT_animall(bpy.types.Panel):
     #bl_options = {'DEFAULT_CLOSED'}
     @classmethod
     def poll(self, context):
-        if context.active_object and context.active_object.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE'}:
+        if context.active_object and context.active_object.type in set(['MESH', 'LATTICE', 'CURVE', 'SURFACE']):
             return context.active_object.type
     
     # draw the gui
@@ -181,7 +182,7 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
     bl_label = 'Insert'
     bl_idname = 'anim.insert_keyframe_animall'
     bl_description = 'Insert a Keyframe'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
     
     
     # on mouse up:
@@ -189,7 +190,7 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
         
         self.execute(context)
         
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
     def execute(op, context):
@@ -263,7 +264,7 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
             if Mode:
                 bpy.ops.object.editmode_toggle()
         
-        if Obj.type in {'CURVE', 'SURFACE'}:
+        if Obj.type in set(['CURVE', 'SURFACE']):
             Mode = False
             if context.mode != 'OBJECT':
                 Mode = not Mode
@@ -314,14 +315,14 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
                 bpy.ops.object.editmode_toggle()
 
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
     bl_label = 'Delete'
     bl_idname = 'anim.delete_keyframe_animall'
     bl_description = 'Delete a Keyframe'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
     
     
     # on mouse up:
@@ -329,7 +330,7 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
 
         self.execute(context)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
     def execute(op, context):
@@ -404,7 +405,7 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
             if Mode:
                 bpy.ops.object.editmode_toggle()
         
-        if Obj.type in {'CURVE', 'SURFACE'}:
+        if Obj.type in set(['CURVE', 'SURFACE']):
             Mode = False
             if context.mode != 'OBJECT':
                 Mode = not Mode
@@ -447,14 +448,14 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
                 bpy.ops.object.editmode_toggle()
 
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class ANIM_OT_clear_animation_animall(bpy.types.Operator):
     bl_label = 'Clear Animation'
     bl_idname = 'anim.clear_animation_animall'
     bl_description = 'Delete all keyframes for this object'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     # on mouse up:
     def invoke(self, context, event):
@@ -468,7 +469,7 @@ class ANIM_OT_clear_animation_animall(bpy.types.Operator):
         Data = context.active_object.data
         Data.animation_data_clear()
         
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 def register():

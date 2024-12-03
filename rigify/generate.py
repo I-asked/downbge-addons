@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 import re
 import time
@@ -34,19 +35,19 @@ from .utils import copy_attributes
 from .rig_ui_template import UI_SLIDERS, layers_ui, UI_REGISTER
 
 RIG_MODULE = "rigs"
-ORG_LAYER = [n == 31 for n in range(0, 32)]  # Armature layer that original bones should be moved to.
-MCH_LAYER = [n == 30 for n in range(0, 32)]  # Armature layer that mechanism bones should be moved to.
-DEF_LAYER = [n == 29 for n in range(0, 32)]  # Armature layer that deformation bones should be moved to.
-ROOT_LAYER = [n == 28 for n in range(0, 32)]  # Armature layer that root bone should be moved to.
+ORG_LAYER = [n == 31 for n in xrange(0, 32)]  # Armature layer that original bones should be moved to.
+MCH_LAYER = [n == 30 for n in xrange(0, 32)]  # Armature layer that mechanism bones should be moved to.
+DEF_LAYER = [n == 29 for n in xrange(0, 32)]  # Armature layer that deformation bones should be moved to.
+ROOT_LAYER = [n == 28 for n in xrange(0, 32)]  # Armature layer that root bone should be moved to.
 
 
-class Timer:
+class Timer(object):
     def __init__(self):
         self.timez = time.time()
 
     def tick(self, string):
         t = time.time()
-        print(string + "%.3f" % (t - self.timez))
+        print string + "%.3f" % (t - self.timez)
         self.timez = t
 
 
@@ -76,7 +77,7 @@ def generate_rig(context, metarig):
     # Check if the generated rig already exists, so we can
     # regenerate in the same object.  If not, create a new
     # object to generate the rig in.
-    print("Fetch rig.")
+    print "Fetch rig."
     try:
         name = metarig["rig_object_name"]
     except KeyError:
@@ -92,7 +93,7 @@ def generate_rig(context, metarig):
     obj.data.pose_position = 'POSE'
 
     # Get rid of anim data in case the rig already existed
-    print("Clear rig animation data.")
+    print "Clear rig animation data."
     obj.animation_data_clear()
 
     # Select generated rig object
@@ -165,7 +166,7 @@ def generate_rig(context, metarig):
                     setattr(bone_gen.rigify_parameters, prop, \
                             getattr(bone.rigify_parameters, prop))
                 except AttributeError:
-                    print("FAILED TO COPY PARAMETER: " + str(prop))
+                    print "FAILED TO COPY PARAMETER: " + str(prop)
 
         # Custom properties
         for prop in bone.keys():
@@ -206,7 +207,7 @@ def generate_rig(context, metarig):
             for v1 in d1.driver.variables:
                 v2 = d2.driver.variables.new()
                 copy_attributes(v1, v2)
-                for i in range(len(v1.targets)):
+                for i in xrange(len(v1.targets)):
                     copy_attributes(v1.targets[i], v2.targets[i])
                     # Switch metarig targets to rig targets
                     if v2.targets[i].id == metarig:
@@ -220,7 +221,7 @@ def generate_rig(context, metarig):
                         tar.data_path = "RIGIFY-" + tar.data_path
 
             # Copy key frames
-            for i in range(len(d1.keyframe_points)):
+            for i in xrange(len(d1.keyframe_points)):
                 d2.keyframe_points.add()
                 k1 = d1.keyframe_points[i]
                 k2 = d2.keyframe_points[i]
@@ -233,7 +234,7 @@ def generate_rig(context, metarig):
 
     # Add the ORG_PREFIX to the original bones.
     bpy.ops.object.mode_set(mode='OBJECT')
-    for i in range(0, len(original_bones)):
+    for i in xrange(0, len(original_bones)):
         obj.data.bones[original_bones[i]].name = make_original_name(original_bones[i])
         original_bones[i] = make_original_name(original_bones[i])
 
@@ -282,9 +283,9 @@ def generate_rig(context, metarig):
             if scripts != None:
                 ui_scripts += [scripts[0]]
         t.tick("Generate rigs: ")
-    except Exception as e:
+    except Exception, e:
         # Cleanup if something goes wrong
-        print("Rigify: failed to generate rig.")
+        print "Rigify: failed to generate rig."
         metarig.data.pose_position = rest_backup
         obj.data.pose_position = 'POSE'
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -367,22 +368,22 @@ def generate_rig(context, metarig):
             # This is what it should do:
             # obj.pose.bones[bone].custom_shape = context.scene.objects[wgt_name]
     # Reveal all the layers with control bones on them
-    vis_layers = [False for n in range(0, 32)]
+    vis_layers = [False for n in xrange(0, 32)]
     for bone in bones:
-        for i in range(0, 32):
+        for i in xrange(0, 32):
             vis_layers[i] = vis_layers[i] or obj.data.bones[bone].layers[i]
-    for i in range(0, 32):
+    for i in xrange(0, 32):
         vis_layers[i] = vis_layers[i] and not (ORG_LAYER[i] or MCH_LAYER[i] or DEF_LAYER[i])
     obj.data.layers = vis_layers
 
     # Ensure the collection of layer names exists
-    for i in range(1 + len(metarig.data.rigify_layers), 29):
+    for i in xrange(1 + len(metarig.data.rigify_layers), 29):
         metarig.data.rigify_layers.add()
 
     # Create list of layer name/row pairs
     layer_layout = []
     for l in metarig.data.rigify_layers:
-        print( l.name )
+        print l.name
         layer_layout += [(l.name, l.row)]
 
     # Generate the UI script
@@ -430,8 +431,8 @@ def get_bone_rigs(obj, bone_name, halt_on_missing=False):
             if halt_on_missing:
                 raise MetarigError(message)
             else:
-                print(message)
-                print('print_exc():')
+                print message
+                print 'print_exc():'
                 traceback.print_exc(file=sys.stdout)
         else:
             rigs += [rig]

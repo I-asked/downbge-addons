@@ -1,5 +1,7 @@
 # GPL #  Author, Anthony D'Agostino
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from bpy.props import IntProperty
 
@@ -8,12 +10,13 @@ import mathutils
 import io
 import operator
 import functools
+from itertools import imap
 
 class AddTeapot(bpy.types.Operator):
     """Add a teapot mesh"""
     bl_idname = "mesh.primitive_teapot_add"
     bl_label = "Add Teapot"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = set(["REGISTER", "UNDO"])
 
     resolution = IntProperty(
             name="Resolution",
@@ -30,7 +33,7 @@ class AddTeapot(bpy.types.Operator):
                                    self.resolution)
         # Actually create the mesh object from this geometry data.
         obj = create_mesh_object(context, verts, [], faces, "Teapot")
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 def create_mesh_face_hack(faces):
     # FIXME, faces with duplicate vertices shouldn't be created in the first place.
@@ -65,24 +68,24 @@ def read_indexed_patch_file(filename):
     rawpatches = []
     patches = []
     numpatches = int(file.readline())
-    for i in range(numpatches):
+    for i in xrange(numpatches):
         line = file.readline()
         (a, b, c, d,
          e, f, g, h,
          i, j, k, l,
          m, n, o, p,
-         ) = map(int, line.split(","))
+         ) = imap(int, line.split(","))
         patches.append([[a, b, c, d], [e, f, g, h], [i, j, k, l], [m, n, o, p]])
         rawpatches.append([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
     verts = []
     numverts = int(file.readline())
-    for i in range(numverts):
+    for i in xrange(numverts):
         line = file.readline()
-        v1, v2, v3 = map(float, line.split(","))
+        v1, v2, v3 = imap(float, line.split(","))
         verts.append((v1, v2, v3))
-    for i in range(len(patches)):
-        for j in range(4):  # len(patches[i])):
-            for k in range(4):  # len(patches[i][j])):
+    for i in xrange(len(patches)):
+        for j in xrange(4):  # len(patches[i])):
+            for k in xrange(4):  # len(patches[i][j])):
                 index = patches[i][j][k] - 1
                 rawpatches[i][j][k] = verts[index]
     return rawpatches
@@ -95,7 +98,7 @@ def patches_to_raw(patches, resolution):
         faces = make_faces(resolution)
         rawquads = indexed_to_rawquads(verts, faces)
         raw.append(rawquads)
-    raw = functools.reduce(operator.add, raw)  # flatten the list
+    raw = reduce(operator.add, raw)  # flatten the list
     return raw
 
 
@@ -104,12 +107,12 @@ def make_bezier(ctrlpnts, resolution):
     b2 = lambda t: 3.0 * t * t * (1.0 - t)
     b3 = lambda t: 3.0 * t * (1.0 - t) * (1.0 - t)
     b4 = lambda t: (1.0 - t) * (1.0 - t) * (1.0 - t)
-    p1, p2, p3, p4 = map(mathutils.Vector, ctrlpnts)
+    p1, p2, p3, p4 = imap(mathutils.Vector, ctrlpnts)
 
     def makevert(t):
         x, y, z = b1(t) * p1 + b2(t) * p2 + b3(t) * p3 + b4(t) * p4
         return (x, y, z)
-    curveverts = [makevert(i/resolution) for i in range(resolution+1)]
+    curveverts = [makevert(i/resolution) for i in xrange(resolution+1)]
     return curveverts
 
 
@@ -124,15 +127,15 @@ def make_verts(a, resolution):
         c = make_bezier(i, resolution)
         s.append(c)
     verts = s
-    verts = functools.reduce(operator.add, verts)  # flatten the list
+    verts = reduce(operator.add, verts)  # flatten the list
     return verts
 
 
 def make_faces(resolution):
     n = resolution + 1
     faces = []
-    for i in range(resolution):
-        for j in range(resolution):
+    for i in xrange(resolution):
+        for j in xrange(resolution):
             v1 = (i + 1) * n + j
             v2 = (i + 1) * n + j + 1
             v3 = i * n + j + 1
@@ -144,9 +147,9 @@ def make_faces(resolution):
 def indexed_to_rawquads(verts, faces):
     rows = len(faces)
     cols = len(faces[0])    # or 4
-    rawquads = [[None] * cols for i in range(rows)]
-    for i in range(rows):
-        for j in range(cols):
+    rawquads = [[None] * cols for i in xrange(rows)]
+    for i in xrange(rows):
+        for j in xrange(cols):
             index = faces[i][j]
             rawquads[i][j] = verts[index]
     return rawquads
@@ -157,8 +160,8 @@ def raw_to_indexed(rawfaces):
     verts = []
     coords = {}
     index = 0
-    for i in range(len(rawfaces)):
-        for j in range(len(rawfaces[i])):
+    for i in xrange(len(rawfaces)):
+        for j in xrange(len(rawfaces[i])):
             vertex = rawfaces[i][j]
             if vertex not in coords:
                 coords[vertex] = index
@@ -171,9 +174,9 @@ def raw_to_indexed(rawfaces):
 def transpose(rowsbycols):
     rows = len(rowsbycols)
     cols = len(rowsbycols[0])
-    colsbyrows = [[None] * rows for i in range(cols)]
-    for i in range(cols):
-        for j in range(rows):
+    colsbyrows = [[None] * rows for i in xrange(cols)]
+    for i in xrange(cols):
+        for j in xrange(rows):
             colsbyrows[i][j] = rowsbycols[j][i]
     return colsbyrows
 

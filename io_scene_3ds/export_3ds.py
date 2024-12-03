@@ -32,6 +32,9 @@ from the lib3ds project (http://lib3ds.sourceforge.net/) sourcecode.
 
 #Some of the chunks that we will export
 #----- Primary Chunk, at the beginning of each file
+from __future__ import absolute_import
+from itertools import izip
+from io import open
 PRIMARY = 0x4D4D
 
 #------ Main Chunks
@@ -191,7 +194,7 @@ class _3ds_string(object):
     __slots__ = ("value", )
 
     def __init__(self, val):
-        assert(type(val) == bytes)
+        assert(type(val) == str)
         self.value = val
 
     def get_size(self):
@@ -351,10 +354,10 @@ class _3ds_named_variable(object):
 
     def dump(self, indent):
         if self.value is not None:
-            print(indent * " ",
+            print indent * " ",
                   self.name if self.name else "[unnamed]",
                   " = ",
-                  self.value)
+                  self.value
 
 
 #the chunk class
@@ -423,9 +426,9 @@ class _3ds_chunk(object):
 
         Dump is used for debugging purposes, to dump the contents of a chunk to the standard output.
         Uses the dump function of the named variables and the subchunks to do the actual work."""
-        print(indent * " ",
+        print indent * " ",
               "ID=%r" % hex(self.ID.value),
-              "size=%r" % self.get_size())
+              "size=%r" % self.get_size()
         for variable in self.variables:
             variable.dump(indent + 1)
         for subchunk in self.subchunks:
@@ -592,7 +595,7 @@ def make_material_chunk(material, image):
                 if s.use_map_color_diffuse:
                     diffuse.append(s)
                 elif not (s in normal or s in alpha or s in spec):
-                    print('\nwarning: failed to map texture to 3DS map channel, assuming diffuse')
+                    print '\nwarning: failed to map texture to 3DS map channel, assuming diffuse'
                     diffuse.append(s)
 
             if diffuse:
@@ -667,11 +670,11 @@ def remove_face_uv(verts, tri_list):
 
     # initialize a list of UniqueLists, one per vertex:
     #uv_list = [UniqueList() for i in xrange(len(verts))]
-    unique_uvs = [{} for i in range(len(verts))]
+    unique_uvs = [{} for i in xrange(len(verts))]
 
     # for each face uv coordinate, add it to the UniqueList of the vertex
     for tri in tri_list:
-        for i in range(3):
+        for i in xrange(3):
             # store the index into the UniqueList for future reference:
             # offset.append(uv_list[tri.vertex_index[i]].add(_3ds_point_uv(tri.faceuvs[i])))
 
@@ -717,7 +720,7 @@ def remove_face_uv(verts, tri_list):
 
     # Make sure the triangle vertex indices now refer to the new vertex list:
     for tri in tri_list:
-        for i in range(3):
+        for i in xrange(3):
             tri.offset[i] += index_list[tri.vertex_index[i]]
         tri.vertex_index = tri.offset
 
@@ -786,7 +789,7 @@ def make_faces_chunk(tri_list, mesh, materialDict):
                 obj_material_faces[tri.mat].add(_3ds_ushort(i))
 
         face_chunk.add_variable("faces", face_list)
-        for i in range(n_materials):
+        for i in xrange(n_materials):
             obj_material_chunk = _3ds_chunk(OBJECT_MATERIAL)
             obj_material_chunk.add_variable("name", obj_material_names[i])
             obj_material_chunk.add_variable("face_list", obj_material_faces[i])
@@ -1035,7 +1038,7 @@ def save(operator,
             continue
 
         for ob_derived, mat in derived:
-            if ob.type not in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
+            if ob.type not in set(['MESH', 'CURVE', 'SURFACE', 'FONT', 'META']):
                 continue
 
             try:
@@ -1055,7 +1058,7 @@ def save(operator,
                     if not mat_ls:
                         mat = mat_name = None
 
-                    for f, uf in zip(data.tessfaces, data.tessface_uv_textures.active.data):
+                    for f, uf in izip(data.tessfaces, data.tessface_uv_textures.active.data):
                         if mat_ls:
                             mat_index = f.material_index
                             if mat_index >= mat_ls_len:
@@ -1113,7 +1116,7 @@ def save(operator,
         if object_chunk.validate():
             object_info.add_subchunk(object_chunk)
         else:
-            operator.report({'WARNING'}, "Object %r can't be written into a 3DS file")
+            operator.report(set(['WARNING']), "Object %r can't be written into a 3DS file")
 
         ''' # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
         # make a kf object node for the object:
@@ -1161,9 +1164,9 @@ def save(operator,
 
     # Debugging only: report the exporting time:
     #Blender.Window.WaitCursor(0)
-    print("3ds export time: %.2f" % (time.clock() - time1))
+    print "3ds export time: %.2f" % (time.clock() - time1)
 
     # Debugging only: dump the chunk hierarchy:
     #primary.dump()
 
-    return {'FINISHED'}
+    return set(['FINISHED'])

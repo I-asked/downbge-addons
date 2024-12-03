@@ -19,6 +19,7 @@
 # <pep8-80 compliant>
 
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Raw mesh format (.raw)",
     "author": "Anthony D,Agostino (Scorpius), Aurel Wildfellner",
@@ -49,22 +50,22 @@ class RawImporter(bpy.types.Operator):
     """Load Raw triangle mesh data"""
     bl_idname = "import_mesh.raw"
     bl_label = "Import RAW"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     filepath = StringProperty(
             subtype='FILE_PATH',
             )
-    filter_glob = StringProperty(default="*.raw", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.raw", options=set(['HIDDEN']))
 
     def execute(self, context):
         from . import import_raw
         import_raw.read(self.filepath)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         wm = context.window_manager
         wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 
 class RawExporter(bpy.types.Operator, ExportHelper):
@@ -73,7 +74,7 @@ class RawExporter(bpy.types.Operator, ExportHelper):
     bl_label = "Export RAW"
 
     filename_ext = ".raw"
-    filter_glob = StringProperty(default="*.raw", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.raw", options=set(['HIDDEN']))
 
     apply_modifiers = BoolProperty(
             name="Apply Modifiers",
@@ -93,7 +94,7 @@ class RawExporter(bpy.types.Operator, ExportHelper):
                          self.triangulate,
                          )
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 def menu_import(self, context):

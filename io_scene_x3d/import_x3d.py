@@ -23,6 +23,8 @@ DEBUG = False
 # This should work without a blender at all
 import os
 import shlex
+from io import open
+from itertools import izip
 
 
 def imageConvertCompat(path):
@@ -61,7 +63,7 @@ def vrml_split_fields(value):
         -> [key 0.0], [otherkey 1,2,3], [opt1 opt1 0.0]
     """
     def iskey(k):
-        if k[0] != '"' and k[0].isalpha() and k.upper() not in {'TRUE', 'FALSE'}:
+        if k[0] != '"' and k[0].isalpha() and k.upper() not in set(['TRUE', 'FALSE']):
             return True
         return False
 
@@ -72,7 +74,7 @@ def vrml_split_fields(value):
         if iskey(v):
             if field_context:
                 field_context_len = len(field_context)
-                if (field_context_len > 2) and (field_context[-2] in {'DEF', 'USE'}):
+                if (field_context_len > 2) and (field_context[-2] in set(['DEF', 'USE'])):
                     field_context.append(v)
                 elif (not iskey(field_context[-1])) or ((field_context_len == 3 and field_context[1] == 'IS')):
                     # this IS a key but the previous value was not a key, ot it was a defined field.
@@ -293,16 +295,16 @@ def is_nodeline(i, words):
 
     if not node_type:
         if DEBUG:
-            print("not node_type", lines[i])
+            print "not node_type", lines[i]
         return 0, 0
 
     # Ok, we have a { after some values
     # Check the values are not fields
     for i, val in enumerate(words):
-        if i != 0 and words[i - 1] in {'DEF', 'USE'}:
+        if i != 0 and words[i - 1] in set(['DEF', 'USE']):
             # ignore anything after DEF, it is a ID and can contain any chars.
             pass
-        elif val[0].isalpha() and val not in {'TRUE', 'FALSE'}:
+        elif val[0].isalpha() and val not in set(['TRUE', 'FALSE']):
             pass
         else:
             # There is a number in one of the values, therefor we are not a node.
@@ -557,7 +559,7 @@ class vrmlNode(object):
                 else:
 
                     if DEBUG:
-                        print('getSerialized() is proto:', child.getProtoName(), child.getExternprotoName(), self.getSpec())
+                        print 'getSerialized() is proto:', child.getProtoName(), child.getExternprotoName(), self.getSpec()
 
                     self_spec = self.getSpec()
 
@@ -626,14 +628,14 @@ class vrmlNode(object):
                                 if len(f_def) >= 2:
                                     if f_def[0] == field_id:
                                         if DEBUG:
-                                            print("getFieldName(), found proto", f_def)
+                                            print "getFieldName(), found proto", f_def
                                         f_proto_lookup = f_def[1:]
 
                     if AS_CHILD:
                         if f_proto_child_lookup:
                             if DEBUG:
-                                print("getFieldName() - AS_CHILD=True, child found")
-                                print(f_proto_child_lookup)
+                                print "getFieldName() - AS_CHILD=True, child found"
+                                print f_proto_child_lookup
                         return f_proto_child_lookup
                     else:
                         return f_proto_lookup
@@ -663,13 +665,13 @@ class vrmlNode(object):
             f = f[:f.index(',')]  # strip after the comma
 
         if len(f) != 1:
-            print('\t"%s" wrong length for int conversion for field "%s"' % (f, field))
+            print '\t"%s" wrong length for int conversion for field "%s"' % (f, field)
             return default
 
         try:
             return int(f[0])
         except:
-            print('\tvalue "%s" could not be used as an int for field "%s"' % (f[0], field))
+            print '\tvalue "%s" could not be used as an int for field "%s"' % (f[0], field)
             return default
 
     def getFieldAsFloat(self, field, default, ancestry):
@@ -682,13 +684,13 @@ class vrmlNode(object):
             f = f[:f.index(',')]  # strip after the comma
 
         if len(f) != 1:
-            print('\t"%s" wrong length for float conversion for field "%s"' % (f, field))
+            print '\t"%s" wrong length for float conversion for field "%s"' % (f, field)
             return default
 
         try:
             return float(f[0])
         except:
-            print('\tvalue "%s" could not be used as a float for field "%s"' % (f[0], field))
+            print '\tvalue "%s" could not be used as a float for field "%s"' % (f[0], field)
             return default
 
     def getFieldAsFloatTuple(self, field, default, ancestry):
@@ -700,7 +702,7 @@ class vrmlNode(object):
         # if ',' in f: f = f[:f.index(',')] # strip after the comma
 
         if len(f) < 1:
-            print('"%s" wrong length for float tuple conversion for field "%s"' % (f, field))
+            print '"%s" wrong length for float tuple conversion for field "%s"' % (f, field)
             return default
 
         ret = []
@@ -715,7 +717,7 @@ class vrmlNode(object):
         if ret:
             return ret
         if not ret:
-            print('\tvalue "%s" could not be used as a float tuple for field "%s"' % (f, field))
+            print '\tvalue "%s" could not be used as a float tuple for field "%s"' % (f, field)
             return default
 
     def getFieldAsBool(self, field, default, ancestry):
@@ -728,7 +730,7 @@ class vrmlNode(object):
             f = f[:f.index(',')]  # strip after the comma
 
         if len(f) != 1:
-            print('\t"%s" wrong length for bool conversion for field "%s"' % (f, field))
+            print '\t"%s" wrong length for bool conversion for field "%s"' % (f, field)
             return default
 
         if f[0].upper() == '"TRUE"' or f[0].upper() == 'TRUE':
@@ -736,7 +738,7 @@ class vrmlNode(object):
         elif f[0].upper() == '"FALSE"' or f[0].upper() == 'FALSE':
             return False
         else:
-            print('\t"%s" could not be used as a bool for field "%s"' % (f[1], field))
+            print '\t"%s" could not be used as a bool for field "%s"' % (f[1], field)
             return default
 
     def getFieldAsString(self, field, default, ancestry):
@@ -746,7 +748,7 @@ class vrmlNode(object):
         if f is None:
             return default
         if len(f) < 1:
-            print('\t"%s" wrong length for string conversion for field "%s"' % (f, field))
+            print '\t"%s" wrong length for string conversion for field "%s"' % (f, field)
             return default
 
         if len(f) > 1:
@@ -762,7 +764,7 @@ class vrmlNode(object):
         if st[0] == '"' and st[-1] == '"':
             return st[1:-1]
         else:
-            print('\tvalue "%s" could not be used as a string for field "%s"' % (f[0], field))
+            print '\tvalue "%s" could not be used as a string for field "%s"' % (f[0], field)
             return default
 
     def getFieldAsArray(self, field, group, ancestry):
@@ -778,7 +780,7 @@ class vrmlNode(object):
                 try:
                     array_data = [float(val) for val in array_string]
                 except:
-                    print('\tWarning, could not parse array data from field')
+                    print '\tWarning, could not parse array data from field'
 
             return array_data
 
@@ -846,7 +848,7 @@ class vrmlNode(object):
                 sub_array = []
 
         if sub_array:
-            print('\twarning, array was not aligned to requested grouping', group, 'remaining value', sub_array)
+            print '\twarning, array was not aligned to requested grouping', group, 'remaining value', sub_array
 
         return new_array
 
@@ -868,7 +870,7 @@ class vrmlNode(object):
         try:
             new_array = [f[0][1:-1] for f in child_array.fields]
         except:
-            print('\twarning, string array could not be made')
+            print '\twarning, string array could not be made'
             new_array = []
 
         return new_array
@@ -977,7 +979,7 @@ class vrmlNode(object):
             # print(url_ls)
 
             for url, extern_key in url_ls:
-                print(url)
+                print url
                 urls = []
                 urls.append(url)
                 urls.append(bpy.path.resolve_ncase(urls[-1]))
@@ -995,21 +997,21 @@ class vrmlNode(object):
                     url_found = False
 
                 if not url_found:
-                    print('\tWarning: Inline URL could not be found:', url)
+                    print '\tWarning: Inline URL could not be found:', url
                 else:
                     if url == self.getFilename():
-                        print('\tWarning: cant Inline yourself recursively:', url)
+                        print '\tWarning: cant Inline yourself recursively:', url
                     else:
 
                         try:
                             data = gzipOpen(url)
                         except:
-                            print('\tWarning: cant open the file:', url)
+                            print '\tWarning: cant open the file:', url
                             data = None
 
                         if data:
                             # Tricky - inline another VRML
-                            print('\tLoading Inline:"%s"...' % url)
+                            print '\tLoading Inline:"%s"...' % url
 
                             # Watch it! - backup lines
                             lines_old = lines[:]
@@ -1045,9 +1047,9 @@ class vrmlNode(object):
                                         extern_child.parent = self
 
                                         if DEBUG:
-                                            print("\tEXTERNPROTO ID found!:", extern_key)
+                                            print "\tEXTERNPROTO ID found!:", extern_key
                                     else:
-                                        print("\tEXTERNPROTO ID not found!:", extern_key)
+                                        print "\tEXTERNPROTO ID not found!:", extern_key
 
                             # Watch it! - restore lines
                             lines[:] = lines_old
@@ -1070,7 +1072,7 @@ class vrmlNode(object):
 
             node_type, new_i = is_nodeline(i, words)
             if not node_type:  # fail for parsing new node.
-                print("Failed to parse new node")
+                print "Failed to parse new node"
                 raise ValueError
 
             if self.node_type == NODE_REFERENCE:
@@ -1134,14 +1136,14 @@ class vrmlNode(object):
 
             if l == '}':
                 if self.node_type != NODE_NORMAL:  # also ends proto nodes, we may want a type for these too.
-                    print('wrong node ending, expected an } ' + str(i) + ' ' + str(self.node_type))
+                    print 'wrong node ending, expected an } ' + str(i) + ' ' + str(self.node_type)
                     if DEBUG:
                         raise ValueError
                 ### print("returning", i)
                 return i + 1
             if l == ']':
                 if self.node_type != NODE_ARRAY:
-                    print('wrong node ending, expected a ] ' + str(i) + ' ' + str(self.node_type))
+                    print 'wrong node ending, expected a ] ' + str(i) + ' ' + str(self.node_type)
                     if DEBUG:
                         raise ValueError
                 ### print("returning", i)
@@ -1289,7 +1291,7 @@ def vrml_parse(path):
 
     # This prints a load of text
     if DEBUG:
-        print(root)
+        print root
 
     return root, ''
 
@@ -1317,13 +1319,13 @@ class x3dNode(vrmlNode):
                     self.reference = self.getDefDict()[use.value]
                     self.node_type = NODE_REFERENCE
                 except:
-                    print('\tWarning: reference', use.value, 'not found')
+                    print '\tWarning: reference', use.value, 'not found'
                     self.parent.children.remove(self)
 
                 return
 
         for x3dChildNode in self.x3dNode.childNodes:
-            if x3dChildNode.nodeType in {x3dChildNode.TEXT_NODE, x3dChildNode.COMMENT_NODE, x3dChildNode.CDATA_SECTION_NODE}:
+            if x3dChildNode.nodeType in set([x3dChildNode.TEXT_NODE, x3dChildNode.COMMENT_NODE, x3dChildNode.CDATA_SECTION_NODE]):
                 continue
 
             node_type = NODE_NORMAL
@@ -1421,6 +1423,8 @@ for i, f in enumerate(files):
 
 # NO BLENDER CODE ABOVE THIS LINE.
 # -----------------------------------------------------------------------------------
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from bpy_extras import image_utils
 from mathutils import Vector, Matrix
@@ -1570,7 +1574,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
         coord = []
 
     if not coord:
-        print('\tWarnint: IndexedFaceSet has no points')
+        print '\tWarnint: IndexedFaceSet has no points'
         return None, ccw
 
     ifs_faces = geom.getFieldAsArray('coordIndex', 0, ancestry)
@@ -1631,7 +1635,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
         elif l == 2:
             edges.append(face)
         elif l > 4:
-            for i in range(2, len(face)):
+            for i in xrange(2, len(face)):
                 faces.append([face[0], face[i - 1], face[i]])
                 if do_uvmap:
                     faces_uv.append([fuvs[0], fuvs[i - 1], fuvs[i]])
@@ -1654,7 +1658,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
 
             if do_uvmap:
                 if i >= len(ifs_texfaces):
-                    print('\tWarning: UV Texface index out of range')
+                    print '\tWarning: UV Texface index out of range'
                     fuvs.append(ifs_texfaces[0])
                 else:
                     fuvs.append(ifs_texfaces[i])
@@ -1680,7 +1684,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
         bpymesh.tessfaces.add(len(faces))
         bpymesh.tessfaces.foreach_set("vertices_raw", [a for f in faces for a in (f + [0] if len(f) == 3 else f)])  # XXX25 speed
     except KeyError:
-        print("one or more vert indices out of range. corrupt file?")
+        print "one or more vert indices out of range. corrupt file?"
         #for f in faces:
         #   bpymesh.tessfaces.extend(faces, smooth=True)
 
@@ -1688,7 +1692,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
     # bpymesh.update()  # cant call now, because it would convert tessface
 
     if len(bpymesh.tessfaces) != len(faces):
-        print('\tWarning: adding faces did not work! file is invalid, not adding UVs or vcolors')
+        print '\tWarning: adding faces did not work! file is invalid, not adding UVs or vcolors'
         bpymesh.update()
         return bpymesh, ccw
 
@@ -1708,7 +1712,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
                 try:
                     f.uv[j] = ifs_texpoints[fuv[j] + 1]  # XXX25, speedup
                 except:
-                    print('\tWarning: UV Index out of range')
+                    print '\tWarning: UV Index out of range'
                     f.uv[j] = ifs_texpoints[0]  # XXX25, speedup
 
     elif bpyima and len(bpymesh.tessfaces):
@@ -1808,7 +1812,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
                         try:
                             color_index = ifs_color_index[color_index]
                         except:
-                            print('\tWarning: per vertex color index out of range')
+                            print '\tWarning: per vertex color index out of range'
                             continue
 
                     if color_index < len(ifs_vcol):
@@ -1825,7 +1829,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
                     #print(color_index, ifs_color_index)
                     if ifs_color_index:
                         if color_index >= len(ifs_color_index):
-                            print('\tWarning: per face color index out of range')
+                            print '\tWarning: per face color index out of range'
                             color_index = 0
                         else:
                             color_index = ifs_color_index[color_index]
@@ -1858,7 +1862,7 @@ def importMesh_IndexedLineSet(geom, ancestry):
         points = []
 
     if not points:
-        print('\tWarning: IndexedLineSet had no points')
+        print '\tWarning: IndexedLineSet had no points'
         return None
 
     ils_lines = geom.getFieldAsArray('coordIndex', 0, ancestry)
@@ -1885,7 +1889,7 @@ def importMesh_IndexedLineSet(geom, ancestry):
         # co = points[line[0]]  # UNUSED
         nu = bpycurve.splines.new('POLY')
         nu.points.add(len(line) - 1)  # the new nu has 1 point to begin with
-        for il, pt in zip(line, nu.points):
+        for il, pt in izip(line, nu.points):
             pt.co[0:3] = points[il]
 
     return bpycurve
@@ -2133,7 +2137,7 @@ def importShape(node, ancestry, global_matrix):
                             # ima_urls is a list or None
 
                             if ima_urls is None:
-                                print("\twarning, image with no URL, this is odd")
+                                print "\twarning, image with no URL, this is odd"
                             else:
                                 for f in ima_urls:
                                     bpyima = image_utils.load_image(f, os.path.dirname(node.getFilename()), place_holder=False,
@@ -2157,7 +2161,7 @@ def importShape(node, ancestry, global_matrix):
                                     mtex.texture_coords = 'UV'
                                     mtex.use_map_diffuse = True
 
-                                    if image_depth in {32, 128}:
+                                    if image_depth in set([32, 128]):
                                         bpymat.use_transparency = True
                                         mtex.use_map_alpha = True
                                         mtex.alpha_factor = 0.0
@@ -2198,7 +2202,7 @@ def importShape(node, ancestry, global_matrix):
                 elif geom_spec == 'Cone':
                     bpydata = importMesh_Cone(geom, ancestry)
                 else:
-                    print('\tWarning: unsupported type "%s"' % geom_spec)
+                    print '\tWarning: unsupported type "%s"' % geom_spec
                     return
 
                 if bpydata:
@@ -2338,7 +2342,7 @@ def importLamp(node, spec, ancestry, global_matrix):
     elif spec == 'SpotLight':
         bpylamp, mtx = importLamp_SpotLight(node, ancestry)
     else:
-        print("Error, not a lamp")
+        print "Error, not a lamp"
         raise ValueError
 
     bpyob = node.blendData = node.blendObject = bpy.data.objects.new("TODO", bpylamp)
@@ -2534,7 +2538,7 @@ ROUTE champFly001.bindTime TO vpTs.set_startTime
                 from_id, from_type = field[1].split('.')
                 to_id, to_type = field[3].split('.')
             except:
-                print("Warning, invalid ROUTE", field)
+                print "Warning, invalid ROUTE", field
                 continue
 
             if from_type == 'value_changed':
@@ -2543,7 +2547,7 @@ ROUTE champFly001.bindTime TO vpTs.set_startTime
                     set_data_from_node = defDict[from_id]
                     translatePositionInterpolator(set_data_from_node, action, ancestry)
 
-                if to_type in {'set_orientation', 'rotation'}:
+                if to_type in set(['set_orientation', 'rotation']):
                     action = getIpo(to_id)
                     set_data_from_node = defDict[from_id]
                     translateOrientationInterpolator(set_data_from_node, action, ancestry)
@@ -2576,7 +2580,7 @@ def load_web3d(path,
         root_node, msg = vrml_parse(path)
 
     if not root_node:
-        print(msg)
+        print msg
         return
 
     if global_matrix is None:
@@ -2602,7 +2606,7 @@ def load_web3d(path,
             pass
         if spec == 'Shape':
             importShape(node, ancestry, global_matrix)
-        elif spec in {'PointLight', 'DirectionalLight', 'SpotLight'}:
+        elif spec in set(['PointLight', 'DirectionalLight', 'SpotLight']):
             importLamp(node, spec, ancestry, global_matrix)
         elif spec == 'Viewpoint':
             importViewpoint(node, ancestry, global_matrix)
@@ -2684,4 +2688,4 @@ def load(operator, context, filepath="", global_matrix=None):
                global_matrix=global_matrix,
                )
 
-    return {'FINISHED'}
+    return set(['FINISHED'])

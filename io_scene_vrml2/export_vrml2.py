@@ -18,11 +18,13 @@
 
 # <pep8-80 compliant>
 
+from __future__ import absolute_import
 import bpy
 import bpy_extras
 import bmesh
 import os
 from bpy_extras import object_utils
+from io import open
 
 
 def save_bmesh(fw, bm,
@@ -31,7 +33,7 @@ def save_bmesh(fw, bm,
                path_mode, copy_set):
 
     base_src = os.path.dirname(bpy.data.filepath)
-    base_dst = os.path.dirname(fw.__self__.name)
+    base_dst = os.path.dirname(fw.im_self.name)
 
     fw('Shape {\n')
     fw('\tappearance Appearance {\n')
@@ -132,7 +134,7 @@ def save_bmesh(fw, bm,
 
         fw('\t\ttexCoordIndex [ ')
         i = None
-        for i in range(0, len(bm.faces) * 3, 3):
+        for i in xrange(0, len(bm.faces) * 3, 3):
             fw("%d %d %d -1 " % (i, i + 1, i + 2))
         del i
         fw(']\n')  # end 'coordIndex[]'
@@ -197,7 +199,7 @@ def save_object(fw, global_matrix,
                 material_colors = [
                         "%.2f %.2f %.2f " % (m.diffuse_color[:] if m else (1.0, 1.0, 1.0))
                         for m in me.materials]
-        assert(color_type in {'VERTEX', 'MATERIAL'})
+        assert(color_type in set(['VERTEX', 'MATERIAL']))
 
     if use_uv:
         if bm.loops.layers.uv.active is None:
@@ -255,4 +257,4 @@ def save(operator,
     # copy all collected files.
     bpy_extras.io_utils.path_reference_copy(copy_set)
 
-    return {'FINISHED'}
+    return set(['FINISHED'])

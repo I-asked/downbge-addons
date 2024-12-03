@@ -28,20 +28,20 @@ class CopyPreset(object):
 
 presets = (CopyPreset("Resolution",
                       ("resolution", "Render Resolution", "Render resolution and aspect ratio settings"),
-                      {"resolution_x", "resolution_y", "pixel_aspect_x", "pixel_aspect_y"}),
+                      set(["resolution_x", "resolution_y", "pixel_aspect_x", "pixel_aspect_y"])),
            CopyPreset("Scale",
                       ("scale", "Render Scale", "The “Render Scale” setting"),
-                      {"resolution_percentage"}),
+                      set(["resolution_percentage"])),
            CopyPreset("OSA",
                       ("osa", "Render OSA", "The OSA toggle and sample settings"),
-                      {"use_antialiasing", "antialiasing_samples"}),
+                      set(["use_antialiasing", "antialiasing_samples"])),
            CopyPreset("Threads",
                       ("threads", "Render Threads", "The thread mode and number settings"),
-                      {"threads_mode", "threads"}),
+                      set(["threads_mode", "threads"])),
            CopyPreset("Fields",
                       ("fields", "Render Fields", "The Fields settings"),
-                      {"use_fields", "field_order", "use_fields_still"}),
+                      set(["use_fields", "field_order", "use_fields_still"])),
            CopyPreset("Stamp",
                       ("stamp", "Render Stamp", "The Stamp toggle"),
-                      {"use_stamp"})
+                      set(["use_stamp"]))
           )

@@ -34,10 +34,12 @@ config = [
 /data/src/blender/lib/tests/rendering/
 """
 
+from __future__ import absolute_import
 import bpy
 import time
 import tempfile
 import os
+from io import open
 
 DEMO_CFG = "demo.py"
 
@@ -106,9 +108,9 @@ def demo_mode_auto_select():
 
     for area in bpy.context.window.screen.areas:
         size = area.width * area.height
-        if area.type in {'VIEW_3D', 'GRAPH_EDITOR', 'DOPESHEET_EDITOR', 'NLA_EDITOR', 'TIMELINE'}:
+        if area.type in set(['VIEW_3D', 'GRAPH_EDITOR', 'DOPESHEET_EDITOR', 'NLA_EDITOR', 'TIMELINE']):
             play_area += size
-        elif area.type in {'IMAGE_EDITOR', 'SEQUENCE_EDITOR', 'NODE_EDITOR'}:
+        elif area.type in set(['IMAGE_EDITOR', 'SEQUENCE_EDITOR', 'NODE_EDITOR']):
             render_area += size
 
         if area.type == 'IMAGE_EDITOR':
@@ -137,7 +139,7 @@ def demo_mode_next_file(step=1):
         del global_config_files[global_state["demo_index"]]
         global_state["demo_index"] -= 1
 
-    print(global_state["demo_index"])
+    print global_state["demo_index"]
     demo_index_next = (global_state["demo_index"] + step) % len(global_config_files)
 
     if global_state["exit"] and step > 0:
@@ -147,8 +149,8 @@ def demo_mode_next_file(step=1):
             sys.exit(0)
 
     global_state["demo_index"] = demo_index_next
-    print(global_state["demo_index"], "....")
-    print("func:demo_mode_next_file", global_state["demo_index"])
+    print global_state["demo_index"], "...."
+    print "func:demo_mode_next_file", global_state["demo_index"]
     filepath = global_config_files[global_state["demo_index"]]["file"]
     bpy.ops.wm.open_mainfile(filepath=filepath)
 
@@ -168,7 +170,7 @@ def demo_mode_load_file():
         before the file is fully loaded.
         Some operators will crash like playing an animation.
     """
-    print("func:demo_mode_load_file")
+    print "func:demo_mode_load_file"
     DemoMode.first_run = True
     bpy.ops.wm.demo_mode('EXEC_DEFAULT')
 
@@ -190,14 +192,14 @@ def demo_mode_temp_file():
 
 
 def demo_mode_init():
-    print("func:demo_mode_init")
+    print "func:demo_mode_init"
     DemoKeepAlive.ensure()
 
     if 1:
         global_config.clear()
         global_config.update(global_config_files[global_state["demo_index"]])
 
-    print(global_config)
+    print global_config
 
     demo_mode_timer_add()
 
@@ -210,7 +212,7 @@ def demo_mode_init():
         bpy.ops.screen.animation_play()
 
     elif global_config["mode"] == 'RENDER':
-        print("  render")
+        print "  render"
 
         # setup scene.
         scene = bpy.context.scene
@@ -290,7 +292,7 @@ def demo_mode_update():
 
         # did we loop?
         if global_state["last_frame"] > frame:
-            print("Cycle!")
+            print "Cycle!"
             global_state["anim_cycles"] += 1
 
         global_state["last_frame"] = frame
@@ -315,7 +317,7 @@ def demo_mode_update():
 # modal operator
 
 
-class DemoKeepAlive:
+class DemoKeepAlive(object):
     secret_attr = "_keepalive"
 
     @staticmethod
@@ -354,13 +356,13 @@ class DemoMode(bpy.types.Operator):
         # print("DemoMode.modal", global_state["anim_cycles"])
         if not DemoMode.enabled:
             self.cleanup(disable=True)
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         if event.type == 'ESC':
             self.cleanup(disable=True)
             # disable here and not in cleanup because this is a user level disable.
             # which should stay disabled until explicitly enabled again.
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         # print(event.type)
         if DemoMode.first_run:
@@ -370,10 +372,10 @@ class DemoMode(bpy.types.Operator):
         else:
             demo_mode_update()
 
-        return {'PASS_THROUGH'}
+        return set(['PASS_THROUGH'])
 
     def execute(self, context):
-        print("func:DemoMode.execute:", len(global_config_files), "files")
+        print "func:DemoMode.execute:", len(global_config_files), "files"
 
         use_temp = False
 
@@ -383,8 +385,8 @@ class DemoMode(bpy.types.Operator):
             use_temp = True
 
         if not global_config_files:
-            self.report({'INFO'}, "No configuration found with text or file: %s. Run File -> Demo Mode Setup" % DEMO_CFG)
-            return {'CANCELLED'}
+            self.report(set(['INFO']), "No configuration found with text or file: %s. Run File -> Demo Mode Setup" % DEMO_CFG)
+            return set(['CANCELLED'])
 
         if use_temp:
             demo_mode_temp_file()  # play this once through then never again
@@ -393,15 +395,15 @@ class DemoMode(bpy.types.Operator):
         if DemoMode.enabled and DemoMode.first_run is False:
             # this actually cancells the previous running instance
             # should never happen now, DemoModeControl is for this.
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
         else:
             DemoMode.enabled = True
 
             context.window_manager.modal_handler_add(self)
-            return {'RUNNING_MODAL'}
+            return set(['RUNNING_MODAL'])
 
     def cancel(self, context):
-        print("func:DemoMode.cancel")
+        print "func:DemoMode.cancel"
         # disable here means no running on file-load.
         self.cleanup()
 
@@ -433,7 +435,7 @@ class DemoModeControl(bpy.types.Operator):
             demo_mode_next_file(1)
         else:  # pause
             DemoMode.disable()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 def menu_func(self, context):
@@ -474,19 +476,19 @@ def load_config(cfg_name=DEMO_CFG):
     if text is None:
         demo_path = os.path.join(basedir, cfg_name)
         if os.path.exists(demo_path):
-            print("Using config file: %r" % demo_path)
+            print "Using config file: %r" % demo_path
             demo_file = open(demo_path, "r")
             demo_data = demo_file.read()
             demo_file.close()
         else:
             demo_data = ""
     else:
-        print("Using config textblock: %r" % cfg_name)
+        print "Using config textblock: %r" % cfg_name
         demo_data = text.as_string()
         demo_path = os.path.join(bpy.data.filepath, cfg_name)  # fake
 
     if not demo_data:
-        print("Could not find %r textblock or %r file." % (DEMO_CFG, demo_path))
+        print "Could not find %r textblock or %r file." % (DEMO_CFG, demo_path)
         return False
 
     namespace["__file__"] = demo_path
@@ -498,11 +500,11 @@ def load_config(cfg_name=DEMO_CFG):
     global_state["exit"] = namespace.get("exit", False)
 
     if demo_search_path is None:
-        print("reading: %r, no search_path found, missing files wont be searched." % demo_path)
+        print "reading: %r, no search_path found, missing files wont be searched." % demo_path
     if demo_search_path.startswith("//"):
         demo_search_path = bpy.path.abspath(demo_search_path)
     if not os.path.exists(demo_search_path):
-        print("reading: %r, search_path %r does not exist." % (demo_path, demo_search_path))
+        print "reading: %r, search_path %r does not exist." % (demo_path, demo_search_path)
         demo_search_path = None
 
     blend_lookup = {}
@@ -538,7 +540,7 @@ def load_config(cfg_name=DEMO_CFG):
         if not os.path.exists(filepath_test):
             filepath_test = lookup_file(filepath_test)  # attempt to get from searchpath
         if not os.path.exists(filepath_test):
-            print("Cant find %r or %r, skipping!")
+            print "Cant find %r or %r, skipping!"
             continue
 
         filecfg["file"] = os.path.normpath(filepath_test)
@@ -546,10 +548,10 @@ def load_config(cfg_name=DEMO_CFG):
         # sanitize
         filecfg["file"] = os.path.abspath(filecfg["file"])
         filecfg["file"] = os.path.normpath(filecfg["file"])
-        print("  Adding: %r" % filecfg["file"])
+        print "  Adding: %r" % filecfg["file"]
         global_config_files.append(filecfg)
 
-    print("found %d files" % len(global_config_files))
+    print "found %d files" % len(global_config_files)
 
     global_state["basedir"] = basedir
 

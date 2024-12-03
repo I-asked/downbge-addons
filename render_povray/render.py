@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 import subprocess
 import os
@@ -30,6 +32,8 @@ import platform#
 import subprocess#
 from bpy.types import(Operator)#all added for render preview
 from . import df3 # for smoke rendering
+from io import open
+from itertools import izip
 ##############################SF###########################
 ##############find image texture
 def imageFormat(imgF):
@@ -49,7 +53,7 @@ def imageFormat(imgF):
     }.get(os.path.splitext(imgF)[-1].upper(), "")
 
     if not ext:
-        print(" WARNING: texture image format not supported ")
+        print " WARNING: texture image format not supported "
 
     return ext
 
@@ -210,9 +214,9 @@ def exportPattern(texture):
             pos = el.position
             col=el.color
             colR,colG,colB,colA = col[0],col[1],col[2],1-col[3]
-            if pat.tex_pattern_type not in {'checker', 'hexagon', 'square', 'triangular', 'brick'} :
+            if pat.tex_pattern_type not in set(['checker', 'hexagon', 'square', 'triangular', 'brick']) :
                 colRampStrg+="[%.4g color rgbf<%.4g,%.4g,%.4g,%.4g>] \n"%(pos,colR,colG,colB,colA)
-            if pat.tex_pattern_type in {'brick','checker'} and numColor < 3:
+            if pat.tex_pattern_type in set(['brick','checker']) and numColor < 3:
                 colRampStrg+="color rgbf<%.4g,%.4g,%.4g,%.4g> \n"%(colR,colG,colB,colA)
             if pat.tex_pattern_type == 'hexagon' and numColor < 4 :
                 colRampStrg+="color rgbf<%.4g,%.4g,%.4g,%.4g> \n"%(colR,colG,colB,colA)
@@ -512,7 +516,7 @@ def exportPattern(texture):
         texStrg+="%s\n"%pat.tex_pattern_type
         if pat.tex_pattern_type == 'agate': 
             texStrg+="agate_turb %.4g\n"%pat.modifier_turbulence                           
-        if pat.tex_pattern_type in {'spiral1', 'spiral2', 'tiling'}: 
+        if pat.tex_pattern_type in set(['spiral1', 'spiral2', 'tiling']): 
             texStrg+="%s\n"%pat.modifier_numbers
         if pat.tex_pattern_type == 'quilted': 
             texStrg+="control0 %s control1 %s\n"%(pat.modifier_control0, pat.modifier_control1)                           
@@ -524,7 +528,7 @@ def exportPattern(texture):
             texStrg+="%s mandel %s \n"%(pat.magnet_type, pat.f_iter)
         if pat.tex_pattern_type == 'magnet' and pat.magnet_style == 'julia':  
             texStrg+="%s julia <%.4g, %.4g> %s\n"%(pat.magnet_type, pat.julia_complex_1, pat.julia_complex_2, pat.f_iter) 
-        if pat.tex_pattern_type in {'mandel', 'julia', 'magnet'}:
+        if pat.tex_pattern_type in set(['mandel', 'julia', 'magnet']):
             texStrg+="interior %s, %.4g\n"%(pat.f_ior, pat.f_ior_fac) 
             texStrg+="exterior %s, %.4g\n"%(pat.f_eor, pat.f_eor_fac)
         if pat.tex_pattern_type == 'gradient': 
@@ -580,27 +584,27 @@ def exportPattern(texture):
                     texStrg+="+"
                 texStrg+="%.4g"%pat.func_z
             sort = -1
-            if pat.func_list in {"f_comma","f_crossed_trough","f_cubic_saddle","f_cushion","f_devils_curve",
+            if pat.func_list in set(["f_comma","f_crossed_trough","f_cubic_saddle","f_cushion","f_devils_curve",
                                  "f_enneper","f_glob","f_heart","f_hex_x","f_hex_y","f_hunt_surface",
                                  "f_klein_bottle","f_kummer_surface_v1","f_lemniscate_of_gerono","f_mitre",
                                  "f_nodal_cubic","f_noise_generator","f_odd","f_paraboloid","f_pillow",
                                  "f_piriform","f_quantum","f_quartic_paraboloid","f_quartic_saddle",
-                                 "f_sphere","f_steiners_roman","f_torus_gumdrop","f_umbrella"}:
+                                 "f_sphere","f_steiners_roman","f_torus_gumdrop","f_umbrella"]):
                 sort = 0
-            if pat.func_list in {"f_bicorn","f_bifolia","f_boy_surface","f_superellipsoid","f_torus"}:
+            if pat.func_list in set(["f_bicorn","f_bifolia","f_boy_surface","f_superellipsoid","f_torus"]):
                 sort = 1
-            if pat.func_list in {"f_ellipsoid","f_folium_surface","f_hyperbolic_torus",
-                                 "f_kampyle_of_eudoxus","f_parabolic_torus","f_quartic_cylinder","f_torus2"}:
+            if pat.func_list in set(["f_ellipsoid","f_folium_surface","f_hyperbolic_torus",
+                                 "f_kampyle_of_eudoxus","f_parabolic_torus","f_quartic_cylinder","f_torus2"]):
                 sort = 2
-            if pat.func_list in {"f_blob2","f_cross_ellipsoids","f_flange_cover","f_isect_ellipsoids",
-                                 "f_kummer_surface_v2","f_ovals_of_cassini","f_rounded_box","f_spikes_2d","f_strophoid"}:
+            if pat.func_list in set(["f_blob2","f_cross_ellipsoids","f_flange_cover","f_isect_ellipsoids",
+                                 "f_kummer_surface_v2","f_ovals_of_cassini","f_rounded_box","f_spikes_2d","f_strophoid"]):
                 sort = 3
-            if pat.func_list in {"f_algbr_cyl1","f_algbr_cyl2","f_algbr_cyl3","f_algbr_cyl4","f_blob","f_mesh1","f_poly4","f_spikes"}:
+            if pat.func_list in set(["f_algbr_cyl1","f_algbr_cyl2","f_algbr_cyl3","f_algbr_cyl4","f_blob","f_mesh1","f_poly4","f_spikes"]):
                 sort = 4
-            if pat.func_list in {"f_devils_curve_2d","f_dupin_cyclid","f_folium_surface_2d","f_hetero_mf","f_kampyle_of_eudoxus_2d",
-                                 "f_lemniscate_of_gerono_2d","f_polytubes","f_ridge","f_ridged_mf","f_spiral","f_witch_of_agnesi"}:
+            if pat.func_list in set(["f_devils_curve_2d","f_dupin_cyclid","f_folium_surface_2d","f_hetero_mf","f_kampyle_of_eudoxus_2d",
+                                 "f_lemniscate_of_gerono_2d","f_polytubes","f_ridge","f_ridged_mf","f_spiral","f_witch_of_agnesi"]):
                 sort = 5
-            if pat.func_list in {"f_helix1","f_helix2","f_piriform_2d","f_strophoid_2d"}:
+            if pat.func_list in set(["f_helix1","f_helix2","f_piriform_2d","f_strophoid_2d"]):
                 sort = 6
             if pat.func_list == "f_helical_torus":
                 sort = 7
@@ -624,7 +628,7 @@ def exportPattern(texture):
                 texStrg+=",%.4g"%pat.func_P9
             texStrg+=")}\n"
         ############## end functions ###############################################################
-        if pat.tex_pattern_type not in {'checker', 'hexagon', 'square', 'triangular', 'brick'}:                        
+        if pat.tex_pattern_type not in set(['checker', 'hexagon', 'square', 'triangular', 'brick']):                        
             texStrg+="color_map {\n"
         numColor=0
         if tex.use_color_ramp == True:
@@ -633,9 +637,9 @@ def exportPattern(texture):
                 pos = el.position
                 col=el.color
                 colR,colG,colB,colA = col[0],col[1],col[2],1-col[3]
-                if pat.tex_pattern_type not in {'checker', 'hexagon', 'square', 'triangular', 'brick'} :
+                if pat.tex_pattern_type not in set(['checker', 'hexagon', 'square', 'triangular', 'brick']) :
                     texStrg+="[%.4g color rgbf<%.4g,%.4g,%.4g,%.4g>] \n"%(pos,colR,colG,colB,colA)
-                if pat.tex_pattern_type in {'brick','checker'} and numColor < 3:
+                if pat.tex_pattern_type in set(['brick','checker']) and numColor < 3:
                     texStrg+="color rgbf<%.4g,%.4g,%.4g,%.4g> \n"%(colR,colG,colB,colA)
                 if pat.tex_pattern_type == 'hexagon' and numColor < 4 :
                     texStrg+="color rgbf<%.4g,%.4g,%.4g,%.4g> \n"%(colR,colG,colB,colA)
@@ -646,7 +650,7 @@ def exportPattern(texture):
         else:
             texStrg+="[0 color rgbf<0,0,0,1>]\n"
             texStrg+="[1 color rgbf<1,1,1,0>]\n"
-        if pat.tex_pattern_type not in {'checker', 'hexagon', 'square', 'triangular', 'brick'} :                        
+        if pat.tex_pattern_type not in set(['checker', 'hexagon', 'square', 'triangular', 'brick']) :                        
             texStrg+="} \n"                       
         if pat.tex_pattern_type == 'brick':                        
             texStrg+="brick_size <%.4g, %.4g, %.4g> mortar %.4g \n"%(pat.brick_size_x, pat.brick_size_y, pat.brick_size_z, pat.brick_mortar)
@@ -683,13 +687,13 @@ def write_pov(filename, scene=None, info_callback=None):
     pov_binary = PovrayRender._locate_binary()
 
     if using_uberpov:
-        print("Unofficial UberPOV feature set chosen in preferences")
+        print "Unofficial UberPOV feature set chosen in preferences"
     else:
-        print("Official POV-Ray 3.7 feature set chosen in preferences")
+        print "Official POV-Ray 3.7 feature set chosen in preferences"
     if 'uber' in pov_binary: 
-        print("The name of the binary suggests you are probably rendering with Uber POV engine")
+        print "The name of the binary suggests you are probably rendering with Uber POV engine"
     else:
-        print("The name of the binary suggests you are probably rendering with standard POV engine")
+        print "The name of the binary suggests you are probably rendering with standard POV engine"
     def setTab(tabtype, spaces):
         TabStr = ""
         if tabtype == 'NONE':
@@ -708,7 +712,7 @@ def write_pov(filename, scene=None, info_callback=None):
             if brackets < 0:
                 tabLevel = tabLevel + brackets
             if tabLevel < 0:
-                print("Indentation Warning: tabLevel = %s" % tabLevel)
+                print "Indentation Warning: tabLevel = %s" % tabLevel
                 tabLevel = 0
             if tabLevel >= 1:
                 file.write("%s" % tab * tabLevel)
@@ -1164,7 +1168,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             # Sun shouldn't be attenuated. Hemi and area lights have no falloff attribute so they
             # are put to type 2 attenuation a little higher above.
-            if lamp.type not in {'SUN', 'AREA', 'HEMI'}:
+            if lamp.type not in set(['SUN', 'AREA', 'HEMI']):
                 tabWrite("fade_distance %.6f\n" % (lamp.distance / 2.0))
                 if lamp.falloff_type == 'INVERSE_SQUARE':
                     tabWrite("fade_power %d\n" % 2)  # Use blenders lamp quad equivalent
@@ -1201,7 +1205,7 @@ def write_pov(filename, scene=None, info_callback=None):
             meta = ob.data
 
             # important because no elements will break parsing.
-            elements = [elem for elem in meta.elements if elem.type in {'BALL', 'ELLIPSOID'}]
+            elements = [elem for elem in meta.elements if elem.type in set(['BALL', 'ELLIPSOID'])]
 
             if elements:
                 tabWrite("blob {\n")
@@ -1386,7 +1390,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 channeldata = []
                 for v in set.density_grid:
                     channeldata.append(v.real)
-                    print(v.real)
+                    print v.real
                 ## Usage en voxel texture:
                 # channeldata = []
                 # if channel == 'density':
@@ -1475,13 +1479,13 @@ def write_pov(filename, scene=None, info_callback=None):
 
                 mydf3 = df3.df3(big_res[0],big_res[1],big_res[2])
                 sim_sizeX, sim_sizeY, sim_sizeZ = mydf3.size()
-                for x in range(sim_sizeX):
-                    for y in range(sim_sizeY):
-                        for z in range(sim_sizeZ):
+                for x in xrange(sim_sizeX):
+                    for y in xrange(sim_sizeY):
+                        for z in xrange(sim_sizeZ):
                             mydf3.set(x, y, z, channeldata[((z * sim_sizeY + y) * sim_sizeX + x)])
 
                 mydf3.exportDF3(smokePath)
-                print('Binary smoke.df3 file written in preview directory')
+                print 'Binary smoke.df3 file written in preview directory'
                 if comments:
                     file.write("\n//--Smoke--\n\n")
 
@@ -1544,7 +1548,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             # XXX I moved all those checks here, as there is no need to compute names
             #     for object we won't export here!
-            if ob.type in {'LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE', 'LATTICE'}:
+            if ob.type in set(['LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE', 'LATTICE']):
                 continue
             smokeFlag=False
             for mod in ob.modifiers:
@@ -1593,7 +1597,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 totalNumberOfHairs = ( len(pSys.particles) + len(pSys.child_particles) )
                                 #hairCounter = 0
                                 file.write('#declare HairArray = array[%i] {\n' % totalNumberOfHairs)
-                                for pindex in range(0, totalNumberOfHairs):
+                                for pindex in xrange(0, totalNumberOfHairs):
 
                                     #if particle.is_exist and particle.is_visible:
                                         #hairCounter += 1
@@ -1631,7 +1635,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                                     else:
                                                         #only overwrite variable for each competing texture for now
                                                         initColor=th.texture.evaluate((initCo[0],initCo[1],initCo[2]))
-                                        for step in range(0, steps):
+                                        for step in xrange(0, steps):
                                             co = pSys.co_hair(ob, pindex, step)
                                         #for controlPoint in particle.hair_keys:
                                             if pSys.settings.clump_factor != 0:
@@ -1726,8 +1730,8 @@ def write_pov(filename, scene=None, info_callback=None):
 
                                 
                                 file.write('}')
-                                print('Totals hairstrands written: %i' % totalNumberOfHairs)
-                                print('Number of tufts (particle systems)', len(ob.particle_systems))
+                                print 'Totals hairstrands written: %i' % totalNumberOfHairs
+                                print 'Number of tufts (particle systems)', len(ob.particle_systems)
                                 
                                 # Set back the displayed number of particles to preview count
                                 pSys.set_resolution(scene, ob, 'PREVIEW')
@@ -1776,10 +1780,10 @@ def write_pov(filename, scene=None, info_callback=None):
                 matrix = global_matrix * ob.matrix_world
                 povdataname = store(scene, ob, name, dataname, matrix)
                 if povdataname is None:
-                    print("This is an instance")
+                    print "This is an instance"
                     continue
 
-                print("Writing Down First Occurence")
+                print "Writing Down First Occurence"
 
                 uv_textures = me.tessface_uv_textures
                 if len(uv_textures) > 0:
@@ -1925,7 +1929,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             if material:
                                 # Multiply diffuse with SSS Color
                                 if material.subsurface_scattering.use:
-                                    diffuse_color = [i * j for i, j in zip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
+                                    diffuse_color = [i * j for i, j in izip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
                                     key = diffuse_color[0], diffuse_color[1], diffuse_color[2], \
                                           material_index
                                     vertCols[key] = [-1]
@@ -1982,7 +1986,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 else:
                                     # Color per material - flat material color
                                     if material.subsurface_scattering.use:
-                                        diffuse_color = [i * j for i, j in zip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
+                                        diffuse_color = [i * j for i, j in izip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
                                     else:
                                         diffuse_color = material.diffuse_color[:]
                                     ci1 = ci2 = ci3 = vertCols[diffuse_color[0], diffuse_color[1], \
@@ -2076,7 +2080,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             material = me.materials[0]  # dodgy
                             writeObjectMaterial(material, ob)
                         except IndexError:
-                            print(me)
+                            print me
 
                     #Importance for radiosity sampling added here:
                     tabWrite("radiosity { \n")
@@ -2091,7 +2095,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         if material:
                             # Multiply diffuse with SSS Color
                             if material.subsurface_scattering.use:
-                                diffuse_color = [i * j for i, j in zip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
+                                diffuse_color = [i * j for i, j in izip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
                                 key = diffuse_color[0], diffuse_color[1], diffuse_color[2], i  # i == f.mat
                                 vertCols[key] = [-1]
                             else:
@@ -2181,8 +2185,8 @@ def write_pov(filename, scene=None, info_callback=None):
                                                 if bpy.data.images[t.texture.image.name].source == 'SEQUENCE':
                                                     korvaa = "." + str(bpy.data.textures[t.texture.name].image_user.frame_offset + 1).zfill(3) + "."
                                                     image_filename = image_filename.replace(".001.", korvaa)
-                                                    print(" seq debug ")
-                                                    print(image_filename)
+                                                    print " seq debug "
+                                                    print image_filename
                                             # IMAGE SEQUENCE ENDS
                                             imgGamma = ""
                                             if image_filename:
@@ -2684,7 +2688,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 else:
                                     # Color per material - flat material color
                                     if material.subsurface_scattering.use:
-                                        diffuse_color = [i * j for i, j in zip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
+                                        diffuse_color = [i * j for i, j in izip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
                                     else:
                                         diffuse_color = material.diffuse_color[:]
                                     ci1 = ci2 = ci3 = vertCols[diffuse_color[0], diffuse_color[1], \
@@ -2778,7 +2782,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             material = me.materials[0]  # dodgy
                             writeObjectMaterial(material, ob)
                         except IndexError:
-                            print(me)
+                            print me
 
                     #Importance for radiosity sampling added here:
                     tabWrite("radiosity { \n")
@@ -3166,12 +3170,12 @@ class PovrayRender(bpy.types.RenderEngine):
             if os.path.exists(pov_binary):
                 return pov_binary
             else:
-                print("User Preferences path to povray %r NOT FOUND, checking $PATH" % pov_binary)
+                print "User Preferences path to povray %r NOT FOUND, checking $PATH" % pov_binary
 
         # Windows Only
         # assume if there is a 64bit binary that the user has a 64bit capable OS
         if sys.platform[:3] == "win":
-            import winreg
+            import _winreg
             win_reg_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Software\\POV-Ray\\v3.7\\Windows")
             win_home = winreg.QueryValueEx(win_reg_key, "Home")[0]
 
@@ -3245,12 +3249,12 @@ class PovrayRender(bpy.types.RenderEngine):
 
         pov_binary = PovrayRender._locate_binary()
         if not pov_binary:
-            print("POV-Ray 3.7: could not execute povray, possibly POV-Ray isn't installed")
+            print "POV-Ray 3.7: could not execute povray, possibly POV-Ray isn't installed"
             return False
 
         write_pov_ini(scene, self._temp_file_ini, self._temp_file_in, self._temp_file_out)
 
-        print ("***-STARTING-***")
+        print "***-STARTING-***"
 
         extra_args = []
 
@@ -3273,22 +3277,22 @@ class PovrayRender(bpy.types.RenderEngine):
                                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         except OSError:
             # TODO, report api
-            print("POV-Ray 3.7: could not execute '%s'" % pov_binary)
+            print "POV-Ray 3.7: could not execute '%s'" % pov_binary
             import traceback
             traceback.print_exc()
-            print ("***-DONE-***")
+            print "***-DONE-***"
             return False
 
         else:
-            print("Engine ready!...")
-            print("Command line arguments passed: " + str(extra_args))
+            print "Engine ready!..."
+            print "Command line arguments passed: " + str(extra_args)
             return True
 
         # Now that we have a valid process
 
     def _cleanup(self):
         for f in (self._temp_file_in, self._temp_file_ini, self._temp_file_out):
-            for i in range(5):
+            for i in xrange(5):
                 try:
                     os.unlink(f)
                     break
@@ -3297,7 +3301,7 @@ class PovrayRender(bpy.types.RenderEngine):
                     # and Windows does not know how to delete a file in use!
                     time.sleep(self.DELAY)
         for i in unpacked_images:
-            for c in range(5):
+            for c in xrange(5):
                 try:
                     os.unlink(i)
                     break
@@ -3308,7 +3312,7 @@ class PovrayRender(bpy.types.RenderEngine):
     def render(self, scene):
         import tempfile
 
-        print("***INITIALIZING***")
+        print "***INITIALIZING***"
 
 ##WIP output format
 ##        if r.image_settings.file_format == 'OPENEXR':
@@ -3349,7 +3353,7 @@ class PovrayRender(bpy.types.RenderEngine):
                     import traceback
                     traceback.print_exc()
 
-                    print("POV-Ray 3.7: Cannot create scenes directory: %r" % povPath)
+                    print "POV-Ray 3.7: Cannot create scenes directory: %r" % povPath
                     self.update_stats("", "POV-Ray 3.7: Cannot create scenes directory %r" % \
                                       povPath)
                     time.sleep(2.0)
@@ -3388,14 +3392,14 @@ class PovrayRender(bpy.types.RenderEngine):
                     povSceneName = os.path.basename(povSceneName)
                 povSceneName = povSceneName.split('/')[-1].split('\\')[-1]
                 if not povSceneName:
-                    print("POV-Ray 3.7: Invalid scene name")
+                    print "POV-Ray 3.7: Invalid scene name"
                     self.update_stats("", "POV-Ray 3.7: Invalid scene name")
                     time.sleep(2.0)
                     return
                 povSceneName = os.path.splitext(povSceneName)[0]
 
-            print("Scene name: " + povSceneName)
-            print("Export path: " + povPath)
+            print "Scene name: " + povSceneName
+            print "Export path: " + povPath
             povPath = os.path.join(povPath, povSceneName)
             povPath = os.path.realpath(povPath)
 
@@ -3431,7 +3435,7 @@ class PovrayRender(bpy.types.RenderEngine):
             if self.test_break():
                 try:
                     self._process.terminate()
-                    print("***POV INTERRUPTED***")
+                    print "***POV INTERRUPTED***"
                 except OSError:
                     pass
                 return False
@@ -3440,7 +3444,7 @@ class PovrayRender(bpy.types.RenderEngine):
             # POV process is finisehd, one way or the other
             if poll_result is not None:
                 if poll_result < 0:
-                    print("***POV PROCESS FAILED : %s ***" % poll_result)
+                    print "***POV PROCESS FAILED : %s ***" % poll_result
                     self.update_stats("", "POV-Ray 3.7: Failed")
                 return False
 
@@ -3448,12 +3452,12 @@ class PovrayRender(bpy.types.RenderEngine):
 
         # Wait for the file to be created
         # XXX This is no more valid, as 3.7 always creates output file once render is finished!
-        parsing = re.compile(br"= \[Parsing\.\.\.\] =")
-        rendering = re.compile(br"= \[Rendering\.\.\.\] =")
+        parsing = re.compile(r"= \[Parsing\.\.\.\] =")
+        rendering = re.compile(r"= \[Rendering\.\.\.\] =")
         percent = re.compile(r"\(([0-9]{1,3})%\)")
         # print("***POV WAITING FOR FILE***")
 
-        data = b""
+        data = ""
         last_line = ""
         while _test_wait():
             # POV in Windows does not output its stdout/stderr, it displays them in its GUI
@@ -3472,7 +3476,7 @@ class PovrayRender(bpy.types.RenderEngine):
                 lines = t_data.split('\\n')
                 last_line += lines[0]
                 lines[0] = last_line
-                print('\n'.join(lines), end="")
+                print '\n'.join(lines),; sys.stdout.write("")
                 last_line = lines[-1]
 
                 if rendering.search(data):
@@ -3511,7 +3515,7 @@ class PovrayRender(bpy.types.RenderEngine):
                 # XXX, tests for border render.
                 #lay.load_from_file(self._temp_file_out, xmin, ymin)
             except RuntimeError:
-                print("***POV ERROR WHILE READING OUTPUT FILE***")
+                print "***POV ERROR WHILE READING OUTPUT FILE***"
 
             # Not needed right now, might only be useful if we find a way to use temp raw output of
             # pov 3.7 (in which case it might go under _test_wait()).
@@ -3562,9 +3566,9 @@ class PovrayRender(bpy.types.RenderEngine):
             self.end_result(result)
 
         else:
-            print("***POV FILE NOT FOUND***")
+            print "***POV FILE NOT FOUND***"
 
-        print("***POV FINISHED***")
+        print "***POV FINISHED***"
 
         self.update_stats("", "")
 
@@ -3664,4 +3668,4 @@ class RenderPovTexturePreview(Operator):
         links.new(im.outputs[0],previewer.inputs[0])
         #tex.type="IMAGE" # makes clip extend possible
         #tex.extension="CLIP"
-        return {'FINISHED'}    
+        return set(['FINISHED'])    

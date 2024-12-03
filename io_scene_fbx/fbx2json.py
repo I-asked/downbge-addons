@@ -69,28 +69,33 @@ ensured to be unique.
 # ----------------------------------------------------------------------------
 # FBX Binary Parser
 
+from __future__ import with_statement
+from __future__ import absolute_import
 from struct import unpack
 import array
 import zlib
+from io import open
+from itertools import izip
+import sys
 
 # at the end of each nested block, there is a NUL record to indicate
 # that the sub-scope exists (i.e. to distinguish between P: and P : {})
 # this NUL record is 13 bytes long.
 _BLOCK_SENTINEL_LENGTH = 13
-_BLOCK_SENTINEL_DATA = (b'\0' * _BLOCK_SENTINEL_LENGTH)
+_BLOCK_SENTINEL_DATA = ('\0' * _BLOCK_SENTINEL_LENGTH)
 _IS_BIG_ENDIAN = (__import__("sys").byteorder != 'little')
-_HEAD_MAGIC = b'Kaydara FBX Binary\x20\x20\x00\x1a\x00'
+_HEAD_MAGIC = 'Kaydara FBX Binary\x20\x20\x00\x1a\x00'
 from collections import namedtuple
 FBXElem = namedtuple("FBXElem", ("id", "props", "props_type", "elems"))
 del namedtuple
 
 
 def read_uint(read):
-    return unpack(b'<I', read(4))[0]
+    return unpack('<I', read(4))[0]
 
 
 def read_ubyte(read):
-    return unpack(b'B', read(1))[0]
+    return unpack('B', read(1))[0]
 
 
 def read_string_ubyte(read):
@@ -120,20 +125,20 @@ def unpack_array(read, array_type, array_stride, array_byteswap):
 
 
 read_data_dict = {
-    b'Y'[0]: lambda read: unpack(b'<h', read(2))[0],  # 16 bit int
-    b'C'[0]: lambda read: unpack(b'?', read(1))[0],   # 1 bit bool (yes/no)
-    b'I'[0]: lambda read: unpack(b'<i', read(4))[0],  # 32 bit int
-    b'F'[0]: lambda read: unpack(b'<f', read(4))[0],  # 32 bit float
-    b'D'[0]: lambda read: unpack(b'<d', read(8))[0],  # 64 bit float
-    b'L'[0]: lambda read: unpack(b'<q', read(8))[0],  # 64 bit int
-    b'R'[0]: lambda read: read(read_uint(read)),      # binary data
-    b'S'[0]: lambda read: read(read_uint(read)),      # string data
-    b'f'[0]: lambda read: unpack_array(read, 'f', 4, False),  # array (float)
-    b'i'[0]: lambda read: unpack_array(read, 'i', 4, True),   # array (int)
-    b'd'[0]: lambda read: unpack_array(read, 'd', 8, False),  # array (double)
-    b'l'[0]: lambda read: unpack_array(read, 'q', 8, True),   # array (long)
-    b'b'[0]: lambda read: unpack_array(read, 'b', 1, False),  # array (bool)
-    b'c'[0]: lambda read: unpack_array(read, 'B', 1, False),  # array (ubyte)
+    'Y'[0]: lambda read: unpack('<h', read(2))[0],  # 16 bit int
+    'C'[0]: lambda read: unpack('?', read(1))[0],   # 1 bit bool (yes/no)
+    'I'[0]: lambda read: unpack('<i', read(4))[0],  # 32 bit int
+    'F'[0]: lambda read: unpack('<f', read(4))[0],  # 32 bit float
+    'D'[0]: lambda read: unpack('<d', read(8))[0],  # 64 bit float
+    'L'[0]: lambda read: unpack('<q', read(8))[0],  # 64 bit int
+    'R'[0]: lambda read: read(read_uint(read)),      # binary data
+    'S'[0]: lambda read: read(read_uint(read)),      # string data
+    'f'[0]: lambda read: unpack_array(read, 'f', 4, False),  # array (float)
+    'i'[0]: lambda read: unpack_array(read, 'i', 4, True),   # array (int)
+    'd'[0]: lambda read: unpack_array(read, 'd', 8, False),  # array (double)
+    'l'[0]: lambda read: unpack_array(read, 'q', 8, True),   # array (long)
+    'b'[0]: lambda read: unpack_array(read, 'b', 1, False),  # array (bool)
+    'c'[0]: lambda read: unpack_array(read, 'B', 1, False),  # array (ubyte)
     }
 
 
@@ -153,7 +158,7 @@ def read_elem(read, tell, use_namedtuple):
     elem_props_data = [None] * prop_count    # elem properties (if any)
     elem_subtree = []                        # elem children (if any)
 
-    for i in range(prop_count):
+    for i in xrange(prop_count):
         data_type = read(1)[0]
         elem_props_data[i] = read_data_dict[data_type](read)
         elem_props_type[i] = data_type
@@ -205,7 +210,7 @@ def parse(fn, use_namedtuple=True):
                 break
             root_elems.append(elem)
 
-    args = (b'', [], bytearray(0), root_elems)
+    args = ('', [], bytearray(0), root_elems)
     return FBXElem(*args) if use_namedtuple else args, fbx_version
 
 
@@ -216,20 +221,20 @@ def parse(fn, use_namedtuple=True):
 data_types = type(array)("data_types")
 data_types.__dict__.update(
 dict(
-INT16 = b'Y'[0],
-BOOL = b'C'[0],
-INT32 = b'I'[0],
-FLOAT32 = b'F'[0],
-FLOAT64 = b'D'[0],
-INT64 = b'L'[0],
-BYTES = b'R'[0],
-STRING = b'S'[0],
-FLOAT32_ARRAY = b'f'[0],
-INT32_ARRAY = b'i'[0],
-FLOAT64_ARRAY = b'd'[0],
-INT64_ARRAY = b'l'[0],
-BOOL_ARRAY = b'b'[0],
-BYTE_ARRAY = b'c'[0],
+INT16 = 'Y'[0],
+BOOL = 'C'[0],
+INT32 = 'I'[0],
+FLOAT32 = 'F'[0],
+FLOAT64 = 'D'[0],
+INT64 = 'L'[0],
+BYTES = 'R'[0],
+STRING = 'S'[0],
+FLOAT32_ARRAY = 'f'[0],
+INT32_ARRAY = 'i'[0],
+FLOAT64_ARRAY = 'd'[0],
+INT64_ARRAY = 'l'[0],
+BOOL_ARRAY = 'b'[0],
+BYTE_ARRAY = 'c'[0],
 ))
 
 # pyfbx.parse_bin
@@ -254,7 +259,7 @@ def fbx2json_property_as_string(prop, prop_type):
         return json.dumps(prop_str)
     else:
         prop_py_type = type(prop)
-        if prop_py_type == bytes:
+        if prop_py_type == str:
             return json.dumps(repr(prop)[2:-1])
         elif prop_py_type == bool:
             return json.dumps(prop)
@@ -266,7 +271,7 @@ def fbx2json_property_as_string(prop, prop_type):
 
 def fbx2json_properties_as_string(fbx_elem):
     return ", ".join(fbx2json_property_as_string(*prop_item)
-                     for prop_item in zip(fbx_elem.props,
+                     for prop_item in izip(fbx_elem.props,
                                           fbx_elem.props_type))
 
 
@@ -292,9 +297,9 @@ def fbx2json(fn):
     import os
 
     fn_json = "%s.json" % os.path.splitext(fn)[0]
-    print("Writing: %r " % fn_json, end="")
+    print "Writing: %r " % fn_json,; sys.stdout.write("")
     fbx_root_elem, fbx_version = parse(fn, use_namedtuple=True)
-    print("(Version %d) ..." % fbx_version)
+    print "(Version %d) ..." % fbx_version
 
     with open(fn_json, 'w', encoding="ascii", errors='xmlcharrefreplace') as f:
         fw = f.write
@@ -313,14 +318,14 @@ def main():
     import sys
 
     if "--help" in sys.argv:
-        print(__doc__)
+        print __doc__
         return
 
     for arg in sys.argv[1:]:
         try:
             fbx2json(arg)
         except:
-            print("Failed to convert %r, error:" % arg)
+            print "Failed to convert %r, error:" % arg
 
             import traceback
             traceback.print_exc()

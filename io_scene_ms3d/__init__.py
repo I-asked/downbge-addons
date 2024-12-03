@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "MilkShape3D MS3D format (.ms3d)",
     "description": "Import / Export MilkShape3D MS3D files "

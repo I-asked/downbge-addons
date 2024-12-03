@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 from mathutils import Vector
 from bpy_extras import anim_utils
@@ -222,8 +223,8 @@ def setConstraint(m_constraint, context):
             src_bone = bones[m_constraint.constrained_boneB]
             if not constraint_settings:
                 xCurves, yCurves, zCurves = createConstraintFCurves(cons_obj, obj, real_constraint)
-            print("please wait a moment, calculating fix")
-            for t in range(s, e):
+            print "please wait a moment, calculating fix"
+            for t in xrange(s, e):
                 context.scene.frame_set(t)
                 src_bone_pos = src_bone.matrix.to_translation()
                 bakedPos[t] = src_bone_pos + m_constraint.targetPoint  # final position for constrained bone in object space
@@ -297,8 +298,8 @@ def setConstraint(m_constraint, context):
         bakedPos = {}
         floor = bpy.data.objects[m_constraint.targetMesh]
         c_frame = context.scene.frame_current
-        print("please wait a moment, calculating fix")
-        for t in range(s, e):
+        print "please wait a moment, calculating fix"
+        for t in xrange(s, e):
             context.scene.frame_set(t)
             axis = obj.matrix_world.to_3x3() * Vector((0, 0, 100))
             offset = obj.matrix_world.to_3x3() * Vector((0, 0, m_constraint.targetDist))
@@ -340,13 +341,13 @@ def locBake(s_frame, e_frame, bones):
     bakeDict = {}
     for bone in bones:
         bakeDict[bone.name] = {}
-    for t in range(s_frame, e_frame):
+    for t in xrange(s_frame, e_frame):
         scene.frame_set(t)
         for bone in bones:
             bakeDict[bone.name][t] = bone.matrix.copy()
-    for t in range(s_frame, e_frame):
+    for t in xrange(s_frame, e_frame):
         for bone in bones:
-            print(bone.bone.matrix_local.to_translation())
+            print bone.bone.matrix_local.to_translation()
             bone.matrix = bakeDict[bone.name][t]
             bone.keyframe_insert("location", frame=t)
 

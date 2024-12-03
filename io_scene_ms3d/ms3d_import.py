@@ -31,6 +31,9 @@
 
 
 #import python stuff
+from __future__ import division
+from __future__ import with_statement
+from __future__ import absolute_import
 import io
 from mathutils import (
         Vector,
@@ -97,7 +100,7 @@ FORMAT_ARMATURE_OBJECT = "{}.ao"
 FORMAT_ARMATURE_NLA = "{}.an"
 
 ###############################################################################
-class Ms3dImporter():
+class Ms3dImporter(object):
     """
     Load a MilkShape3D MS3D File
     """
@@ -151,7 +154,7 @@ class Ms3dImporter():
                     raw_io.close()
 
                     if self.options_verbose in Ms3dUi.VERBOSE_MAXIMAL:
-                        print(debug_out)
+                        print debug_out
             finally:
                 pass
 
@@ -170,28 +173,28 @@ class Ms3dImporter():
                 post_setup_environment(self, blender_context)
 
             if self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
-                print()
-                print("##########################################################")
-                print("Import from MS3D to Blender")
-                print(statistics)
-                print("##########################################################")
+                print
+                print "##########################################################"
+                print "Import from MS3D to Blender"
+                print statistics
+                print "##########################################################"
 
         except Ms3dHeader.HeaderError:
             msg = "read - invalid file format."
             if self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
-                print(msg)
+                print msg
                 if self.report:
-                    self.report({'WARNING', 'ERROR', }, msg)
+                    self.report(set(['WARNING', 'ERROR',]), msg)
 
             return False
 
         except Exception:
             type, value, traceback = exc_info()
             if self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
-                print("read - exception in try block\n  type: '{0}'\n"
-                        "  value: '{1}'".format(type, value, traceback))
+                print "read - exception in try block\n  type: '{0}'\n"
+                        "  value: '{1}'".format(type, value, traceback)
                 if self.report:
-                    self.report({'WARNING', 'ERROR', }, "read - exception.")
+                    self.report(set(['WARNING', 'ERROR',]), "read - exception.")
 
             if t2 is None:
                 t2 = time()
@@ -204,8 +207,8 @@ class Ms3dImporter():
         t3 = time()
 
         if self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
-            print(ms3d_str['SUMMARY_IMPORT'].format(
-                    (t3 - t1), (t2 - t1), (t3 - t2)))
+            print ms3d_str['SUMMARY_IMPORT'].format(
+                    (t3 - t1), (t2 - t1), (t3 - t2))
 
         return True
 
@@ -514,7 +517,7 @@ class Ms3dImporter():
                         and self.options_use_extended_normal_handling:
                     ## search for an already created extra vertex
                     bmv_new = None
-                    for vert_index_candidat in range(
+                    for vert_index_candidat in xrange(
                             vertex_extra_index, length_verts):
                         bmv_candidat = bm.verts[vert_index_candidat]
                         if bmv_candidat.co == bmv.co \
@@ -535,7 +538,7 @@ class Ms3dImporter():
                         vert_index = length_verts
                         length_verts += 1
                         if self.report and self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
-                            self.report({'WARNING', 'INFO'},
+                            self.report(set(['WARNING', 'INFO']),
                                     ms3d_str['WARNING_IMPORT_EXTRA_VERTEX_NORMAL'].format(
                                     bmv.normal, blender_normal))
                     bmv = bmv_new
@@ -543,7 +546,7 @@ class Ms3dImporter():
                 if [[x] for x in bmv_list if x == bmv]:
                     if self.report and self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
                         self.report(
-                                {'WARNING', 'INFO'},
+                                set(['WARNING', 'INFO']),
                                 ms3d_str['WARNING_IMPORT_SKIP_VERTEX_DOUBLE'].format(
                                         ms3d_triangle_index))
                     continue
@@ -553,7 +556,7 @@ class Ms3dImporter():
             if len(bmv_list) < 3:
                 if self.report and self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
                     self.report(
-                            {'WARNING', 'INFO'},
+                            set(['WARNING', 'INFO']),
                             ms3d_str['WARNING_IMPORT_SKIP_LESS_VERTICES'].format(
                                     ms3d_triangle_index))
                 continue
@@ -582,7 +585,7 @@ class Ms3dImporter():
             if bmf is not None:
                 if self.report and self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
                     self.report(
-                            {'WARNING', 'INFO'},
+                            set(['WARNING', 'INFO']),
                             ms3d_str['WARNING_IMPORT_SKIP_FACE_DOUBLE'].format(
                                     ms3d_triangle_index))
                 continue

@@ -25,6 +25,8 @@ import mathutils
 import bpy_extras.io_utils
 
 from progress_report import ProgressReport, ProgressReportSubstep
+from io import open
+from itertools import izip
 
 
 def name_compat(name):
@@ -206,15 +208,15 @@ def write_nurb(fw, ob, ob_mat):
             DEG_ORDER_U = nu.order_u - 1  # odd but tested to be correct
 
         if nu.type == 'BEZIER':
-            print("\tWarning, bezier curve:", ob.name, "only poly and nurbs curves supported")
+            print "\tWarning, bezier curve:", ob.name, "only poly and nurbs curves supported"
             continue
 
         if nu.point_count_v > 1:
-            print("\tWarning, surface:", ob.name, "only poly and nurbs curves supported")
+            print "\tWarning, surface:", ob.name, "only poly and nurbs curves supported"
             continue
 
         if len(nu.points) <= DEG_ORDER_U:
-            print("\tWarning, order_u is lower then vert count, skipping:", ob.name)
+            print "\tWarning, order_u is lower then vert count, skipping:", ob.name
             continue
 
         pt_num = 0
@@ -230,7 +232,7 @@ def write_nurb(fw, ob, ob_mat):
         fw('cstype bspline\n')  # not ideal, hard coded
         fw('deg %d\n' % DEG_ORDER_U)  # not used for curves but most files have it still
 
-        curve_ls = [-(i + 1) for i in range(pt_num)]
+        curve_ls = [-(i + 1) for i in xrange(pt_num)]
 
         # 'curv' keyword
         if do_closed:
@@ -246,10 +248,10 @@ def write_nurb(fw, ob, ob_mat):
         # 'parm' keyword
         tot_parm = (DEG_ORDER_U + 1) + pt_num
         tot_parm_div = float(tot_parm - 1)
-        parm_ls = [(i / tot_parm_div) for i in range(tot_parm)]
+        parm_ls = [(i / tot_parm_div) for i in xrange(tot_parm)]
 
         if do_endpoints:  # end points, force param
-            for i in range(DEG_ORDER_U + 1):
+            for i in xrange(DEG_ORDER_U + 1):
                 parm_ls[i] = 0.0
                 parm_ls[-(1 + i)] = 1.0
 
@@ -347,7 +349,7 @@ def write_file(filepath, objects, scene,
             subprogress1.enter_substeps(len(objects))
             for i, ob_main in enumerate(objects):
                 # ignore dupli children
-                if ob_main.parent and ob_main.parent.dupli_type in {'VERTS', 'FACES'}:
+                if ob_main.parent and ob_main.parent.dupli_type in set(['VERTS', 'FACES']):
                     # XXX
                     subprogress1.step("Ignoring %s, dupli child..." % ob_main.name)
                     continue
@@ -355,13 +357,13 @@ def write_file(filepath, objects, scene,
                 obs = []
                 if ob_main.dupli_type != 'NONE':
                     # XXX
-                    print('creating dupli_list on', ob_main.name)
+                    print 'creating dupli_list on', ob_main.name
                     ob_main.dupli_list_create(scene)
 
                     obs = [(dob.object, dob.matrix) for dob in ob_main.dupli_list]
 
                     # XXX debug print
-                    print(ob_main.name, 'has', len(obs), 'dupli children')
+                    print ob_main.name, 'has', len(obs), 'dupli children'
                 else:
                     obs = [(ob_main, ob_main.matrix_world)]
 
@@ -551,7 +553,7 @@ def write_file(filepath, objects, scene,
                             if vertGroupNames:
                                 currentVGroup = ''
                                 # Create a dictionary keyed by face id and listing, for each vertex, the vertex groups it belongs to
-                                vgroupsMap = [[] for _i in range(len(me_verts))]
+                                vgroupsMap = [[] for _i in xrange(len(me_verts))]
                                 for v_idx, v_ls in enumerate(vgroupsMap):
                                     v_ls[:] = [(vertGroupNames[g.group], g.weight) for g in me_verts[v_idx].groups]
 
@@ -605,13 +607,13 @@ def write_file(filepath, objects, scene,
                                         # Try to avoid as much as possible adding texname (or other things)
                                         # to the mtl name (see [#32102])...
                                         mtl_name = "%s" % name_compat(key[0])
-                                        if mtl_rev_dict.get(mtl_name, None) not in {key, None}:
+                                        if mtl_rev_dict.get(mtl_name, None) not in set([key, None]):
                                             if key[1] is None:
                                                 tmp_ext = "_NONE"
                                             else:
                                                 tmp_ext = "_%s" % name_compat(key[1])
                                             i = 0
-                                            while mtl_rev_dict.get(mtl_name + tmp_ext, None) not in {key, None}:
+                                            while mtl_rev_dict.get(mtl_name + tmp_ext, None) not in set([key, None]):
                                                 i += 1
                                                 tmp_ext = "_%3d" % i
                                             mtl_name += tmp_ext
@@ -637,7 +639,7 @@ def write_file(filepath, objects, scene,
                                 contextSmooth = f_smooth
 
                             f_v = [(vi, me_verts[v_idx], l_idx)
-                                   for vi, (v_idx, l_idx) in enumerate(zip(f.vertices, f.loop_indices))]
+                                   for vi, (v_idx, l_idx) in enumerate(izip(f.vertices, f.loop_indices))]
 
                             fw('f')
                             if faceuv:
@@ -732,7 +734,7 @@ def _write(context, filepath,
 
         # Export an animation?
         if EXPORT_ANIMATION:
-            scene_frames = range(scene.frame_start, scene.frame_end + 1)  # Up to and including the end frame.
+            scene_frames = xrange(scene.frame_start, scene.frame_end + 1)  # Up to and including the end frame.
         else:
             scene_frames = [orig_frame]  # Dont export an animation.
 
@@ -785,6 +787,9 @@ Currently the exporter lacks these features:
 """
 
 
+from __future__ import with_statement
+from __future__ import division
+from __future__ import absolute_import
 def save(operator, context, filepath="",
          use_triangles=False,
          use_edges=True,
@@ -827,4 +832,4 @@ def save(operator, context, filepath="",
            EXPORT_PATH_MODE=path_mode,
            )
 
-    return {'FINISHED'}
+    return set(['FINISHED'])

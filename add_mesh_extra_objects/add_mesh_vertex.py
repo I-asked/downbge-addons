@@ -1,5 +1,6 @@
 # GPL # Originals by meta-androcto, Pablo Vazquez, Liero, Richard Wilks
 
+from __future__ import absolute_import
 import bpy
 import bmesh
 from bpy.props import StringProperty, FloatProperty, BoolProperty, FloatVectorProperty
@@ -30,7 +31,7 @@ class AddVert(bpy.types.Operator):
     '''Add a Single Vertice to Edit Mode'''
     bl_idname = "mesh.primitive_vert_add"
     bl_label = "Single Vert"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def execute(self, context):
         mesh = bpy.data.meshes.new("Vert")
@@ -40,13 +41,13 @@ class AddVert(bpy.types.Operator):
         object_utils.object_data_add(context, mesh, operator=None)
         bpy.ops.object.mode_set(mode = 'EDIT')
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 class AddEmptyVert(bpy.types.Operator):
     '''Add an Object Origin to Edit Mode'''
     bl_idname = "mesh.primitive_emptyvert_add"
     bl_label = "Empty Object Origin"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def execute(self, context):
         mesh = bpy.data.meshes.new("Vert")
@@ -57,7 +58,7 @@ class AddEmptyVert(bpy.types.Operator):
         bpy.ops.object.mode_set(mode = 'EDIT')
         bpy.ops.mesh.delete(type='VERT')
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 def Add_Symmetrical_Empty():
 
@@ -100,7 +101,7 @@ class AddSymmetricalEmpty(bpy.types.Operator):
     bl_idname = "mesh.primitive_symmetrical_empty_add"
     bl_label = "Add Symmetrical Object Origin"
     bl_description = "Object Origin with a Mirror Modifier for symmetrical modeling"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def draw(self, context):
         layout = self.layout
@@ -116,14 +117,14 @@ class AddSymmetricalEmpty(bpy.types.Operator):
 
     def execute(self, context):
         Add_Symmetrical_Empty()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 class AddSymmetricalVert(bpy.types.Operator):
 
     bl_idname = "mesh.primitive_symmetrical_vert_add"
     bl_label = "Add Symmetrical Origin & Vert"
     bl_description = "Object Origin with a Mirror Modifier for symmetrical modeling"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def draw(self, context):
         layout = self.layout
@@ -139,4 +140,4 @@ class AddSymmetricalVert(bpy.types.Operator):
 
     def execute(self, context):
         Add_Symmetrical_Vert()
-        return {'FINISHED'}
+        return set(['FINISHED'])

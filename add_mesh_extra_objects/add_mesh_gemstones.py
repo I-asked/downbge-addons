@@ -1,5 +1,7 @@
 # GPL # "author": "Pontiac, Fourmadmen, Dreampainter"
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from mathutils import *
 from math import *
@@ -62,7 +64,7 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
             faces.append(face)
 
     # Bridge the rest of the faces.
-    for num in range(total - 1):
+    for num in xrange(total - 1):
         if flipped:
             if fan:
                 face = [vertIdx2[num], vertIdx1[0], vertIdx2[num + 1]]
@@ -110,7 +112,7 @@ def add_gem(r1, r2, seg, h1, h2):
     verts.append(Vector((0.0, 0.0, h2)))
 
     edgeloop_flat = []
-    for i in range(seg):
+    for i in xrange(seg):
         s1 = sin(i * a)
         s2 = sin(offset + i * a)
         c1 = cos(i * a)
@@ -124,7 +126,7 @@ def add_gem(r1, r2, seg, h1, h2):
 
     faces = []
 
-    for index in range(seg):
+    for index in xrange(seg):
         i = index * 4
         j = ((index + 1) % seg) * 4
 
@@ -163,7 +165,7 @@ def add_diamond(segments, girdle_radius, table_radius,
     verts_flat = []
     verts_girdle = []
 
-    for index in range(segments):
+    for index in xrange(segments):
         quat = Quaternion(z_axis, (index / segments) * PI_2)
 
         # angle = PI_2 * index / segments  # UNUSED
@@ -196,7 +198,7 @@ class AddDiamond(bpy.types.Operator):
     """Add a diamond mesh"""
     bl_idname = "mesh.primitive_diamond_add"
     bl_label = "Add Diamond"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     segments = IntProperty(name="Segments",
         description="Number of segments for the diamond",
@@ -233,14 +235,14 @@ class AddDiamond(bpy.types.Operator):
 
         obj = create_mesh_object(context, verts, [], faces, "Diamond")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 class AddGem(bpy.types.Operator):
     """Add a diamond gem"""
     bl_idname = "mesh.primitive_gem_add"
     bl_label = "Add Gem"
     bl_description = "Create an offset faceted gem"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     segments = IntProperty(name="Segments",
         description="Longitudial segmentation",
@@ -280,4 +282,4 @@ class AddGem(bpy.types.Operator):
 
         obj = create_mesh_object(context, verts, [], faces, "Gem")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])

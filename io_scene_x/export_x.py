@@ -18,13 +18,17 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 from math import radians, pi
 
 import bpy
 from mathutils import *
+from itertools import izip
+from io import open
 
 
-class DirectXExporter:
+class DirectXExporter(object):
     def __init__(self, Config, context):
         self.Config = Config
         self.context = context
@@ -136,7 +140,7 @@ class DirectXExporter:
 
     def Log(self, String, MessageVerbose=True):
         if self.Config.Verbose is True or MessageVerbose == False:
-            print(String)
+            print String
 
     # "Private" Methods
 
@@ -283,7 +287,7 @@ template SkinWeights {\n\
         return Generators        
 
 # This class wraps a Blender object and writes its data to the file
-class ExportObject: # Base class, do not use
+class ExportObject(object): # Base class, do not use
     def __init__(self, Config, Exporter, BlenderObject):
         self.Config = Config
         self.Exporter = Exporter
@@ -399,7 +403,7 @@ class MeshExportObject(ExportObject):
     # exporter needs.  For instance, some options require us to duplicate each
     # vertex of each face, some can reuse vertex data.  For those we'd use
     # _UnrolledFacesMeshEnumerator and _OneToOneMeshEnumerator respectively.
-    class _MeshEnumerator:
+    class _MeshEnumerator(object):
         def __init__(self, Mesh):
             self.Mesh = Mesh
             
@@ -435,7 +439,7 @@ class MeshExportObject(ExportObject):
             self.PolygonVertexIndices = []
             Index = 0
             for Polygon in Mesh.polygons:
-                self.PolygonVertexIndices.append(tuple(range(Index, 
+                self.PolygonVertexIndices.append(tuple(xrange(Index, 
                     Index + len(Polygon.vertices))))
                 Index += len(Polygon.vertices)
             
@@ -554,7 +558,7 @@ class MeshExportObject(ExportObject):
                         for VertexIndex in Polygon.vertices:
                             self.vertices.append(Mesh.vertices[VertexIndex])
                         self.PolygonVertexIndices.append(
-                            tuple(range(Index, Index + len(Polygon.vertices))))
+                            tuple(xrange(Index, Index + len(Polygon.vertices))))
                         Index += len(Polygon.vertices)            
         
         if MeshEnumerator is None:
@@ -778,7 +782,7 @@ class MeshExportObject(ExportObject):
         self.Exporter.File.Write("{};\n".format(len(MaterialIndexMap)))
         self.Exporter.File.Write("{};\n".format(len(Mesh.polygons)))
         
-        for Index in range(len(Mesh.polygons)):
+        for Index in xrange(len(Mesh.polygons)):
             self.Exporter.File.Write("{}".format(MaterialIndices[Index]))
             if Index == len(Mesh.polygons) - 1:
                 self.Exporter.File.Write(";;\n", Indent=False)
@@ -805,7 +809,7 @@ class MeshExportObject(ExportObject):
         # Gather the colors of each vertex
         VertexColorLayer = Mesh.vertex_colors.active
         VertexColors = [VertexColorLayer.data[Index].color for Index in
-            range(0,len(MeshEnumerator.vertices))]
+            xrange(0,len(MeshEnumerator.vertices))]
         VertexColorCount = len(VertexColors)
         
         self.Exporter.File.Write("MeshVertexColors {{ // {} vertex colors\n" \
@@ -830,7 +834,7 @@ class MeshExportObject(ExportObject):
     def __WriteMeshSkinWeights(self, Mesh, MeshEnumerator=None):
         # This contains vertex indices and weights for the vertices that belong
         # to this bone's group.  Also calculates the bone skin matrix.
-        class _BoneVertexGroup:
+        class _BoneVertexGroup(object):
                 def __init__(self, BlenderObject, ArmatureObject, BoneName):
                     self.BoneName = BoneName
                     self.SafeName = Util.SafeName(ArmatureObject.name) + "_" + \
@@ -1033,7 +1037,7 @@ class ArmatureExportObject(ExportObject):
 
 
 # Container for animation data
-class Animation:
+class Animation(object):
     def __init__(self, SafeName):
         self.SafeName = SafeName
         
@@ -1049,7 +1053,7 @@ class Animation:
 
 # Creates a list of Animation objects based on the animation needs of the
 # ExportObject passed to it
-class AnimationGenerator: # Base class, do not use
+class AnimationGenerator(object): # Base class, do not use
     def __init__(self, Config, SafeName, ExportObject):
         self.Config = Config
         self.SafeName = SafeName
@@ -1075,7 +1079,7 @@ class GenericAnimationGenerator(AnimationGenerator):
         CurrentAnimation = Animation(self.ExportObject.SafeName)
         BlenderObject = self.ExportObject.BlenderObject
         
-        for Frame in range(Scene.frame_start, Scene.frame_end + 1):
+        for Frame in xrange(Scene.frame_start, Scene.frame_end + 1):
             Scene.frame_set(Frame)
             
             Rotation = BlenderObject.rotation_euler.to_quaternion()
@@ -1138,11 +1142,11 @@ class ArmatureAnimationGenerator(GenericAnimationGenerator):
         BoneAnimations = [Animation(ArmatureSafeName + "_" + \
             Util.SafeName(Bone.name)) for Bone in ArmatureObject.pose.bones]
         
-        for Frame in range(Scene.frame_start, Scene.frame_end + 1):
+        for Frame in xrange(Scene.frame_start, Scene.frame_end + 1):
             Scene.frame_set(Frame)
             
             for Bone, BoneAnimation in \
-                zip(ArmatureObject.pose.bones, BoneAnimations):
+                izip(ArmatureObject.pose.bones, BoneAnimations):
                 
                 PoseMatrix = Matrix()
                 if Bone.parent:
@@ -1167,7 +1171,7 @@ class ArmatureAnimationGenerator(GenericAnimationGenerator):
 
 
 # Container for all AnimationGenerators that belong in a single AnimationSet
-class AnimationSet:
+class AnimationSet(object):
     def __init__(self, SafeName, AnimationGenerators):
         self.SafeName = SafeName
         self.AnimationGenerators = AnimationGenerators
@@ -1175,7 +1179,7 @@ class AnimationSet:
 
 # Writes all animation data to file.  Implementations will control the
 # separation of AnimationGenerators into distinct AnimationSets.
-class AnimationWriter:
+class AnimationWriter(object):
     def __init__(self, Config, Exporter, AnimationGenerators):
         self.Config = Config
         self.Exporter = Exporter
@@ -1311,7 +1315,7 @@ class SplitSetAnimationWriter(AnimationWriter):
 
 
 # Interface to the file.  Supports automatic whitespace indenting.
-class File:
+class File(object):
     def __init__(self, FilePath):
         self.FilePath = FilePath
         self.File = None
@@ -1344,7 +1348,7 @@ class File:
 
 
 # Static utilities
-class Util:
+class Util(object):
     @staticmethod
     def SafeName(Name):
         # Replaces each character in OldSet with NewChar

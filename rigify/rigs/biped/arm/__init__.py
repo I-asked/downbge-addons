@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 import importlib
 from . import fk, ik, deform
@@ -72,7 +73,7 @@ if is_selected(fk_arm+ik_arm):
 """
 
 
-class Rig:
+class Rig(object):
     """ An arm rig, with IK/FK switching and hinge switch.
 
     """

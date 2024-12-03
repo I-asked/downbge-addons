@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 bl_info = {
     "name": "F2",
     "author": "Bart Crouch, Alexander Nedovizin, Paul Kotelevets "
@@ -76,7 +78,7 @@ def quad_from_edge(bm, edge_sel, context, event):
     all_edges = [[edge for edge in edge_sel.verts[i].link_edges if \
         len(edge.link_faces) < 2 and edge != edge_sel and \
         sum([face in edge_sel.link_faces for face in edge.link_faces]) == 0] \
-        for i in range(2)]
+        for i in xrange(2)]
     if not all_edges[0] or not all_edges[1]:
         return
 
@@ -283,7 +285,7 @@ def quad_from_vertex(bm, vert_sel, context, event):
                 uv_sel = None
                 uv_new = None
                 # get original uv coordinates
-                for i in range(2):
+                for i in xrange(2):
                     for loop in other_verts[i].link_loops:
                         if loop.face.index > -1:
                             uv_others[loop.vert.index] = loop[uv_layer].uv
@@ -337,7 +339,7 @@ class MeshF2(bpy.types.Operator):
     bl_idname = "mesh.f2"
     bl_label = "Make Edge/Face"
     bl_description = "Extends the 'Make Edge/Face' functionality"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     @classmethod
     def poll(cls, context):
@@ -353,7 +355,7 @@ class MeshF2(bpy.types.Operator):
             try:
                 bpy.ops.mesh.edge_face_add('INVOKE_DEFAULT')
             except:
-                return {'CANCELLED'}
+                return set(['CANCELLED'])
         elif len(sel) == 1:
             # single vertex selected -> mirror vertex and create new face
             quad_from_vertex(bm, sel[0], context, event)
@@ -371,7 +373,7 @@ class MeshF2(bpy.types.Operator):
                 # single edge selected -> new face from linked open edges
                 quad_from_edge(bm, edges_sel[0], context, event)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 # registration

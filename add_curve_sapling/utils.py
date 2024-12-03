@@ -17,6 +17,8 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 import time
 import copy
@@ -34,7 +36,7 @@ yAxis = Vector((0,1,0))
 xAxis = Vector((1,0,0))
 
 # This class will contain a part of the tree which needs to be extended and the required tree parameters
-class stemSpline:
+class stemSpline(object):
     def __init__(self,spline,curvature,curvatureV,segments,maxSegs,segLength,childStems,stemRadStart,stemRadEnd,splineNum):
         self.spline = spline
         self.p = spline.bezier_points[-1]
@@ -73,7 +75,7 @@ class stemSpline:
         self.curv += curvD
 
 # This class contains the data for a point where a new branch will sprout
-class childPoint:
+class childPoint(object):
     def __init__(self,coords,quat,radiusPar,offset,lengthPar,parBone):
         self.co = coords
         self.quat = quat
@@ -184,7 +186,7 @@ def findChildPoints(stemList,numChild):
     numSegs = numPoints - numSplines
     numPerSeg = numChild/numSegs
     numMain = round(numPerSeg*stemList[0].segMax,0)
-    return [(a+1)/(numMain) for a in range(int(numMain))]
+    return [(a+1)/(numMain) for a in xrange(int(numMain))]
 
 # Find the coordinates, quaternion and radius for each t on the stem
 def interpStem(stem,tVals,lPar,parRad):
@@ -225,7 +227,7 @@ def growSpline(stem,numSplit,splitAng,splitAngV,splineList,attractUp,hType,splin
         cuData = stem.spline.id_data.name
         cu = bpy.data.curves[cuData]
         # Now for each split add the new spline and adjust the growth direction
-        for i in range(numSplit):
+        for i in xrange(numSplit):
             newSpline = cu.splines.new('BEZIER')
             newPoint = newSpline.bezier_points[-1]
             (newPoint.co,newPoint.handle_left_type,newPoint.handle_right_type) = (stem.p.co,'VECTOR','VECTOR')
@@ -447,7 +449,7 @@ def create_armature(armAnim, childP, cu, frameRate, leafMesh, leafObj, leafShape
         # Set the phase multiplier for the spline
         bMult = (s.bezier_points[0].radius / max(splineL, 1e-6)) * (1 / 15) * (1 / frameRate)
         # For all the points in the curve (less the last) add a bone and name it by the spline it will affect
-        for n in range(numPoints):
+        for n in xrange(numPoints):
             oldBone = b
             boneName = 'bone' + (str(i)).rjust(3, '0') + '.' + (str(n)).rjust(3, '0')
             b = arm.edit_bones.new(boneName)
@@ -662,7 +664,7 @@ def perform_pruning(baseSize, baseSplits, childP, cu, currentMax, currentMin, cu
         # Initialise the spline list for those contained in the current level of branching
         splineList = [st]
         # For each of the segments of the stem which must be grown we have to add to each spline in splineList
-        for k in range(curveRes[n]):
+        for k in xrange(curveRes[n]):
             # Make a copy of the current list to avoid continually adding to the list we're iterating over
             tempList = splineList[:]
             # print('Leng: ',len(tempList))
@@ -837,7 +839,7 @@ def addTree(props):
         newPoint.co = Vector((0,0,scaleVal))
         (newPoint.handle_right_type,newPoint.handle_left_type) = (enHandle,enHandle)
         # Set the coordinates by varying the z value, envelope will be aligned to the x-axis
-        for c in range(enNum):
+        for c in xrange(enNum):
             newSpline.bezier_points.add()
             newPoint = newSpline.bezier_points[-1]
             ratioVal = (c+1)/(enNum)
@@ -849,7 +851,7 @@ def addTree(props):
         newPoint.co = Vector((0,0,scaleVal))
         (newPoint.handle_right_type,newPoint.handle_left_type) = (enHandle,enHandle)
         # Create a second envelope but this time on the y-axis
-        for c in range(enNum):
+        for c in xrange(enNum):
             newSpline.bezier_points.add()
             newPoint = newSpline.bezier_points[-1]
             ratioVal = (c+1)/(enNum)
@@ -867,7 +869,7 @@ def addTree(props):
     leafMesh = None # in case we aren't creating leaves, we'll still have the variable
 
      # Each of the levels needed by the user we grow all the splines
-    for n in range(levels):
+    for n in xrange(levels):
         storeN = n
         stemList = deque()
         addstem = stemList.append
@@ -930,7 +932,7 @@ def addTree(props):
                 # If the special flag is set then we need to add several leaves at the same location
                 if leaves < 0:
                     oldRot = -rotate[n]/2
-                    for g in range(abs(leaves)):
+                    for g in xrange(abs(leaves)):
                         (vertTemp,faceTemp,oldRot) = genLeafMesh(leafScale,leafScaleX,cp.co,cp.quat,len(leafVerts),downAngle[n],downAngleV[n],rotate[n],rotateV[n],oldRot,bend,leaves, leafShape)
                         leafVerts.extend(vertTemp)
                         leafFaces.extend(faceTemp)
@@ -950,7 +952,7 @@ def addTree(props):
                 leafMesh.uv_textures.new("leafUV")
                 uvlayer = leafMesh.uv_layers.active.data
 
-                for i in range(0, len(leafFaces)):
+                for i in xrange(0, len(leafFaces)):
                     uvlayer[i*4 + 0].uv = Vector((1, 0))
                     uvlayer[i*4 + 1].uv = Vector((1, 1))
                     uvlayer[i*4 + 2].uv = Vector((1 - leafScaleX, 1))

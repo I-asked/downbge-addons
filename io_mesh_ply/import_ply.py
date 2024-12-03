@@ -18,8 +18,12 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import with_statement
+from __future__ import absolute_import
 import re
 import struct
+from io import open
 
 
 class element_spec(object):
@@ -34,7 +38,7 @@ class element_spec(object):
         self.properties = []
 
     def load(self, format, stream):
-        if format == b'ascii':
+        if format == 'ascii':
             stream = stream.readline().split()
         return [x.load(format, stream) for x in self.properties]
 
@@ -57,14 +61,14 @@ class property_spec(object):
         self.numeric_type = numeric_type
 
     def read_format(self, format, count, num_type, stream):
-        if format == b'ascii':
+        if format == 'ascii':
             if num_type == 's':
                 ans = []
-                for i in range(count):
+                for i in xrange(count):
                     s = stream[i]
                     if len(s) < 2 or s[0] != '"' or s[-1] != '"':
-                        print('Invalid string', s)
-                        print('Note: ply_import.py does not handle whitespace in strings')
+                        print 'Invalid string', s
+                        print 'Note: ply_import.py does not handle whitespace in strings'
                         return None
                     ans.append(s[1:-1])
                 stream[:count] = []
@@ -79,7 +83,7 @@ class property_spec(object):
         else:
             if num_type == 's':
                 ans = []
-                for i in range(count):
+                for i in xrange(count):
                     fmt = format + 'i'
                     data = stream.read(struct.calcsize(fmt))
                     length = struct.unpack(fmt, data)[0]
@@ -109,7 +113,7 @@ class object_spec(object):
         self.specs = []
 
     def load(self, format, stream):
-        return dict([(i.name, [i.load(format, stream) for j in range(i.count)]) for i in self.specs])
+        return dict([(i.name, [i.load(format, stream) for j in xrange(i.count)]) for i in self.specs])
 
         '''
         # Longhand for above LC
@@ -125,85 +129,85 @@ class object_spec(object):
 
 
 def read(filepath):
-    format = b''
-    texture = b''
-    version = b'1.0'
-    format_specs = {b'binary_little_endian': '<',
-                    b'binary_big_endian': '>',
-                    b'ascii': b'ascii'}
-    type_specs = {b'char': 'b',
-                  b'uchar': 'B',
-                  b'int8': 'b',
-                  b'uint8': 'B',
-                  b'int16': 'h',
-                  b'uint16': 'H',
-                  b'short': 'h',
-                  b'ushort': 'H',
-                  b'int': 'i',
-                  b'int32': 'i',
-                  b'uint': 'I',
-                  b'uint32': 'I',
-                  b'float': 'f',
-                  b'float32': 'f',
-                  b'float64': 'd',
-                  b'double': 'd',
-                  b'string': 's'}
+    format = ''
+    texture = ''
+    version = '1.0'
+    format_specs = {'binary_little_endian': '<',
+                    'binary_big_endian': '>',
+                    'ascii': 'ascii'}
+    type_specs = {'char': 'b',
+                  'uchar': 'B',
+                  'int8': 'b',
+                  'uint8': 'B',
+                  'int16': 'h',
+                  'uint16': 'H',
+                  'short': 'h',
+                  'ushort': 'H',
+                  'int': 'i',
+                  'int32': 'i',
+                  'uint': 'I',
+                  'uint32': 'I',
+                  'float': 'f',
+                  'float32': 'f',
+                  'float64': 'd',
+                  'double': 'd',
+                  'string': 's'}
     obj_spec = object_spec()
     invalid_ply = (None, None, None)
 
     with open(filepath, 'rb') as plyf:
         signature = plyf.readline()
 
-        if not signature.startswith(b'ply'):
-            print('Signature line was invalid')
+        if not signature.startswith('ply'):
+            print 'Signature line was invalid'
             return invalid_ply
 
         valid_header = False
         for line in plyf:
-            tokens = re.split(br'[ \r\n]+', line)
+            tokens = re.split(r'[ \r\n]+', line)
 
             if len(tokens) == 0:
                 continue
-            if tokens[0] == b'end_header':
+            if tokens[0] == 'end_header':
                 valid_header = True
                 break
-            elif tokens[0] == b'comment':
+            elif tokens[0] == 'comment':
                 if len(tokens) < 2:
                     continue
-                elif tokens[1] == b'TextureFile':
+                elif tokens[1] == 'TextureFile':
                     if len(tokens) < 4:
-                        print('Invalid texture line')
+                        print 'Invalid texture line'
                     else:
                         texture = tokens[2]
                 continue
-            elif tokens[0] == b'obj_info':
+            elif tokens[0] == 'obj_info':
                 continue
-            elif tokens[0] == b'format':
+            elif tokens[0] == 'format':
                 if len(tokens) < 3:
-                    print('Invalid format line')
+                    print 'Invalid format line'
                     return invalid_ply
                 if tokens[1] not in format_specs:
-                    print('Unknown format', tokens[1])
+                    print 'Unknown format', tokens[1]
                     return invalid_ply
                 if tokens[2] != version:
-                    print('Unknown version', tokens[2])
+                    print 'Unknown version', tokens[2]
                     return invalid_ply
                 format = tokens[1]
-            elif tokens[0] == b'element':
+            elif tokens[0] == 'element':
                 if len(tokens) < 3:
-                    print(b'Invalid element line')
+                    print 'Invalid element line'
                     return invalid_ply
                 obj_spec.specs.append(element_spec(tokens[1], int(tokens[2])))
-            elif tokens[0] == b'property':
+            elif tokens[0] == 'property':
                 if not len(obj_spec.specs):
-                    print('Property without element')
+                    print 'Property without element'
                     return invalid_ply
-                if tokens[1] == b'list':
+                if tokens[1] == 'list':
                     obj_spec.specs[-1].properties.append(property_spec(tokens[4], type_specs[tokens[2]], type_specs[tokens[3]]))
                 else:
                     obj_spec.specs[-1].properties.append(property_spec(tokens[2], None, type_specs[tokens[1]]))
         if not valid_header:
-            print("Invalid header ('end_header' line not found!)")
+            print "Invalid header ('end_header' line not found!)"
             return invalid_ply
 
         obj = obj_spec.load(format_specs[format], plyf)
@@ -220,7 +224,7 @@ def load_ply_mesh(filepath, ply_name):
 
     obj_spec, obj, texture = read(filepath)
     if obj is None:
-        print('Invalid file')
+        print 'Invalid file'
         return
 
     uvindices = colindices = None
@@ -229,25 +233,25 @@ def load_ply_mesh(filepath, ply_name):
     # noindices = None # Ignore normals
 
     for el in obj_spec.specs:
-        if el.name == b'vertex':
-            vindices_x, vindices_y, vindices_z = el.index(b'x'), el.index(b'y'), el.index(b'z')
+        if el.name == 'vertex':
+            vindices_x, vindices_y, vindices_z = el.index('x'), el.index('y'), el.index('z')
             # noindices = (el.index('nx'), el.index('ny'), el.index('nz'))
             # if -1 in noindices: noindices = None
-            uvindices = (el.index(b's'), el.index(b't'))
+            uvindices = (el.index('s'), el.index('t'))
             if -1 in uvindices:
                 uvindices = None
-            colindices = el.index(b'red'), el.index(b'green'), el.index(b'blue')
+            colindices = el.index('red'), el.index('green'), el.index('blue')
             if -1 in colindices:
                 colindices = None
             else:  # if not a float assume uchar
-                colmultiply = [1.0 if el.properties[i].numeric_type in {'f', 'd'} else (1.0 / 255.0) for i in colindices]
+                colmultiply = [1.0 if el.properties[i].numeric_type in set(['f', 'd']) else (1.0 / 255.0) for i in colindices]
 
-        elif el.name == b'face':
-            findex = el.index(b'vertex_indices')
-        elif el.name == b'tristrips':
-            trindex = el.index(b'vertex_indices')
-        elif el.name == b'edge':
-            eindex1, eindex2 = el.index(b'vertex1'), el.index(b'vertex2')
+        elif el.name == 'face':
+            findex = el.index('vertex_indices')
+        elif el.name == 'tristrips':
+            trindex = el.index('vertex_indices')
+        elif el.name == 'edge':
+            eindex1, eindex2 = el.index('vertex1'), el.index('vertex2')
 
     mesh_faces = []
     mesh_uvs = []
@@ -278,35 +282,35 @@ def load_ply_mesh(filepath, ply_name):
 
             add_face_simple(vertices, indices, uvindices, colindices)
 
-    verts = obj[b'vertex']
+    verts = obj['vertex']
 
-    if b'face' in obj:
-        for f in obj[b'face']:
+    if 'face' in obj:
+        for f in obj['face']:
             ind = f[findex]
             len_ind = len(ind)
             if len_ind <= 4:
                 add_face(verts, ind, uvindices, colindices)
             else:
                 # Fan fill the face
-                for j in range(len_ind - 2):
+                for j in xrange(len_ind - 2):
                     add_face(verts, (ind[0], ind[j + 1], ind[j + 2]), uvindices, colindices)
 
-    if b'tristrips' in obj:
-        for t in obj[b'tristrips']:
+    if 'tristrips' in obj:
+        for t in obj['tristrips']:
             ind = t[trindex]
             len_ind = len(ind)
-            for j in range(len_ind - 2):
+            for j in xrange(len_ind - 2):
                 add_face(verts, (ind[j], ind[j + 1], ind[j + 2]), uvindices, colindices)
 
     mesh = bpy.data.meshes.new(name=ply_name)
 
-    mesh.vertices.add(len(obj[b'vertex']))
+    mesh.vertices.add(len(obj['vertex']))
 
-    mesh.vertices.foreach_set("co", [a for v in obj[b'vertex'] for a in (v[vindices_x], v[vindices_y], v[vindices_z])])
+    mesh.vertices.foreach_set("co", [a for v in obj['vertex'] for a in (v[vindices_x], v[vindices_y], v[vindices_z])])
 
-    if b'edge' in obj:
-        mesh.edges.add(len(obj[b'edge']))
-        mesh.edges.foreach_set("vertices", [a for e in obj[b'edge'] for a in (e[eindex1], e[eindex2])])
+    if 'edge' in obj:
+        mesh.edges.add(len(obj['edge']))
+        mesh.edges.foreach_set("vertices", [a for e in obj['edge'] for a in (e[eindex1], e[eindex2])])
 
     if mesh_faces:
         mesh.tessfaces.add(len(mesh_faces))
@@ -377,7 +381,7 @@ def load_ply(filepath):
 
     mesh = load_ply_mesh(filepath, ply_name)
     if not mesh:
-        return {'CANCELLED'}
+        return set(['CANCELLED'])
 
     scn = bpy.context.scene
 
@@ -386,8 +390,8 @@ def load_ply(filepath):
     scn.objects.active = obj
     obj.select = True
 
-    print('\nSuccessfully imported %r in %.3f sec' % (filepath, time.time() - t))
-    return {'FINISHED'}
+    print '\nSuccessfully imported %r in %.3f sec' % (filepath, time.time() - t)
+    return set(['FINISHED'])
 
 
 def load(operator, context, filepath=""):

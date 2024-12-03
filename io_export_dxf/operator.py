@@ -1,5 +1,6 @@
 
 
+from __future__ import absolute_import
 import bpy
 from bpy.props import StringProperty, EnumProperty, BoolProperty
 
@@ -267,7 +268,7 @@ class DXFExporter(bpy.types.Operator):
 
         from .export_dxf import exportDXF
         exportDXF(context, filePath, config)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def _checkNO(self, val):
         if val == 'NO': return None
@@ -278,6 +279,6 @@ class DXFExporter(bpy.types.Operator):
             self.filepath = bpy.path.ensure_ext(bpy.data.filepath, ".dxf")
         WindowManager = context.window_manager
         WindowManager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 

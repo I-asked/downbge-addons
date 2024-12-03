@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 if False:
     # This rig type is disabled due to its obscurity.
     # However, some of the code may be useful in the future, so
@@ -31,7 +32,7 @@ if False:
     from ...utils import org_name, make_mechanism_name
 
 
-    class Rig:
+    class Rig(object):
         """ A delta rig.
             Creates a setup that will place its child at its position in pose mode,
             but will not modifying its child's position in edit mode.

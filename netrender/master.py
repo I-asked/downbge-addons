@@ -16,8 +16,13 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import division
+from __future__ import with_statement
+from __future__ import absolute_import
 import sys, os
-import http, http.client, http.server, socket, socketserver
+import http, httplib, socket, SocketServer
+from io import open
+import CGIHTTPServer, SimpleHTTPServer, BaseHTTPServer
 import shutil, time, hashlib
 import pickle
 import zipfile
@@ -33,7 +38,7 @@ import netrender.thumbnail as thumbnail
 
 class MRenderFile(netrender.model.RenderFile):
     def __init__(self, filepath, index, start, end, signature):
-        super().__init__(filepath, index, start, end, signature)
+        super(MRenderFile, self).__init__(filepath, index, start, end, signature)
         self.found = False
 
     def updateStatus(self):
@@ -43,7 +48,7 @@ class MRenderFile(netrender.model.RenderFile):
             found_signature = hashFile(self.filepath)
             self.found = self.signature == found_signature
             if not self.found:
-                print("Signature mismatch", self.signature, found_signature)
+                print "Signature mismatch", self.signature, found_signature
             
         return self.found
 
@@ -57,8 +62,8 @@ class MRenderFile(netrender.model.RenderFile):
 
 class MRenderSlave(netrender.model.RenderSlave):
     def __init__(self, slave_info):
-        super().__init__(slave_info)
-        self.id = hashlib.md5(bytes(repr(slave_info.name) + repr(slave_info.address), encoding='utf8')).hexdigest()
+        super(MRenderSlave, self).__init__(slave_info)
+        self.id = hashlib.md5(str(repr(slave_info.name) + repr(slave_info.address)).encode('utf8')).hexdigest()
         self.last_seen = time.time()
         
 
@@ -73,15 +78,15 @@ class MRenderSlave(netrender.model.RenderSlave):
     def finishedFrame(self, frame_number):
         try:
             self.job_frames.remove(frame_number)
-        except ValueError as e:
-            print("Internal error: Frame %i not in job frames list" % frame_number)
-            print(self.job_frames)
+        except ValueError, e:
+            print "Internal error: Frame %i not in job frames list" % frame_number
+            print self.job_frames
         if not self.job_frames:
             self.job = None
 
 class MRenderJob(netrender.model.RenderJob):
     def __init__(self, job_id, job_info):
-        super().__init__(job_info)
+        super(MRenderJob, self).__init__(job_info)
         self.id = job_id
         self.last_dispatched = time.time()
         self.start_time = time.time()
@@ -142,7 +147,7 @@ class MRenderJob(netrender.model.RenderJob):
             self.finish_time=time.time()
 
     def pause(self, status = None):
-        if self.status not in {netrender.model.JOB_PAUSED, netrender.model.JOB_QUEUED}:
+        if self.status not in set([netrender.model.JOB_PAUSED, netrender.model.JOB_QUEUED]):
             return
 
         if status is None:
@@ -194,7 +199,7 @@ class MRenderJob(netrender.model.RenderJob):
 
 class MRenderFrame(netrender.model.RenderFrame):
     def __init__(self, frame, command):
-        super().__init__()
+        super(MRenderFrame, self).__init__()
         self.number = frame
         self.slave = None
         self.time = 0
@@ -231,7 +236,7 @@ cancel_pattern = re.compile("/cancel_([a-zA-Z0-9]+)")
 pause_pattern = re.compile("/pause_([a-zA-Z0-9]+)")
 edit_pattern = re.compile("/edit_([a-zA-Z0-9]+)")
 
-class RenderHandler(http.server.BaseHTTPRequestHandler):
+class RenderHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def write_file(self, file_path, mode = 'wb'):
         length = int(self.headers['content-length'])
         f = open(file_path, mode)
@@ -254,10 +259,10 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
         else:
             return {}
 
-    def send_head(self, code = http.client.OK, headers = {}, content = "application/octet-stream"):
+    def send_head(self, code = httplib.OK, headers = {}, content = "application/octet-stream"):
         self.send_response(code)
         
-        if code == http.client.OK and content:
+        if code == httplib.OK and content:
             self.send_header("Content-type", content)
 
         for key, value in headers.items():
@@ -277,13 +282,13 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
 
                 if frame:
-                    self.send_head(http.client.OK)
+                    self.send_head(httplib.OK)
                 else:
                     # no such frame
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
             else:
                 # no such job id
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
 
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -311,8 +316,8 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[frame_number]
 
                     if frame:
-                        if frame.status in {netrender.model.FRAME_QUEUED, netrender.model.FRAME_DISPATCHED}:
-                            self.send_head(http.client.ACCEPTED)
+                        if frame.status in set([netrender.model.FRAME_QUEUED, netrender.model.FRAME_DISPATCHED]):
+                            self.send_head(httplib.ACCEPTED)
                         elif frame.status == netrender.model.FRAME_DONE:
                             self.server.stats("", "Sending result to client")
 
@@ -323,16 +328,16 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                             shutil.copyfileobj(f, self.wfile)
                             f.close()
                         elif frame.status == netrender.model.FRAME_ERROR:
-                            self.send_head(http.client.PARTIAL_CONTENT)
+                            self.send_head(httplib.PARTIAL_CONTENT)
                     else:
                         # no such frame
-                        self.send_head(http.client.NO_CONTENT)
+                        self.send_head(httplib.NO_CONTENT)
                 else:
                     # no such job id
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
             else:
                 # invalid url
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path.startswith("/result"):
             match = result_pattern.match(self.path)
@@ -361,10 +366,10 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     f.close()
                 else:
                     # no such job id
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
             else:
                 # invalid url
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path.startswith("/thumb"):
             match = thumb_pattern.match(self.path)
@@ -379,8 +384,8 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[frame_number]
 
                     if frame:
-                        if frame.status in {netrender.model.FRAME_QUEUED, netrender.model.FRAME_DISPATCHED}:
-                            self.send_head(http.client.ACCEPTED)
+                        if frame.status in set([netrender.model.FRAME_QUEUED, netrender.model.FRAME_DISPATCHED]):
+                            self.send_head(httplib.ACCEPTED)
                         elif frame.status == netrender.model.FRAME_DONE:
                             filename = job.getResultPath(frame.getRenderFilename())
 
@@ -392,19 +397,19 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                                 shutil.copyfileobj(f, self.wfile)
                                 f.close()
                             else: # thumbnail couldn't be generated
-                                self.send_head(http.client.PARTIAL_CONTENT)
+                                self.send_head(httplib.PARTIAL_CONTENT)
                                 return
                         elif frame.status == netrender.model.FRAME_ERROR:
-                            self.send_head(http.client.PARTIAL_CONTENT)
+                            self.send_head(httplib.PARTIAL_CONTENT)
                     else:
                         # no such frame
-                        self.send_head(http.client.NO_CONTENT)
+                        self.send_head(httplib.NO_CONTENT)
                 else:
                     # no such job id
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
             else:
                 # invalid url
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path.startswith("/log"):
             match = log_pattern.match(self.path)
@@ -419,8 +424,8 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[frame_number]
 
                     if frame:
-                        if not frame.log_path or frame.status in {netrender.model.FRAME_QUEUED, netrender.model.FRAME_DISPATCHED}:
-                            self.send_head(http.client.PROCESSING)
+                        if not frame.log_path or frame.status in set([netrender.model.FRAME_QUEUED, netrender.model.FRAME_DISPATCHED]):
+                            self.send_head(httplib.PROCESSING)
                         else:
                             self.server.stats("", "Sending log to client")
                             f = open(frame.log_path, 'rb')
@@ -432,13 +437,13 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                             f.close()
                     else:
                         # no such frame
-                        self.send_head(http.client.NO_CONTENT)
+                        self.send_head(httplib.NO_CONTENT)
                 else:
                     # no such job id
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
             else:
                 # invalid URL
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/status":
             job_id = self.headers.get('job-id', "")
@@ -455,13 +460,13 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                             message = frame.serialize()
                         else:
                             # no such frame
-                            self.send_heat(http.client.NO_CONTENT)
+                            self.send_heat(httplib.NO_CONTENT)
                             return
                     else:
                         message = job.serialize()
                 else:
                     # no such job id
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
                     return
             else: # status of all jobs
                 message = []
@@ -472,7 +477,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
             self.server.stats("", "Sending status")
             self.send_head()
-            self.wfile.write(bytes(json.dumps(message), encoding='utf8'))
+            self.wfile.write(str(json.dumps(message)).encode('utf8'))
 
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/job":
@@ -487,7 +492,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
                 if job and frames:
                     for f in frames:
-                        print("dispatch", f.number)
+                        print "dispatch", f.number
                         f.status = netrender.model.FRAME_DISPATCHED
                         f.slave = slave
 
@@ -497,7 +502,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     self.send_head(headers={"job-id": job.id})
 
                     message = job.serialize(frames)
-                    self.wfile.write(bytes(json.dumps(message), encoding='utf8'))
+                    self.wfile.write(str(json.dumps(message)).encode('utf8'))
 
                     self.server.stats("", "Sending job to slave")
                 else:
@@ -505,9 +510,9 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     slave.job = None
                     slave.job_frames = []
 
-                    self.send_head(http.client.ACCEPTED)
+                    self.send_head(httplib.ACCEPTED)
             else: # invalid slave id
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path.startswith("/file"):
             match = file_pattern.match(self.path)
@@ -518,7 +523,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
                 if not slave:
                     # invalid slave id
-                    print("invalid slave id")
+                    print "invalid slave id"
 
                 job_id = match.groups()[0]
                 file_index = int(match.groups()[1])
@@ -538,12 +543,12 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         f.close()
                     else:
                         # no such file
-                        self.send_head(http.client.NO_CONTENT)
+                        self.send_head(httplib.NO_CONTENT)
                 else:
                     # no such job id
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
             else: # invalid url
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/slaves":
             message = []
@@ -555,7 +560,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
             self.send_head()
 
-            self.wfile.write(bytes(json.dumps(message), encoding='utf8'))
+            self.wfile.write(str(json.dumps(message)).encode('utf8'))
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         else:
             # hand over the rest to the html section
@@ -592,7 +597,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                 self.send_head(headers=headers, content = None)
             else:
                 self.server.stats("", "New job, missing files (%i total)" % len(job.files))
-                self.send_head(http.client.ACCEPTED, headers=headers)
+                self.send_head(httplib.ACCEPTED, headers=headers)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path.startswith("/edit"):
             match = edit_pattern.match(self.path)
@@ -609,10 +614,10 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     self.send_head(content = None)
                 else:
                     # no such job id
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
             else:
                 # invalid url
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/balance_limit":
             info_map = self.getInfoMap()
@@ -652,10 +657,10 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     self.send_head(content = None)
                 else:
                     # no such job id
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
             else:
                 # invalid url
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path.startswith("/pause"):
             match = pause_pattern.match(self.path)
@@ -674,10 +679,10 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     self.send_head(content = None)
                 else:
                     # no such job id
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
             else:
                 # invalid url
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/clear":
             # cancel all jobs
@@ -709,7 +714,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                             self.send_head(content = None)
                         else:
                             # no such frame
-                            self.send_head(http.client.NO_CONTENT)
+                            self.send_head(httplib.NO_CONTENT)
 
                     else:
                         self.server.stats("", "Reset job")
@@ -717,9 +722,9 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         self.send_head(content = None)
 
                 else: # job not found
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
             else: # invalid url
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/slave":
             length = int(self.headers['content-length'])
@@ -753,9 +758,9 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     self.send_head(content = None)
                 else:
                     # no such job id
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
             else: # invalid slave id
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -798,22 +803,22 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         
                         if not found: # checksum mismatch
                             self.server.stats("", "File upload but checksum mismatch, this shouldn't happen")
-                            self.send_head(http.client.CONFLICT)
+                            self.send_head(httplib.CONFLICT)
                         elif job.testStart(): # started correctly
                             self.server.stats("", "File upload, starting job")
                             self.send_head(content = None)
                         else:
                             self.server.stats("", "File upload, dependency files still missing")
-                            self.send_head(http.client.ACCEPTED)
+                            self.send_head(httplib.ACCEPTED)
                     else: # invalid file
-                        print("file not found", job_id, file_index)
-                        self.send_head(http.client.NO_CONTENT)
+                        print "file not found", job_id, file_index
+                        self.send_head(httplib.NO_CONTENT)
                 else: # job not found
-                    print("job not found", job_id, file_index)
-                    self.send_head(http.client.NO_CONTENT)
+                    print "job not found", job_id, file_index
+                    self.send_head(httplib.NO_CONTENT)
             else: # invalid url
-                print("no match")
-                self.send_head(http.client.NO_CONTENT)
+                print "no match"
+                self.send_head(httplib.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/render":
             self.server.stats("", "Receiving render result")
@@ -856,11 +861,11 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         job.testFinished()
 
                     else: # frame not found
-                        self.send_head(http.client.NO_CONTENT)
+                        self.send_head(httplib.NO_CONTENT)
                 else: # job not found
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
             else: # invalid slave id
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/result":
             self.server.stats("", "Receiving job result")
@@ -900,11 +905,11 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
                             job.testFinished()
                     else: # frame not found
-                        self.send_head(http.client.NO_CONTENT)
+                        self.send_head(httplib.NO_CONTENT)
                 else: # job not found
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
             else: # invalid slave id
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/thumb":
             self.server.stats("", "Receiving thumbnail result")
@@ -930,11 +935,11 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                             self.write_file(os.path.join(os.path.join(job.save_path, "%06d.jpg" % job_frame)))
 
                     else: # frame not found
-                        self.send_head(http.client.NO_CONTENT)
+                        self.send_head(httplib.NO_CONTENT)
                 else: # job not found
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
             else: # invalid slave id
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path.startswith("/log"):
             self.server.stats("", "Receiving log file")
@@ -959,13 +964,13 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         self.server.getSeenSlave(self.headers['slave-id'])
 
                     else: # frame not found
-                        self.send_head(http.client.NO_CONTENT)
+                        self.send_head(httplib.NO_CONTENT)
                 else: # job not found
-                    self.send_head(http.client.NO_CONTENT)
+                    self.send_head(httplib.NO_CONTENT)
             else: # invalid url
-                self.send_head(http.client.NO_CONTENT)
+                self.send_head(httplib.NO_CONTENT)
 
-class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+class RenderMasterServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     def __init__(self, address, handler_class, path, force=False, subdir=True):
         self.jobs = []
         self.jobs_map = {}
@@ -991,7 +996,7 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         self.balancer.addPriority(netrender.balancing.NewJobPriority())
         self.balancer.addPriority(netrender.balancing.MinimumTimeBetweenDispatchPriority(limit = 2))
 
-        super().__init__(address, handler_class)
+        super(RenderMasterServer, self).__init__(address, handler_class)
 
     def restore(self, jobs, slaves, balancer = None):
         self.jobs = jobs
@@ -1135,7 +1140,7 @@ def createMaster(address, clear, force, path):
     filepath = os.path.join(path, "blender_master.data")
 
     if not clear and os.path.exists(filepath):
-        print("loading saved master:", filepath)
+        print "loading saved master:", filepath
         with open(filepath, 'rb') as f:
             path, jobs, slaves = pickle.load(f)
             
@@ -1182,8 +1187,8 @@ def runMaster(address, broadcast, clear, force, path, update_stats, test_break,u
             httpd.updateUsage()
 
             if broadcast:
-                print("broadcasting address")
-                s.sendto(bytes("%i" % address[1], encoding='utf8'), 0, ('<broadcast>', 8000))
+                print "broadcasting address"
+                s.sendto(str("%i" % address[1]).encode('utf8'), 0, ('<broadcast>', 8000))
                 start_time = time.time()
 
     httpd.server_close()

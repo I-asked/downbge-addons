@@ -29,9 +29,12 @@ for moving animations from package to package.
 Be sure not to use modifiers that change the number or order of verts in the mesh
 """
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 import mathutils
 from struct import pack
+from io import open
 
 
 def zero_file(filepath):
@@ -88,14 +91,14 @@ def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25.0)
     f.write(pack(">2i", numframes, numverts))
 
     # Write the frame times (should we use the time IPO??)
-    f.write(pack(">%df" % (numframes), *[frame / fps for frame in range(numframes)]))  # seconds
+    f.write(pack(">%df" % (numframes), *[frame / fps for frame in xrange(numframes)]))  # seconds
 
     #rest frame needed to keep frames in sync
     check_vertcount(me, numverts)
     me.transform(mat_flip * obj.matrix_world)
     f.write(pack(">%df" % (numverts * 3), *[axis for v in me.vertices for axis in v.co]))
 
-    for frame in range(frame_start, frame_end + 1):  # in order to start at desired frame
+    for frame in xrange(frame_start, frame_end + 1):  # in order to start at desired frame
         scene.frame_set(frame)
         me = obj.to_mesh(scene, True, 'PREVIEW')
         check_vertcount(me, numverts)
@@ -106,7 +109,7 @@ def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25.0)
 
     f.close()
 
-    print('MDD Exported: %r frames:%d\n' % (filepath, numframes - 1))
+    print 'MDD Exported: %r frames:%d\n' % (filepath, numframes - 1)
     scene.frame_set(orig_frame)
 
-    return {'FINISHED'}
+    return set(['FINISHED'])

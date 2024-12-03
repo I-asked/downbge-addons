@@ -23,6 +23,8 @@
     - Add IK spine controls
 """
 
+from __future__ import division
+from __future__ import absolute_import
 from math import floor
 
 import bpy
@@ -34,6 +36,7 @@ from ..utils import copy_bone, new_bone, flip_bone, put_bone
 from ..utils import connected_children_names
 from ..utils import strip_org, make_mechanism_name, make_deformer_name
 from ..utils import create_circle_widget, create_cube_widget
+from itertools import izip
 
 script = """
 main = "%s"
@@ -47,7 +50,7 @@ for name in spine[1:-1]:
 """
 
 
-class Rig:
+class Rig(object):
     """ A "spine" rig.  It turns a chain of bones into a rig with two controls:
         One for the hips, and one for the rib cage.
 
@@ -157,14 +160,14 @@ class Rig:
         eb[main_control].parent = eb[self.org_bones[0]].parent
 
         # Parent the controls and sub-controls
-        for name, subname in zip(controls, subcontrols):
+        for name, subname in izip(controls, subcontrols):
             eb[name].use_connect = False
             eb[name].parent = eb[main_control]
             eb[subname].use_connect = False
             eb[subname].parent = eb[name]
 
         # Parent the control parents
-        for name, par_name in zip(controls[1:-1], control_parents):
+        for name, par_name in izip(controls[1:-1], control_parents):
             eb[par_name].use_connect = False
             eb[par_name].parent = eb[main_control]
             eb[name].parent = eb[par_name]
@@ -174,13 +177,13 @@ class Rig:
         eb[main_control].length = sum([eb[b].length for b in self.org_bones]) / 2
 
         # Position the controls and sub-controls
-        for name, subname in zip(controls, subcontrols):
+        for name, subname in izip(controls, subcontrols):
             put_bone(self.obj, name, pivot_rest_pos)
             put_bone(self.obj, subname, pivot_rest_pos)
             eb[subname].length = eb[name].length / 3
 
         # Position the control parents
-        for name, par_name in zip(controls[1:-1], control_parents):
+        for name, par_name in izip(controls[1:-1], control_parents):
             put_bone(self.obj, par_name, pivot_rest_pos)
             eb[par_name].length = eb[name].length / 2
 
@@ -198,7 +201,7 @@ class Rig:
         pb[main_control].bone.use_local_location = False
 
         # Intermediate controls follow hips and spine
-        for name, par_name, i in zip(controls[1:-1], control_parents, self.control_indices[1:-1]):
+        for name, par_name, i in izip(controls[1:-1], control_parents, self.control_indices[1:-1]):
             bone = pb[par_name]
 
             # Custom bend_alpha property
@@ -294,7 +297,7 @@ class Rig:
         bpy.ops.object.mode_set(mode='EDIT')
         rev_bones = []
         prev_bone = None
-        for b in zip(flex_bones, self.org_bones):
+        for b in izip(flex_bones, self.org_bones):
             # Create bones
             bone = copy_bone(self.obj, b[1], make_mechanism_name(strip_org(b[1]) + ".reverse"))
             rev_bones += [bone]
@@ -338,7 +341,7 @@ class Rig:
         bpy.ops.object.mode_set(mode='OBJECT')
         pb = self.obj.pose.bones
 
-        for obone, fbone in zip(self.org_bones, flex_bones):
+        for obone, fbone in izip(self.org_bones, flex_bones):
             con = pb[obone].constraints.new('COPY_TRANSFORMS')
             con.name = "copy_transforms"
             con.target = self.obj
@@ -396,16 +399,16 @@ class Rig:
         pb = self.obj.pose.bones
 
         # Constrain the bones that correspond exactly to the controls
-        for i, name in zip(self.control_indices, subcontrols):
+        for i, name in izip(self.control_indices, subcontrols):
             con = pb[flex_subs[i]].constraints.new('COPY_TRANSFORMS')
             con.name = "copy_transforms"
             con.target = self.obj
             con.subtarget = name
 
         # Constrain the bones in-between the controls
-        for i, j, name1, name2 in zip(self.control_indices, self.control_indices[1:], subcontrols, subcontrols[1:]):
+        for i, j, name1, name2 in izip(self.control_indices, self.control_indices[1:], subcontrols, subcontrols[1:]):
             if (i + 1) < j:
-                for n in range(i + 1, j):
+                for n in xrange(i + 1, j):
                     bone = pb[flex_subs[n]]
                     # Custom bend_alpha property
                     prop = rna_idprop_ui_prop_get(bone, "bend_alpha", create=True)
@@ -445,7 +448,7 @@ class Rig:
         create_cube_widget(self.obj, main_control)
 
         # Spines
-        for name, i in zip(controls[1:-1], self.control_indices[1:-1]):
+        for name, i in izip(controls[1:-1], self.control_indices[1:-1]):
             pb[name].custom_shape_transform = pb[self.org_bones[i]]
             # Create control widgets
             create_circle_widget(self.obj, name, radius=1.0, head_tail=0.5, with_line=True, bone_transform_name=self.org_bones[i])

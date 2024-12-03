@@ -20,13 +20,17 @@
 
 # Script copyright (C) Campbell Barton
 
+from __future__ import division
+from __future__ import absolute_import
 from math import radians
 
 import bpy
 from mathutils import Vector, Euler, Matrix
+from io import open
+import sys
 
 
-class BVH_Node:
+class BVH_Node(object):
     __slots__ = (
         'name',  # bvh joint name
         'parent',  # BVH_Node type or None for no parent
@@ -288,7 +292,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
 
         # Make sure tail isn't the same location as the head.
         if (bvh_node.rest_tail_local - bvh_node.rest_head_local).length <= 0.001 * global_scale:
-            print("\tzero length node found:", bvh_node.name)
+            print "\tzero length node found:", bvh_node.name
             bvh_node.rest_tail_local.y = bvh_node.rest_tail_local.y + global_scale / 10
             bvh_node.rest_tail_world.y = bvh_node.rest_tail_world.y + global_scale / 10
 
@@ -343,7 +347,7 @@ def bvh_node_dict2objects(context, bvh_name, bvh_nodes, rotate_mode='NATIVE', fr
     for name, bvh_node in bvh_nodes.items():
         obj = bvh_node.temp
 
-        for frame_current in range(len(bvh_node.anim_data)):
+        for frame_current in xrange(len(bvh_node.anim_data)):
 
             lx, ly, lz, rx, ry, rz = bvh_node.anim_data[frame_current]
 
@@ -421,7 +425,7 @@ def bvh_node_dict2armature(context,
 
         # Zero Length Bones! (an exceptional case)
         if (bone.head - bone.tail).length < 0.001:
-            print("\tzero length bone found:", bone.name)
+            print "\tzero length bone found:", bone.name
             if bvh_node.parent:
                 ofs = bvh_node.parent.rest_head_local - bvh_node.parent.rest_tail_local
                 if ofs.length:  # is our parent zero length also?? unlikely
@@ -509,10 +513,10 @@ def bvh_node_dict2armature(context,
     time = [float(frame_start)] * num_frame
     if use_fps_scale:
         dt = scene.render.fps * bvh_frame_time
-        for frame_i in range(1, num_frame):
+        for frame_i in xrange(1, num_frame):
             time[frame_i] += float(frame_i) * dt
     else:
-        for frame_i in range(1, num_frame):
+        for frame_i in xrange(1, num_frame):
             time[frame_i] += float(frame_i)
 
     #print("bvh_frame_time = %f, dt = %f, num_frame = %d"
@@ -527,7 +531,7 @@ def bvh_node_dict2armature(context,
             data_path = 'pose.bones["%s"].location' % pose_bone.name
 
             location = [(0.0, 0.0, 0.0)] * num_frame
-            for frame_i in range(num_frame):
+            for frame_i in xrange(num_frame):
                 bvh_loc = bvh_node.anim_data[frame_i + skip_frame][:3]
 
                 bone_translate_matrix = Matrix.Translation(
@@ -536,12 +540,12 @@ def bvh_node_dict2armature(context,
                                      bone_translate_matrix).to_translation()
 
             # For each location x, y, z.
-            for axis_i in range(3):
+            for axis_i in xrange(3):
                 curve = action.fcurves.new(data_path=data_path, index=axis_i)
                 keyframe_points = curve.keyframe_points
                 keyframe_points.add(num_frame)
 
-                for frame_i in range(num_frame):
+                for frame_i in xrange(num_frame):
                     keyframe_points[frame_i].co = \
                             (time[frame_i], location[frame_i][axis_i])
 
@@ -559,7 +563,7 @@ def bvh_node_dict2armature(context,
                              pose_bone.name)
 
             prev_euler = Euler((0.0, 0.0, 0.0))
-            for frame_i in range(num_frame):
+            for frame_i in xrange(num_frame):
                 bvh_rot = bvh_node.anim_data[frame_i + skip_frame][3:]
 
                 # apply rotation order and convert to XYZ
@@ -578,12 +582,12 @@ def bvh_node_dict2armature(context,
                     prev_euler = rotate[frame_i]
 
             # For each Euler angle x, y, z (or Quaternion w, x, y, z).
-            for axis_i in range(len(rotate[0])):
+            for axis_i in xrange(len(rotate[0])):
                 curve = action.fcurves.new(data_path=data_path, index=axis_i)
                 keyframe_points = curve.keyframe_points
                 curve.keyframe_points.add(num_frame)
 
-                for frame_i in range(0, num_frame):
+                for frame_i in xrange(0, num_frame):
                     keyframe_points[frame_i].co = \
                             (time[frame_i], rotate[frame_i][axis_i])
 
@@ -615,13 +619,13 @@ def load(operator,
 
     import time
     t1 = time.time()
-    print('\tparsing bvh %r...' % filepath, end="")
+    print '\tparsing bvh %r...' % filepath,; sys.stdout.write("")
 
     bvh_nodes, bvh_frame_time = read_bvh(context, filepath,
             rotate_mode=rotate_mode,
             global_scale=global_scale)
 
-    print('%.4f' % (time.time() - t1))
+    print '%.4f' % (time.time() - t1)
 
     scene = context.scene
     frame_orig = scene.frame_current
@@ -630,7 +634,7 @@ def load(operator,
         bvh_frame_time = 1.0 / scene.render.fps
 
     t1 = time.time()
-    print('\timporting to blender...', end="")
+    print '\timporting to blender...',; sys.stdout.write("")
 
     bvh_name = bpy.path.display_name_from_filepath(filepath)
 
@@ -654,8 +658,8 @@ def load(operator,
     else:
         raise Exception("invalid type")
 
-    print('Done in %.4f\n' % (time.time() - t1))
+    print 'Done in %.4f\n' % (time.time() - t1)
 
     context.scene.frame_set(frame_orig)
 
-    return {'FINISHED'}
+    return set(['FINISHED'])

@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
@@ -65,12 +66,12 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
     """Load a FBX file"""
     bl_idname = "import_scene.fbx"
     bl_label = "Import FBX"
-    bl_options = {'UNDO', 'PRESET'}
+    bl_options = set(['UNDO', 'PRESET'])
 
     directory = StringProperty()
 
     filename_ext = ".fbx"
-    filter_glob = StringProperty(default="*.fbx", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.fbx", options=set(['HIDDEN']))
 
     ui_tab = EnumProperty(
             items=(('MAIN', "Main", "Main basic settings"),
@@ -238,10 +239,10 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
     """Write a FBX file"""
     bl_idname = "export_scene.fbx"
     bl_label = "Export FBX"
-    bl_options = {'UNDO', 'PRESET'}
+    bl_options = set(['UNDO', 'PRESET'])
 
     filename_ext = ".fbx"
-    filter_glob = StringProperty(default="*.fbx", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.fbx", options=set(['HIDDEN']))
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
@@ -296,7 +297,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
 
     object_types = EnumProperty(
             name="Object Types",
-            options={'ENUM_FLAG'},
+            options=set(['ENUM_FLAG']),
             items=(('EMPTY', "Empty", ""),
                    ('CAMERA', "Camera", ""),
                    ('LAMP', "Lamp", ""),
@@ -305,7 +306,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
                    ('OTHER', "Other", "Other geometry types, like curve, metaball, etc. (converted to meshes)"),
                    ),
             description="Which kind of object to export",
-            default={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH', 'OTHER'},
+            default=set(['EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH', 'OTHER']),
             )
 
     use_mesh_modifiers = BoolProperty(
@@ -471,7 +472,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
     use_metadata = BoolProperty(
             name="Use Metadata",
             default=True,
-            options={'HIDDEN'},
+            options=set(['HIDDEN']),
             )
 
     def draw(self, context):

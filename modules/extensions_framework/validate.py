@@ -204,7 +204,7 @@ class Logician(object):
 
         for member_name, logic in test.items():
             result = self.test_logic(self.get_member(member_name), logic)
-            print('member %s is %s' % (member_name, result))
+            print 'member %s is %s' % (member_name, result)
 
 # A couple of name aliases
 class Validation(Logician):

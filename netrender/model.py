@@ -16,6 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import absolute_import
 import netrender.versioning as versioning
 from netrender.utils import *
 
@@ -88,7 +89,7 @@ TAG_RENDER = "render"
 
 TAG_ALL = set((TAG_BAKING, TAG_RENDER))
 
-class LogFile:
+class LogFile(object):
     def __init__(self, job_id = 0, slave_id = 0, frames = []):
         self.job_id = job_id
         self.slave_id = slave_id
@@ -113,7 +114,7 @@ class LogFile:
 
         return logfile
 
-class RenderSlave:
+class RenderSlave(object):
     _slave_map = {}
 
     def __init__(self, info = None):
@@ -170,7 +171,7 @@ class RenderSlave:
 
         return slave
 
-class VersioningInfo:
+class VersioningInfo(object):
     def __init__(self, info = None):
         self._system = None
         self.wpath = ""
@@ -222,7 +223,7 @@ class VersioningInfo:
         return vs
         
 
-class RenderFile:
+class RenderFile(object):
     def __init__(self, filepath = "", index = 0, start = -1, end = -1, signature = 0):
         self.filepath = filepath
         self.original_path = filepath
@@ -256,7 +257,7 @@ class RenderFile:
 
         return rfile
 
-class RenderJob:
+class RenderJob(object):
     def __init__(self, info = None):
         self.id = ""
         
@@ -461,7 +462,7 @@ class RenderJob:
 
         return job
 
-class RenderFrame:
+class RenderFrame(object):
     def __init__(self, number = 0, command = ""):
         self.number = number
         self.time = 0

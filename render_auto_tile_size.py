@@ -16,6 +16,8 @@
 #
 # END GPL LICENSE BLOCK #####
 
+from __future__ import division
+from __future__ import absolute_import
 bl_info = {
     "name": "Auto Tile Size",
     "description": "Estimate and set the tile size that will render the fastest",
@@ -34,7 +36,7 @@ from bpy.app.handlers import persistent
 from math import ceil, floor, sqrt
 
 
-SUPPORTED_RENDER_ENGINES = {'CYCLES', 'BLENDER_RENDER'}
+SUPPORTED_RENDER_ENGINES = set(['CYCLES', 'BLENDER_RENDER'])
 TILE_SIZES = (
     ('16', "16", "16 x 16"),
     ('32', "32", "32 x 32"),
@@ -125,17 +127,17 @@ class AutoTileSizeSettings(bpy.types.PropertyGroup):
         update=_update_tile_size)
 
     # Internally used props (not for GUI)
-    first_run = bpy.props.BoolProperty(default=True, options={'HIDDEN'})
-    threads_error = bpy.props.BoolProperty(options={'HIDDEN'})
-    num_tiles = bpy.props.IntVectorProperty(default=(0, 0), size=2, options={'HIDDEN'})
-    prev_choice = bpy.props.StringProperty(default='', options={'HIDDEN'})
-    prev_engine = bpy.props.StringProperty(default='', options={'HIDDEN'})
-    prev_device = bpy.props.StringProperty(default='', options={'HIDDEN'})
-    prev_res = bpy.props.IntVectorProperty(default=(0, 0), size=2, options={'HIDDEN'})
-    prev_border = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
-    prev_border_res = bpy.props.FloatVectorProperty(default=(0, 0, 0, 0), size=4, options={'HIDDEN'})
-    prev_actual_tile_size = bpy.props.IntVectorProperty(default=(0, 0), size=2, options={'HIDDEN'})
-    prev_threads = bpy.props.IntProperty(default=0, options={'HIDDEN'})
+    first_run = bpy.props.BoolProperty(default=True, options=set(['HIDDEN']))
+    threads_error = bpy.props.BoolProperty(options=set(['HIDDEN']))
+    num_tiles = bpy.props.IntVectorProperty(default=(0, 0), size=2, options=set(['HIDDEN']))
+    prev_choice = bpy.props.StringProperty(default='', options=set(['HIDDEN']))
+    prev_engine = bpy.props.StringProperty(default='', options=set(['HIDDEN']))
+    prev_device = bpy.props.StringProperty(default='', options=set(['HIDDEN']))
+    prev_res = bpy.props.IntVectorProperty(default=(0, 0), size=2, options=set(['HIDDEN']))
+    prev_border = bpy.props.BoolProperty(default=False, options=set(['HIDDEN']))
+    prev_border_res = bpy.props.FloatVectorProperty(default=(0, 0, 0, 0), size=4, options=set(['HIDDEN']))
+    prev_actual_tile_size = bpy.props.IntVectorProperty(default=(0, 0), size=2, options=set(['HIDDEN']))
+    prev_threads = bpy.props.IntProperty(default=0, options=set(['HIDDEN']))
 
 
 def ats_poll(context):
@@ -334,8 +336,8 @@ class SetTileSize(bpy.types.Operator):
 
     def execute(self, context):
         if do_set_tile_size(context):
-            return {'FINISHED'}
-        return {'CANCELLED'}
+            return set(['FINISHED'])
+        return set(['CANCELLED'])
 
 
 # ##### INTERFACE #####

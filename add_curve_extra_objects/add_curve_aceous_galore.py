@@ -33,6 +33,8 @@ bl_info = {
 
 ##------------------------------------------------------------
 #### import modules
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from bpy.props import *
 from mathutils import *
@@ -765,7 +767,7 @@ class Curveaceous_galore(bpy.types.Operator):
     """Add many types of curves"""
     bl_idname = "mesh.curveaceous_galore"
     bl_label = "Curveaceous galore"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     # align_matrix for the invoke
     align_matrix = None
@@ -1111,7 +1113,7 @@ class Curveaceous_galore(bpy.types.Operator):
         # restore pre operator undo state
         bpy.context.user_preferences.edit.use_global_undo = undo
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     ##### INVOKE #####
     def invoke(self, context, event):
@@ -1119,4 +1121,4 @@ class Curveaceous_galore(bpy.types.Operator):
         self.align_matrix = align_matrix(context)
         self.execute(context)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])

@@ -16,6 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import absolute_import
 import bpy
 from bpy.props import *
 
@@ -65,10 +66,10 @@ class SetupFractureShards(bpy.types.Operator):
     """"""
     bl_idname = "object.setup_fracture_shards"
     bl_label = "Setup Fracture Shards"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     #def poll(self, context):
 
     def execute(self, context):
         setupshards(context)
-        return {'FINISHED'}
+        return set(['FINISHED'])

@@ -16,6 +16,9 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import division
+from __future__ import absolute_import
+from itertools import imap
 bl_info = {
     "name": "Node Wrangler",
     "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig",
@@ -672,7 +675,7 @@ def autolink(node1, node2, links):
             links.new(outp, inp)
             return True
 
-    print("Could not make a link from " + node1.name + " to " + node2.name)
+    print "Could not make a link from " + node1.name + " to " + node2.name
     return link_made
 
 
@@ -782,7 +785,7 @@ def draw_circle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
     radius = radius * dpifac()
     sides = 12
-    for i in range(sides + 1):
+    for i in xrange(sides + 1):
         cosine = radius * cos(i * 2 * pi / sides) + mx
         sine = radius * sin(i * 2 * pi / sides) + my
         bgl.glVertex2f(cosine, sine)
@@ -829,7 +832,7 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
     mx, my = bpy.context.region.view2d.view_to_region(nlocx, nlocy, clip=False)
     bgl.glVertex2f(mx,my)
-    for i in range(sides+1):
+    for i in xrange(sides+1):
         if (4<=i<=8):
             if my > bottom_bar and mx < area_width:
                 cosine = radius * cos(i * 2 * pi / sides) + mx
@@ -841,7 +844,7 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
     mx, my = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy, clip=False)
     bgl.glVertex2f(mx,my)
-    for i in range(sides+1):
+    for i in xrange(sides+1):
         if (0<=i<=4):
             if my > bottom_bar and mx < area_width:
                 cosine = radius * cos(i * 2 * pi / sides) + mx
@@ -853,7 +856,7 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
     mx, my = bpy.context.region.view2d.view_to_region(nlocx, nlocy - ndimy, clip=False)
     bgl.glVertex2f(mx,my)
-    for i in range(sides+1):
+    for i in xrange(sides+1):
         if (8<=i<=12):
             if my > bottom_bar and mx < area_width:
                 cosine = radius * cos(i * 2 * pi / sides) + mx
@@ -865,7 +868,7 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
     mx, my = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy - ndimy, clip=False)
     bgl.glVertex2f(mx,my)
-    for i in range(sides+1):
+    for i in xrange(sides+1):
         if (12<=i<=16):
             if my > bottom_bar and mx < area_width:
                 cosine = radius * cos(i * 2 * pi / sides) + mx
@@ -1083,7 +1086,7 @@ def nw_check(context):
         
     return valid    
 
-class NWBase:
+class NWBase(object):
     @classmethod
     def poll(cls, context):
         return nw_check(context)
@@ -1094,7 +1097,7 @@ class NWLazyMix(Operator, NWBase):
     """Add a Mix RGB/Shader node by interactively drawing lines between nodes"""
     bl_idname = "node.nw_lazy_mix"
     bl_label = "Mix Nodes"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def modal(self, context, event):
         context.area.tag_redraw()
@@ -1140,14 +1143,14 @@ class NWLazyMix(Operator, NWBase):
                     bpy.ops.node.nw_merge_nodes(mode="MIX", merge_type="AUTO")
 
             context.scene.NWBusyDrawing = ""
-            return {'FINISHED'}
+            return set(['FINISHED'])
 
         elif event.type == 'ESC':
-            print('cancelled')
+            print 'cancelled'
             bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
     def invoke(self, context, event):
         if context.area.type == 'NODE_EDITOR':
@@ -1160,17 +1163,17 @@ class NWLazyMix(Operator, NWBase):
             self.mouse_path = []
 
             context.window_manager.modal_handler_add(self)
-            return {'RUNNING_MODAL'}
+            return set(['RUNNING_MODAL'])
         else:
-            self.report({'WARNING'}, "View3D not found, cannot run operator")
-            return {'CANCELLED'}
+            self.report(set(['WARNING']), "View3D not found, cannot run operator")
+            return set(['CANCELLED'])
 
 
 class NWLazyConnect(Operator, NWBase):
     """Connect two nodes without clicking a specific socket (automatically determined"""
     bl_idname = "node.nw_lazy_connect"
     bl_label = "Lazy Connect"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
     with_menu = BoolProperty()
 
     def modal(self, context, event):
@@ -1238,13 +1241,13 @@ class NWLazyConnect(Operator, NWBase):
             if link_success:
                 hack_force_update(context, nodes)
             context.scene.NWBusyDrawing = ""
-            return {'FINISHED'}
+            return set(['FINISHED'])
 
         elif event.type == 'ESC':
             bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
     def invoke(self, context, event):
         if context.area.type == 'NODE_EDITOR':
@@ -1265,17 +1268,17 @@ class NWLazyConnect(Operator, NWBase):
             self.mouse_path = []
 
             context.window_manager.modal_handler_add(self)
-            return {'RUNNING_MODAL'}
+            return set(['RUNNING_MODAL'])
         else:
-            self.report({'WARNING'}, "View3D not found, cannot run operator")
-            return {'CANCELLED'}
+            self.report(set(['WARNING']), "View3D not found, cannot run operator")
+            return set(['CANCELLED'])
 
 
 class NWDeleteUnused(Operator, NWBase):
     """Delete all nodes whose output is not used"""
     bl_idname = 'node.nw_del_unused'
     bl_label = 'Delete Unused Nodes'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     @classmethod
     def poll(cls, context):
@@ -1300,7 +1303,7 @@ class NWDeleteUnused(Operator, NWBase):
         deleted_nodes = []
         temp_deleted_nodes = []
         del_unused_iterations = len(nodes)
-        for it in range(0, del_unused_iterations):
+        for it in xrange(0, del_unused_iterations):
             temp_deleted_nodes = list(deleted_nodes)  # keep record of last iteration
             for node in nodes:
                 node.select = False
@@ -1315,22 +1318,22 @@ class NWDeleteUnused(Operator, NWBase):
         # get unique list of deleted nodes (iterations would count the same node more than once)
         deleted_nodes = list(set(deleted_nodes))
         for n in deleted_nodes:
-            self.report({'INFO'}, "Node " + n + " deleted")
+            self.report(set(['INFO']), "Node " + n + " deleted")
         num_deleted = len(deleted_nodes)
         n = ' node'
         if num_deleted > 1:
             n += 's'
         if num_deleted:
-            self.report({'INFO'}, "Deleted " + str(num_deleted) + n)
+            self.report(set(['INFO']), "Deleted " + str(num_deleted) + n)
         else:
-            self.report({'INFO'}, "Nothing deleted")
+            self.report(set(['INFO']), "Nothing deleted")
 
         # Restore selection
         nodes, links = get_nodes_links(context)
         for node in nodes:
             if node.name in selection:
                 node.select = True
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return context.window_manager.invoke_confirm(self, event)
@@ -1340,7 +1343,7 @@ class NWSwapLinks(Operator, NWBase):
     """Swap the output connections of the two selected nodes, or two similar inputs of a single node"""
     bl_idname = 'node.nw_swap_links'
     bl_label = 'Swap Links'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     @classmethod
     def poll(cls, context):
@@ -1382,17 +1385,17 @@ class NWSwapLinks(Operator, NWBase):
                     try:
                         links.new(n2.outputs[connection[0]], connection[1])
                     except:
-                        self.report({'WARNING'}, "Some connections have been lost due to differing numbers of output sockets")
+                        self.report(set(['WARNING']), "Some connections have been lost due to differing numbers of output sockets")
                 for connection in n2_outputs:
                     try:
                         links.new(n1.outputs[connection[0]], connection[1])
                     except:
-                        self.report({'WARNING'}, "Some connections have been lost due to differing numbers of output sockets")
+                        self.report(set(['WARNING']), "Some connections have been lost due to differing numbers of output sockets")
             else:
                 if n1.outputs or n2.outputs:
-                    self.report({'WARNING'}, "One of the nodes has no outputs!")
+                    self.report(set(['WARNING']), "One of the nodes has no outputs!")
                 else:
-                    self.report({'WARNING'}, "Neither of the nodes have outputs!")
+                    self.report(set(['WARNING']), "Neither of the nodes have outputs!")
 
         # Swap Inputs
         elif len(selected_nodes) == 1:
@@ -1441,19 +1444,19 @@ class NWSwapLinks(Operator, NWBase):
                             links.new(i2f, i1t)
 
                 else:
-                    self.report({'WARNING'}, "This node has no input connections to swap!")
+                    self.report(set(['WARNING']), "This node has no input connections to swap!")
             else:
-                self.report({'WARNING'}, "This node has no inputs to swap!")
+                self.report(set(['WARNING']), "This node has no inputs to swap!")
 
         hack_force_update(context, nodes)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWResetBG(Operator, NWBase):
     """Reset the zoom and position of the background image"""
     bl_idname = 'node.nw_bg_reset'
     bl_label = 'Reset Backdrop'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     @classmethod
     def poll(cls, context):
@@ -1467,7 +1470,7 @@ class NWResetBG(Operator, NWBase):
         context.space_data.backdrop_zoom = 1
         context.space_data.backdrop_x = 0
         context.space_data.backdrop_y = 0
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWAddAttrNode(Operator, NWBase):
@@ -1475,20 +1478,20 @@ class NWAddAttrNode(Operator, NWBase):
     bl_idname = 'node.nw_add_attr_node'
     bl_label = 'Add UV map'
     attr_name = StringProperty()
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def execute(self, context):
         bpy.ops.node.add_node('INVOKE_DEFAULT', use_transform=True, type="ShaderNodeAttribute")
         nodes, links = get_nodes_links(context)
         nodes.active.attribute_name = self.attr_name
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWEmissionViewer(Operator, NWBase):
     bl_idname = "node.nw_emission_viewer"
     bl_label = "Emission Viewer"
     bl_description = "Connect active node to Emission Shader for shadeless previews"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     @classmethod
     def poll(cls, context):
@@ -1622,16 +1625,16 @@ class NWEmissionViewer(Operator, NWBase):
                     if node.name in selection:
                         node.select = True
                 hack_force_update(context, nodes)
-            return {'FINISHED'}
+            return set(['FINISHED'])
         else:
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
 
 class NWFrameSelected(Operator, NWBase):
     bl_idname = "node.nw_frame_selected"
     bl_label = "Frame Selected"
     bl_description = "Add a frame node and parent the selected nodes to it"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
     label_prop = StringProperty(name='Label', default=' ', description='The visual name of the frame node')
     color_prop = FloatVectorProperty(name="Color", description="The color of the frame node", default=(0.6, 0.6, 0.6),
                                      min=0, max=1, step=1, precision=3, subtype='COLOR_GAMMA', size=3)
@@ -1652,7 +1655,7 @@ class NWFrameSelected(Operator, NWBase):
         for node in selected:
             node.parent = frm
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWReloadImages(Operator, NWBase):
@@ -1678,20 +1681,20 @@ class NWReloadImages(Operator, NWBase):
                         num_reloaded += 1
 
         if num_reloaded:
-            self.report({'INFO'}, "Reloaded images")
-            print("Reloaded " + str(num_reloaded) + " images")
+            self.report(set(['INFO']), "Reloaded images")
+            print "Reloaded " + str(num_reloaded) + " images"
             hack_force_update(context, nodes)
-            return {'FINISHED'}
+            return set(['FINISHED'])
         else:
-            self.report({'WARNING'}, "No images found to reload in this node tree")
-            return {'CANCELLED'}
+            self.report(set(['WARNING']), "No images found to reload in this node tree")
+            return set(['CANCELLED'])
 
 
 class NWSwitchNodeType(Operator, NWBase):
     """Switch type of selected nodes """
     bl_idname = "node.nw_swtch_node_type"
     bl_label = "Switch Node Type"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     to_type = EnumProperty(
         name="Switch to type",
@@ -1845,10 +1848,10 @@ class NWSwitchNodeType(Operator, NWBase):
                 # INPUTS: Base on matches in proper order.
                 for (src_i, src_dval), (dst_i, dst_dval) in matches['INPUTS'][tp]:
                     # pass dvals
-                    if src_dval and dst_dval and tp in {'RGBA', 'VALUE_NAME'}:
+                    if src_dval and dst_dval and tp in set(['RGBA', 'VALUE_NAME']):
                         new_node.inputs[dst_i].default_value = src_dval
                     # Special case: switch to math
-                    if node.type in {'MIX_RGB', 'ALPHAOVER', 'ZCOMBINE'} and\
+                    if node.type in set(['MIX_RGB', 'ALPHAOVER', 'ZCOMBINE']) and\
                             new_node.type == 'MATH' and\
                             tp == 'MAIN':
                         new_dst_dval = max(src_dval[0], src_dval[1], src_dval[2])
@@ -1858,9 +1861,9 @@ class NWSwitchNodeType(Operator, NWBase):
                                 new_node.operation = node.blend_type
                     # Special case: switch from math to some types
                     if node.type == 'MATH' and\
-                            new_node.type in {'MIX_RGB', 'ALPHAOVER', 'ZCOMBINE'} and\
+                            new_node.type in set(['MIX_RGB', 'ALPHAOVER', 'ZCOMBINE']) and\
                             tp == 'MAIN':
-                        for i in range(3):
+                        for i in xrange(3):
                             new_node.inputs[dst_i].default_value[i] = src_dval
                         if new_node.type == 'MIX_RGB':
                             if node.operation in [t[0] for t in blend_types]:
@@ -1897,14 +1900,14 @@ class NWSwitchNodeType(Operator, NWBase):
                     if new_node.outputs:
                         links.new(new_node.outputs[0], out_src_link.to_socket)
             nodes.remove(node)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWMergeNodes(Operator, NWBase):
     bl_idname = "node.nw_merge_nodes"
     bl_label = "Merge Nodes"
     bl_description = "Merge Selected Nodes"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     mode = EnumProperty(
         name="mode",
@@ -2021,7 +2024,7 @@ class NWMergeNodes(Operator, NWBase):
                 the_range = len(nodes_list) - 1
                 if len(nodes_list) == 1:
                     the_range = 1
-                for i in range(the_range):
+                for i in xrange(the_range):
                     if nodes_list == selected_mix:
                         add_type = node_type + 'MixRGB'
                         add = nodes.new(add_type)
@@ -2121,7 +2124,7 @@ class NWMergeNodes(Operator, NWBase):
                             links.new(fs_out, node_to.inputs[1])
                             break
                 # add links between added ADD nodes and between selected and ADD nodes
-                for i in range(count_adds):
+                for i in xrange(count_adds):
                     if i < count_adds - 1:
                         node_from = nodes[index]
                         node_to = nodes[index - 1]
@@ -2148,14 +2151,14 @@ class NWMergeNodes(Operator, NWBase):
                 for i, x, y, dx, h in nodes_list:
                     nodes[i].select = False
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWBatchChangeNodes(Operator, NWBase):
     bl_idname = "node.nw_batch_change"
     bl_label = "Batch Change"
     bl_description = "Batch Change Blend Type and Math Operation"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     blend_type = EnumProperty(
         name="Blend Type",
@@ -2211,14 +2214,14 @@ class NWBatchChangeNodes(Operator, NWBase):
                         else:
                             node.operation = operations[index - 1][0]
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWChangeMixFactor(Operator, NWBase):
     bl_idname = "node.nw_factor"
     bl_label = "Change Factor"
     bl_description = "Change Factors of Mix Nodes and Mix Shader Nodes"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     # option: Change factor.
     # If option is 1.0 or 0.0 - set to 1.0 or 0.0
@@ -2231,25 +2234,25 @@ class NWChangeMixFactor(Operator, NWBase):
         selected = []  # entry = index
         for si, node in enumerate(nodes):
             if node.select:
-                if node.type in {'MIX_RGB', 'MIX_SHADER'}:
+                if node.type in set(['MIX_RGB', 'MIX_SHADER']):
                     selected.append(si)
 
         for si in selected:
             fac = nodes[si].inputs[0]
             nodes[si].hide = False
-            if option in {0.0, 1.0}:
+            if option in set([0.0, 1.0]):
                 fac.default_value = option
             else:
                 fac.default_value += option
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWCopySettings(Operator, NWBase):
     bl_idname = "node.nw_copy_settings"
     bl_label = "Copy Settings"
     bl_description = "Copy Settings of Active Node to Selected Nodes"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     @classmethod
     def poll(cls, context):
@@ -2316,13 +2319,13 @@ class NWCopySettings(Operator, NWBase):
             node.select = True
         nodes.active = active
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWCopyLabel(Operator, NWBase):
     bl_idname = "node.nw_copy_label"
     bl_label = "Copy Label"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     option = EnumProperty(
         name="option",
@@ -2360,13 +2363,13 @@ class NWCopyLabel(Operator, NWBase):
                         node.label = src.name
                         break
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWClearLabel(Operator, NWBase):
     bl_idname = "node.nw_clear_label"
     bl_label = "Clear Label"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     option = BoolProperty()
 
@@ -2375,7 +2378,7 @@ class NWClearLabel(Operator, NWBase):
         for node in [n for n in nodes if n.select]:
             node.label = ''
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         if self.option:
@@ -2388,7 +2391,7 @@ class NWModifyLabels(Operator, NWBase):
     """Modify Labels of all selected nodes"""
     bl_idname = "node.nw_modify_labels"
     bl_label = "Modify Labels"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     prepend = StringProperty(
         name="Add to Beginning"
@@ -2408,7 +2411,7 @@ class NWModifyLabels(Operator, NWBase):
         for node in [n for n in nodes if n.select]:
             node.label = self.prepend + node.label.replace(self.replace_from, self.replace_to) + self.append
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         self.prepend = ""
@@ -2421,7 +2424,7 @@ class NWAddTextureSetup(Operator, NWBase):
     bl_idname = "node.nw_add_texture"
     bl_label = "Texture Setup"
     bl_description = "Add Texture Node Setup to Selected Shaders"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     @classmethod
     def poll(cls, context):
@@ -2435,7 +2438,7 @@ class NWAddTextureSetup(Operator, NWBase):
     def execute(self, context):
         nodes, links = get_nodes_links(context)
         active = nodes.active
-        shader_types = [x[1] for x in shaders_shader_nodes_props if x[1] not in {'MIX_SHADER', 'ADD_SHADER'}]
+        shader_types = [x[1] for x in shaders_shader_nodes_props if x[1] not in set(['MIX_SHADER', 'ADD_SHADER'])]
         texture_types = [x[1] for x in shaders_texture_nodes_props]
         valid = False
         if active:
@@ -2466,8 +2469,8 @@ class NWAddTextureSetup(Operator, NWBase):
                 tex.location = [locx - 200.0, locy + 28.0]
 
             map = nodes.new('ShaderNodeMapping')
-            map.location = [locx - xoffset[0], locy + 80.0]
-            map.width = 240
+            imap.location = [locx - xoffset[0], locy + 80.0]
+            imap.width = 240
             coord = nodes.new('ShaderNodeTexCoord')
             coord.location = [locx - xoffset[1], locy + 40.0]
             active.select = False
@@ -2475,15 +2478,15 @@ class NWAddTextureSetup(Operator, NWBase):
             if isshader:
                 nodes.active = tex
                 links.new(tex.outputs[0], active.inputs[0])
-                links.new(map.outputs[0], tex.inputs[0])
-                links.new(coord.outputs[coordout], map.inputs[0])
+                links.new(imap.outputs[0], tex.inputs[0])
+                links.new(coord.outputs[coordout], imap.inputs[0])
 
             else:
                 nodes.active = map
-                links.new(map.outputs[0], active.inputs[0])
-                links.new(coord.outputs[coordout], map.inputs[0])
+                links.new(imap.outputs[0], active.inputs[0])
+                links.new(coord.outputs[coordout], imap.inputs[0])
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWAddReroutes(Operator, NWBase):
@@ -2491,7 +2494,7 @@ class NWAddReroutes(Operator, NWBase):
     bl_idname = "node.nw_add_reroutes"
     bl_label = "Add Reroutes"
     bl_description = "Add Reroutes to Outputs"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     option = EnumProperty(
         name="option",
@@ -2583,14 +2586,14 @@ class NWAddReroutes(Operator, NWBase):
             for node in post_select:
                 node.select = True
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWLinkActiveToSelected(Operator, NWBase):
     """Link active node to selected nodes basing on various criteria"""
     bl_idname = "node.nw_link_active_to_selected"
     bl_label = "Link Active Node to Selected"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     replace = BoolProperty()
     use_node_name = BoolProperty()
@@ -2651,7 +2654,7 @@ class NWLinkActiveToSelected(Operator, NWBase):
                     elif use_outputs_names:
                         src_name = (out.name, )
                         for render_pass, out_name, exr_name, in_internal, in_cycles in rl_outputs:
-                            if out.name in {out_name, exr_name}:
+                            if out.name in set([out_name, exr_name]):
                                 src_name = (out_name, exr_name)
                     if dst_name not in src_name:
                         valid = False
@@ -2664,14 +2667,14 @@ class NWLinkActiveToSelected(Operator, NWBase):
                                         doit = False
                                     break
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWAlignNodes(Operator, NWBase):
     '''Align the selected nodes neatly in a row/column'''
     bl_idname = "node.nw_align_nodes"
     bl_label = "Align Nodes"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
     margin = IntProperty(name='Margin', default=50, description='The amount of space between nodes')
 
     def execute(self, context):
@@ -2734,13 +2737,13 @@ class NWAlignNodes(Operator, NWBase):
                 else:
                     node.location.y += (mid_y - new_mid)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWSelectParentChildren(Operator, NWBase):
     bl_idname = "node.nw_select_parent_child"
     bl_label = "Select Parent or Children"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     option = EnumProperty(
         name="option",
@@ -2765,14 +2768,14 @@ class NWSelectParentChildren(Operator, NWBase):
                 for kid in children:
                     kid.select = True
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWDetachOutputs(Operator, NWBase):
     """Detach outputs of selected node leaving inluts liked"""
     bl_idname = "node.nw_detach_outputs"
     bl_label = "Detach Outputs"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -2787,14 +2790,14 @@ class NWDetachOutputs(Operator, NWBase):
             new_node.select = True
         bpy.ops.transform.translate('INVOKE_DEFAULT')
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWLinkToOutputNode(Operator, NWBase):
     """Link to Composite node or Material Output node"""
     bl_idname = "node.nw_link_out"
     bl_label = "Connect to Output"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     @classmethod
     def poll(cls, context):
@@ -2855,14 +2858,14 @@ class NWLinkToOutputNode(Operator, NWBase):
 
         hack_force_update(context, nodes)  # viewport render does not update
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWMakeLink(Operator, NWBase):
     """Make a link from one socket to another"""
     bl_idname = 'node.nw_make_link'
     bl_label = 'Make Link'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
     from_socket = IntProperty()
     to_socket = IntProperty()
 
@@ -2876,14 +2879,14 @@ class NWMakeLink(Operator, NWBase):
 
         hack_force_update(context, nodes)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWCallInputsMenu(Operator, NWBase):
     """Link from this output"""
     bl_idname = 'node.nw_call_inputs_menu'
     bl_label = 'Make Link'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
     from_socket = IntProperty()
 
     def execute(self, context):
@@ -2897,17 +2900,17 @@ class NWCallInputsMenu(Operator, NWBase):
             bpy.ops.wm.call_menu("INVOKE_DEFAULT", name=NWConnectionListInputs.bl_idname)
         elif len(n2.inputs) == 1:
             links.new(n1.outputs[self.from_socket], n2.inputs[0])
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWAddSequence(Operator, ImportHelper):
     """Add an Image Sequence"""
     bl_idname = 'node.nw_add_sequence'
     bl_label = 'Import Image Sequence'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
     directory = StringProperty(subtype="DIR_PATH")
     filename = StringProperty(subtype="FILE_NAME")    
-    files = CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
+    files = CollectionProperty(type=bpy.types.OperatorFileListElement, options=set(['HIDDEN', 'SKIP_SAVE']))
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -2926,26 +2929,26 @@ class NWAddSequence(Operator, ImportHelper):
         elif tree.type == 'COMPOSITING':
             node_type = "CompositorNodeImage"
         else:
-            self.report({'ERROR'}, "Unsupported Node Tree type!")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "Unsupported Node Tree type!")
+            return set(['CANCELLED'])
 
         if not files[0].name and not filename:
-            self.report({'ERROR'}, "No file chosen")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "No file chosen")
+            return set(['CANCELLED'])
         elif files[0].name and (not filename or not path.exists(directory+filename)):
             # User has selected multiple files without an active one, or the active one is non-existant
             filename = files[0].name
 
         if not path.exists(directory+filename):
-            self.report({'ERROR'}, filename+" does not exist!")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), filename+" does not exist!")
+            return set(['CANCELLED'])
 
         without_ext = '.'.join(filename.split('.')[:-1])
 
         # if last digit isn't a number, it's not a sequence
         if not without_ext[-1].isdigit():
-            self.report({'ERROR'}, filename+" does not seem to be part of a sequence")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), filename+" does not seem to be part of a sequence")
+            return set(['CANCELLED'])
 
 
         extension = filename.split('.')[-1]
@@ -2991,16 +2994,16 @@ class NWAddSequence(Operator, ImportHelper):
         image_user.frame_offset = int(files[0][len(without_num)+len(directory):-1*(len(extension)+1)]) - 1  # separate the number from the file name of the first  file
         image_user.frame_duration = num_frames
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWAddMultipleImages(Operator, ImportHelper):
     """Add multiple images at once"""
     bl_idname = 'node.nw_add_multiple_images'
     bl_label = 'Open Selected Images'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
     directory = StringProperty(subtype="DIR_PATH")
-    files = CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
+    files = CollectionProperty(type=bpy.types.OperatorFileListElement, options=set(['HIDDEN', 'SKIP_SAVE']))
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -3022,8 +3025,8 @@ class NWAddMultipleImages(Operator, ImportHelper):
         elif context.space_data.node_tree.type == 'COMPOSITING':
             node_type = "CompositorNodeImage"
         else:
-            self.report({'ERROR'}, "Unsupported Node Tree type!")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "Unsupported Node Tree type!")
+            return set(['CANCELLED'])
 
         new_nodes = []
         for f in self.files:
@@ -3046,7 +3049,7 @@ class NWAddMultipleImages(Operator, ImportHelper):
         for node in new_nodes:
             node.select = True
             node.location.y += (list_size/2)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class NWViewerFocus(bpy.types.Operator):
@@ -3062,7 +3065,7 @@ class NWViewerFocus(bpy.types.Operator):
         return nw_check(context) and context.space_data.tree_type == 'CompositorNodeTree'
 
     def execute(self, context):
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         render = context.scene.render
@@ -3100,7 +3103,7 @@ class NWViewerFocus(bpy.types.Operator):
                     node.center_x = abs_mouse_x
                     node.center_y = abs_mouse_y
             else:
-                return {'PASS_THROUGH'}
+                return set(['PASS_THROUGH'])
 
         return self.execute(context)
 

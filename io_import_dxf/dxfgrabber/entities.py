@@ -3,6 +3,8 @@
 # Created: 21.07.2012, parts taken from my ezdxf project
 # Copyright (C) 2012, Manfred Moitzi
 # License: MIT License
+from __future__ import division
+from __future__ import absolute_import
 from __future__ import unicode_literals
 __author__ = "mozman <mozman@gmx.at>"
 
@@ -765,7 +767,7 @@ class Mesh(Shape):
         itags = iter(tags[pos:])
         while True:
             try:
-                tag = next(itags)
+                tag = itags.next()
             except StopIteration:  # premature end of tags, return what you got
                 break
             if tag.code == 10:
@@ -781,13 +783,13 @@ class Mesh(Shape):
         itags = iter(tags[pos:])
         try:
             while True:
-                tag = next(itags)
+                tag = itags.next()
                 # loop until first tag.code != 90
                 if tag.code != 90:
                     break
                 count = tag.value  # count of vertex indices
                 while count > 0:
-                    tag = next(itags)
+                    tag = itags.next()
                     face.append(tag.value)
                     count -= 1
                 faces.append(tuple(face))
@@ -818,7 +820,7 @@ class Mesh(Shape):
         itags = iter(tags[pos:])
         while True:
             try:
-                tag = next(itags)
+                tag = itags.next()
             except StopIteration:
                 break
             if tag.code == code:

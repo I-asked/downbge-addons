@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 import re
 import xml.dom.minidom
 from math import cos, sin, tan, atan2, pi, ceil
@@ -440,7 +442,7 @@ def SVGParseStyles(node, context):
 #### SVG path helpers ####
 
 
-class SVGPathData:
+class SVGPathData(object):
     """
     SVG Path data token supplier
     """
@@ -457,7 +459,7 @@ class SVGPathData:
         """
 
         spaces = ' ,\t'
-        commands = {'m', 'l', 'h', 'v', 'c', 's', 'q', '', 't', 'a', 'z'}
+        commands = set(['m', 'l', 'h', 'v', 'c', 's', 'q', '', 't', 'a', 'z'])
         tokens = []
 
         i = 0
@@ -537,7 +539,7 @@ class SVGPathData:
         return float(token)
 
 
-class SVGPathParser:
+class SVGPathParser(object):
     """
     Parser of SVG path data
     """
@@ -863,7 +865,7 @@ class SVGPathParser:
                 handle_left_type='FREE', handle_left=(cpx, cpy),
                 handle_right_type='FREE', handle_right=(cpx, cpy))
 
-        for i in range(n_segs):
+        for i in xrange(n_segs):
             ang0 = ang_0 + i * ang_arc / n_segs
             ang1 = ang_0 + (i + 1) * ang_arc / n_segs
             ang_demi = 0.25 * (ang1 - ang0)
@@ -934,7 +936,7 @@ class SVGPathParser:
             if cmd is None:
                 raise Exception('Unknown path command: {0}' . format(code))
 
-            if cmd in {'Z', 'z'}:
+            if cmd in set(['Z', 'z']):
                 closed =True
             else:
                 closed = False
@@ -951,7 +953,7 @@ class SVGPathParser:
         return self._splines
 
 
-class SVGGeometry:
+class SVGGeometry(object):
     """
     Abstract SVG geometry
     """
@@ -1107,7 +1109,7 @@ class SVGGeometryContainer(SVGGeometry):
         Initialize SVG geometry container
         """
 
-        super().__init__(node, context)
+        super(SVGGeometryContainer, self).__init__(node, context)
 
         self._geometries = []
         self._styles = SVGEmptyStyles
@@ -1161,7 +1163,7 @@ class SVGGeometryPATH(SVGGeometry):
         Initialize SVG path
         """
 
-        super().__init__(node, context)
+        super(SVGGeometryPATH, self).__init__(node, context)
 
         self._splines = []
         self._styles = SVGEmptyStyles
@@ -1251,7 +1253,7 @@ class SVGGeometrySYMBOL(SVGGeometryContainer):
 
         self._pushMatrix(self.getNodeMatrix())
 
-        super()._doCreateGeom(False)
+        super(SVGGeometrySYMBOL, self)._doCreateGeom(False)
 
         self._popMatrix()
 
@@ -1263,7 +1265,7 @@ class SVGGeometrySYMBOL(SVGGeometryContainer):
         if not instancing:
             return
 
-        super().createGeom(instancing)
+        super(SVGGeometrySYMBOL, self).createGeom(instancing)
 
 
 class SVGGeometryG(SVGGeometryContainer):
@@ -1314,7 +1316,7 @@ class SVGGeometryRECT(SVGGeometry):
         Initialize new rectangle
         """
 
-        super().__init__(node, context)
+        super(SVGGeometryRECT, self).__init__(node, context)
 
         self._rect = ('0', '0', '0', '0')
         self._radius = ('0', '0')
@@ -1382,7 +1384,7 @@ class SVGGeometryRECT(SVGGeometry):
         crect = self._context['rect']
         rect = []
 
-        for i in range(4):
+        for i in xrange(4):
             rect.append(SVGParseCoord(self._rect[i], crect[i % 2]))
 
         r = self._radius
@@ -1474,7 +1476,7 @@ class SVGGeometryELLIPSE(SVGGeometry):
         Initialize new ellipse
         """
 
-        super().__init__(node, context)
+        super(SVGGeometryELLIPSE, self).__init__(node, context)
 
         self._cx = '0.0'
         self._cy = '0.0'
@@ -1595,7 +1597,7 @@ class SVGGeometryLINE(SVGGeometry):
         Initialize new line
         """
 
-        super().__init__(node, context)
+        super(SVGGeometryLINE, self).__init__(node, context)
 
         self._x1 = '0.0'
         self._y1 = '0.0'
@@ -1666,7 +1668,7 @@ class SVGGeometryPOLY(SVGGeometry):
         Initialize new poly geometry
         """
 
-        super().__init__(node, context)
+        super(SVGGeometryPOLY, self).__init__(node, context)
 
         self._points = []
         self._styles = SVGEmptyStyles
@@ -1745,7 +1747,7 @@ class SVGGeometryPOLYGON(SVGGeometryPOLY):
         Initialize new polygon geometry
         """
 
-        super().__init__(node, context)
+        super(SVGGeometryPOLYGON, self).__init__(node, context)
 
         self._closed = True
 
@@ -1774,7 +1776,7 @@ class SVGGeometrySVG(SVGGeometryContainer):
         self._pushMatrix(matrix)
         self._pushRect(rect)
 
-        super()._doCreateGeom(False)
+        super(SVGGeometrySVG, self)._doCreateGeom(False)
 
         self._popRect()
         self._popMatrix()
@@ -1817,7 +1819,7 @@ class SVGLoader(SVGGeometryContainer):
                          'styles': [None],
                          'style': None}
 
-        super().__init__(node, self._context)
+        super(SVGLoader, self).__init__(node, self._context)
 
 
 svgGeometryClasses = {
@@ -1871,11 +1873,11 @@ def load(operator, context, filepath=""):
     # non SVG files can give useful messages.
     try:
         load_svg(filepath)
-    except (xml.parsers.expat.ExpatError, UnicodeEncodeError) as e:
+    except (xml.parsers.expat.ExpatError, UnicodeEncodeError), e:
         import traceback
         traceback.print_exc()
 
-        operator.report({'WARNING'}, "Unable to parse XML, %s:%s for file %r" % (type(e).__name__, e, filepath))
-        return {'CANCELLED'}
+        operator.report(set(['WARNING']), "Unable to parse XML, %s:%s for file %r" % (type(e).__name__, e, filepath))
+        return set(['CANCELLED'])
 
-    return {'FINISHED'}
+    return set(['FINISHED'])

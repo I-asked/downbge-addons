@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import absolute_import
 import bpy, re
 from   mathutils      import Vector
 from   ...utils       import copy_bone, flip_bone
@@ -6,6 +8,7 @@ from   ...utils       import create_circle_widget, create_sphere_widget, create_
 from   ...utils       import MetarigError
 from   rna_prop_ui    import rna_idprop_ui_prop_get
 from   .super_widgets import create_face_widget, create_eye_widget, create_eyes_widget, create_ear_widget, create_jaw_widget, create_teeth_widget
+from itertools import izip
 
 
 script = """
@@ -17,7 +20,7 @@ if is_selected(all_controls):
     layout.prop(pose_bones[jaw_ctrl_name],  '["%s"]', slider=True)
     layout.prop(pose_bones[eyes_ctrl_name], '["%s"]', slider=True)
 """
-class Rig:
+class Rig(object):
     
     def __init__(self, obj, bone_name, params):
         self.obj = obj
@@ -97,7 +100,7 @@ class Rig:
         brow_left.reverse()
         brow_right.reverse()
 
-        for browL, browR, foreheadL, foreheadR in zip( 
+        for browL, browR, foreheadL, foreheadR in izip( 
             brow_left, brow_right, forehead_left, forehead_right ):
 
             eb[foreheadL].tail = eb[browL].head
@@ -316,8 +319,8 @@ class Rig:
         tweak_unique = { 'lip.T.L'     : 'lip.T',
                          'lip.B.L'     : 'lip.B'  }
 
-        org_to_ctrls = { key : [ org( bone ) for bone in org_to_ctrls[key] ] for key in org_to_ctrls.keys() }
-        tweak_unique = { org( key ) : tweak_unique[key] for key in tweak_unique.keys() }
+        org_to_ctrls = dict(( key, [ org( bone ) for bone in org_to_ctrls[key] ]) for key in org_to_ctrls.keys())
+        tweak_unique = dict(( org( key ), tweak_unique[key]) for key in tweak_unique.keys())
 
         tweak_exceptions = [] # bones not used to create tweaks
         tweak_exceptions += [ bone for bone in org_bones if 'forehead' in bone or 'temple' in bone ]
@@ -353,7 +356,7 @@ class Rig:
         # Create eyes mch bones
         eyes = [ bone for bone in org_bones if 'eye' in bone ]
 
-        mch_bones = { strip_org( eye ) : [] for eye in eyes }
+        mch_bones = dict(( strip_org( eye ), []) for eye in eyes)
 
         for eye in eyes:
             mch_name = make_mechanism_name( strip_org( eye ) )
@@ -393,7 +396,7 @@ class Rig:
 
         mch_bones['lids'] = []
 
-        for i in range( 2 ):
+        for i in xrange( 2 ):
             for bone in all_lids[i]:
                 mch_name = make_mechanism_name( strip_org( bone ) )
                 mch_name = copy_bone( self.obj, eyes[i], mch_name  )
@@ -409,7 +412,7 @@ class Rig:
         
         length_subtractor = eb[ jaw_ctrl ].length / 6
         # Create the jaw mch bones
-        for i in range( 6 ):
+        for i in xrange( 6 ):
             if i == 0:
                 mch_name = make_mechanism_name( 'mouth_lock' )
             else:
@@ -487,7 +490,7 @@ class Rig:
         cheekB_defs = [ 'DEF-cheek.B.L', 'DEF-cheek.B.R' ]
         cheekT_defs = [ 'DEF-cheek.T.L', 'DEF-cheek.T.R' ]
 
-        for lip, brow, cheekB, cheekT in zip( lips, brows, cheekB_defs, cheekT_defs ):
+        for lip, brow, cheekB, cheekT in izip( lips, brows, cheekB_defs, cheekT_defs ):
             eb[ cheekB ].parent = eb[ lip ]
             eb[ cheekT ].parent = eb[ brow ]
         
@@ -783,7 +786,7 @@ class Rig:
         mch_lidsL = mch_lidsL[1:] + [ mch_lidsL[0] ]
         mch_lidsR = mch_lidsR[1:] + [ mch_lidsR[0] ]
         
-        for boneL, boneR, mchL, mchR in zip( def_lidsL, def_lidsR, mch_lidsL, mch_lidsR ):
+        for boneL, boneR, mchL, mchR in izip( def_lidsL, def_lidsR, mch_lidsL, mch_lidsR ):
             self.make_constraits('def_lids', boneL, mchL )
             self.make_constraits('def_lids', boneR, mchR )
 
@@ -846,7 +849,7 @@ class Rig:
         for owner in list( tweak_copyloc_L.keys() ):
             
             targets, influences = tweak_copyloc_L[owner]
-            for target, influence in zip( targets, influences ):
+            for target, influence in izip( targets, influences ):
 
                 # Left side constraints                
                 self.make_constraits( 'tweak_copyloc', owner, target, influence )
@@ -904,7 +907,7 @@ class Rig:
         jaw_prop  = 'mouth_lock'
         eyes_prop = 'eyes_follow'
         
-        for bone, prop_name in zip( [ jaw_ctrl, eyes_ctrl ], [ jaw_prop, eyes_prop ] ):
+        for bone, prop_name in izip( [ jaw_ctrl, eyes_ctrl ], [ jaw_prop, eyes_prop ] ):
             if bone == jaw_ctrl:
                 pb[ bone ][ prop_name ] = 0.0
             else:
@@ -1013,7 +1016,7 @@ def add_parameters(params):
     params.primary_layers = bpy.props.BoolVectorProperty(
         size        = 32,
         description = "Layers for the 1st tweak controls to be on",
-        default     = tuple( [ i == 1 for i in range(0, 32) ] )
+        default     = tuple( [ i == 1 for i in xrange(0, 32) ] )
         )
     params.secondary_layers_extra = bpy.props.BoolProperty( 
         name        = "secondary_layers_extra", 
@@ -1023,7 +1026,7 @@ def add_parameters(params):
     params.secondary_layers = bpy.props.BoolVectorProperty(
         size        = 32,
         description = "Layers for the 2nd tweak controls to be on",
-        default     = tuple( [ i == 1 for i in range(0, 32) ] )
+        default     = tuple( [ i == 1 for i in xrange(0, 32) ] )
         )
 
 
@@ -1038,21 +1041,21 @@ def parameters_ui(layout, params):
         
         col = r.column(align=True)
         row = col.row(align=True)
-        for i in range(8):
+        for i in xrange(8):
             row.prop(params, layer, index=i, toggle=True, text="")
 
         row = col.row(align=True)
-        for i in range(16,24):
+        for i in xrange(16,24):
             row.prop(params, layer, index=i, toggle=True, text="")
         
         col = r.column(align=True)
         row = col.row(align=True)
         
-        for i in range(8,16):
+        for i in xrange(8,16):
             row.prop(params, layer, index=i, toggle=True, text="")
 
         row = col.row(align=True)
-        for i in range(24,32):
+        for i in xrange(24,32):
             row.prop(params, layer, index=i, toggle=True, text="")
 
 

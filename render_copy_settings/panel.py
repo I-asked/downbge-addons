@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 from . import presets
 
@@ -25,13 +26,13 @@ from . import presets
 class RENDER_UL_copy_settings(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         #assert(isinstance(item, (bpy.types.RenderCopySettingsScene, bpy.types.RenderCopySettingsSetting)))
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+        if self.layout_type in set(['DEFAULT', 'COMPACT']):
             if isinstance(item, bpy.types.RenderCopySettingsSetting):
                 layout.label(item.name, icon_value=icon)
                 layout.prop(item, "copy", text="")
             else: #elif isinstance(item, bpy.types.RenderCopySettingsScene):
                 layout.prop(item, "allowed", text=item.name, toggle=True)
-        elif self.layout_type in {'GRID'}:
+        elif self.layout_type in set(['GRID']):
             layout.alignment = 'CENTER'
             if isinstance(item, bpy.types.RenderCopySettingsSetting):
                 layout.label(item.name, icon_value=icon)
@@ -45,8 +46,8 @@ class RENDER_PT_copy_settings(bpy.types.Panel):
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "render"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    bl_options = set(['DEFAULT_CLOSED'])
+    COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
     def draw(self, context):
         layout = self.layout
@@ -64,14 +65,14 @@ class RENDER_PT_copy_settings(bpy.types.Panel):
                             cp_sett, "affected_settings_idx", rows=6)
 
         col = split.column()
-        all_set = {sett.strid for sett in cp_sett.affected_settings if sett.copy}
+        all_set = set(sett.strid for sett in cp_sett.affected_settings if sett.copy)
         for p in presets.presets:
             label = ""
             if p.elements & all_set == p.elements:
                 label = "Clear {}".format(p.ui_name)
             else:
                 label = "Set {}".format(p.ui_name)
-            col.operator("scene.render_copy_settings_preset", text=label).presets = {p.rna_enum[0]}
+            col.operator("scene.render_copy_settings_preset", text=label).presets = set([p.rna_enum[0]])
 
         layout.prop(cp_sett, "filter_scene")
         if len(cp_sett.allowed_scenes):

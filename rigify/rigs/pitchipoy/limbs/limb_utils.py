@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import bpy, re
 from mathutils import Vector
 from ....utils import org, strip_org, make_mechanism_name, make_deformer_name

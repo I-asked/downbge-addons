@@ -20,6 +20,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Scene Information",
     "author": "uselessdreamer",

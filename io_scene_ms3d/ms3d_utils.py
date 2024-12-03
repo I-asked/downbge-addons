@@ -31,6 +31,7 @@
 
 
 #import python stuff
+from __future__ import absolute_import
 from os import (
         path
         )
@@ -51,7 +52,7 @@ from bpy import (
 ###############################################################################
 def enable_edit_mode(enable, blender_context):
     if blender_context.active_object is None \
-            or not blender_context.active_object.type in {'MESH', 'ARMATURE', }:
+            or not blender_context.active_object.type in set(['MESH', 'ARMATURE',]):
         return
 
     if enable:
@@ -66,7 +67,7 @@ def enable_edit_mode(enable, blender_context):
 ###############################################################################
 def enable_pose_mode(enable, blender_context):
     if blender_context.active_object is None \
-            or not blender_context.active_object.type in {'ARMATURE', }:
+            or not blender_context.active_object.type in set(['ARMATURE',]):
         return
 
     if enable:

@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 import importlib
 import importlib
@@ -36,7 +38,7 @@ DEF_PREFIX = "DEF-"  # Prefix of deformation bones.
 WGT_PREFIX = "WGT-"  # Prefix for widget objects
 ROOT_NAME = "root"   # Name of the root bone.
 
-WGT_LAYERS = [x == 19 for x in range(0, 20)]  # Widgets go on the last scene layer.
+WGT_LAYERS = [x == 19 for x in xrange(0, 20)]  # Widgets go on the last scene layer.
 
 MODULE_NAME = "rigify"  # Windows/Mac blender is weird, so __package__ doesn't work
 
@@ -529,7 +531,7 @@ def create_compass_widget(rig, bone_name, bone_transform_name=None):
         verts, edges = create_circle_polygon(32, "Z", 1.0, 0.0)
         i = 0
         for v in verts:
-            if i in {0, 8, 16, 24}:
+            if i in set([0, 8, 16, 24]):
                 verts[i] = (v[0] * 1.2, v[1] * 1.2, v[2])
             i += 1
 
@@ -752,7 +754,7 @@ def get_layers(layers):
     """ Does it's best to exctract a set of layers from any data thrown at it.
     """
     if type(layers) == int:
-        return [x == layers for x in range(0, 32)]
+        return [x == layers for x in xrange(0, 32)]
     elif type(layers) == str:
         s = layers.split(",")
         l = []
@@ -761,16 +763,16 @@ def get_layers(layers):
                 l += [int(float(i))]
             except ValueError:
                 pass
-        return [x in l for x in range(0, 32)]
+        return [x in l for x in xrange(0, 32)]
     elif type(layers) == tuple or type(layers) == list:
-        return [x in layers for x in range(0, 32)]
+        return [x in layers for x in xrange(0, 32)]
     else:
         try:
             list(layers)
         except TypeError:
             pass
         else:
-            return [x in layers for x in range(0, 32)]
+            return [x in layers for x in xrange(0, 32)]
 
 
 def write_metarig(obj, layers=False, func_name="create"):
@@ -795,7 +797,7 @@ def write_metarig(obj, layers=False, func_name="create"):
         code.append("\n    for i in range(" + str(len(arm.rigify_layers)) + "):")
         code.append("        arm.rigify_layers.add()\n")
 
-        for i in range(len(arm.rigify_layers)):
+        for i in xrange(len(arm.rigify_layers)):
             name = arm.rigify_layers[i].name
             row = arm.rigify_layers[i].row
             code.append('    arm.rigify_layers[' + str(i) + '].name = "' + name + '"')
@@ -867,7 +869,7 @@ def write_metarig(obj, layers=False, func_name="create"):
         active_layers = []
         for bone_name in bones:
             bone = obj.data.bones[bone_name]
-            for i in range(len(bone.layers)):
+            for i in xrange(len(bone.layers)):
                 if bone.layers[i]:
                     if i not in active_layers:
                         active_layers.append(i)
@@ -933,7 +935,7 @@ def random_id(length=8):
 
     chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
     text = ""
-    for i in range(0, rlength):
+    for i in xrange(0, rlength):
         text += random.choice(chars)
     text += str(hex(int(time.time())))[2:][-tlength:].rjust(tlength, '0')[::-1]
     return text

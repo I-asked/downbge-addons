@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Demo Mode",
     "author": "Campbell Barton",
@@ -51,7 +52,7 @@ class DemoModeSetup(bpy.types.Operator):
     """Create a demo script and optionally execute it"""
     bl_idname = "wm.demo_mode_setup"
     bl_label = "Demo Mode (Setup)"
-    bl_options = {'PRESET'}
+    bl_options = set(['PRESET'])
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
@@ -155,11 +156,11 @@ class DemoModeSetup(bpy.types.Operator):
         if self.run:
             extern_demo_mode_run()
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
     def check(self, context):
         return True  # lazy
@@ -183,7 +184,7 @@ class DemoModeSetup(bpy.types.Operator):
 
         layout.separator()
         sub = layout.column()
-        sub.active = (mode in {'AUTO', 'PLAY'})
+        sub.active = (mode in set(['AUTO', 'PLAY']))
         sub.label("Animate Settings:")
         sub.prop(self, "anim_cycles")
         sub.prop(self, "anim_time_min")
@@ -192,7 +193,7 @@ class DemoModeSetup(bpy.types.Operator):
 
         layout.separator()
         sub = layout.column()
-        sub.active = (mode in {'AUTO', 'RENDER'})
+        sub.active = (mode in set(['AUTO', 'RENDER']))
         sub.label("Render Settings:")
         sub.prop(self, "display_render")
 
@@ -203,10 +204,10 @@ class DemoModeRun(bpy.types.Operator):
 
     def execute(self, context):
         if extern_demo_mode_run():
-            return {'FINISHED'}
+            return set(['FINISHED'])
         else:
-            self.report({'ERROR'}, "Cant load demo.py config, run: File -> Demo Mode (Setup)")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "Cant load demo.py config, run: File -> Demo Mode (Setup)")
+            return set(['CANCELLED'])
 
 
 # --- call demo_mode.py funcs

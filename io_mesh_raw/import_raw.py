@@ -39,7 +39,11 @@ tolerance.
 """
 
 
+from __future__ import absolute_import
 import bpy
+from io import open
+from itertools import imap
+from itertools import izip
 
 
 def readMesh(filename, objName):
@@ -49,12 +53,12 @@ def readMesh(filename, objName):
         # Each triplet is an xyz float
         line_split = line.split()
         try:
-            line_split_float = map(float, line_split)
+            line_split_float = imap(float, line_split)
         except:
             return None
 
-        if len(line_split) in {9, 12}:
-            return zip(*[iter(line_split_float)] * 3)  # group in 3's
+        if len(line_split) in set([9, 12]):
+            return izip(*[iter(line_split_float)] * 3)  # group in 3's
         else:
             return None
 

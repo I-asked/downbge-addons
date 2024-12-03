@@ -4,6 +4,7 @@ Created on Sep 2, 2011
 @author: vencax
 """
 
+from __future__ import absolute_import
 from .model import DxfDrawing
 
 try:

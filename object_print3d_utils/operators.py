@@ -20,6 +20,8 @@
 
 # All Operator
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 import bmesh
 from bpy.types import Operator
@@ -79,7 +81,7 @@ class Print3DInfoVolume(Operator):
                         None))
 
         report.update(*info)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class Print3DInfoArea(Operator):
@@ -107,7 +109,7 @@ class Print3DInfoArea(Operator):
             info.append(("%s cm²" % clean_float("%.4f" % ((area * (scale * scale)) / (0.01 * 0.01))),
                         None))
         report.update(*info)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 # ---------------
@@ -120,7 +122,7 @@ def execute_check(self, context):
     self.main_check(obj, info)
     report.update(*info)
 
-    return {'FINISHED'}
+    return set(['FINISHED'])
 
 
 class Print3DCheckSolid(Operator):
@@ -336,14 +338,14 @@ class Print3DCheckAll(Operator):
 
         report.update(*info)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class Print3DCleanIsolated(Operator):
     """Cleanup isolated vertices and edges"""
     bl_idname = "mesh.print3d_clean_isolated"
     bl_label = "Print3D Clean Isolated "
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def execute(self, context):
         obj = context.active_object
@@ -398,16 +400,16 @@ class Print3DCleanIsolated(Operator):
 
         if change:
             mesh_helpers.bmesh_to_object(obj, bm)
-            return {'FINISHED'}
+            return set(['FINISHED'])
         else:
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
 
 class Print3DCleanDistorted(Operator):
     """Tessellate distorted faces"""
     bl_idname = "mesh.print3d_clean_distorted"
     bl_label = "Print3D Clean Distorted"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def execute(self, context):
         scene = bpy.context.scene
@@ -431,16 +433,16 @@ class Print3DCleanDistorted(Operator):
         if elems_triangulate:
             bmesh.ops.triangulate(bm, faces=elems_triangulate)
             mesh_helpers.bmesh_to_object(obj, bm)
-            return {'FINISHED'}
+            return set(['FINISHED'])
         else:
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
 
 class Print3DCleanNonManifold(Operator):
     """Cleanup problems, like holes, non-manifold vertices, and inverted normals"""
     bl_idname = "mesh.print3d_clean_non_manifold"
     bl_label = "Print3D Clean Non-Manifold and Inverted"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     threshold = bpy.props.FloatProperty(
             name="threshold",
@@ -475,14 +477,14 @@ class Print3DCleanNonManifold(Operator):
             bpy.ops.object.mode_set(mode='OBJECT')
 
         self.report(
-                {'INFO'},
+                set(['INFO']),
                 "Modified Verts:%+d, Edges:%+d, Faces:%+d" %
                 (bm_key[0] - bm_key_orig[0],
                  bm_key[1] - bm_key_orig[1],
                  bm_key[2] - bm_key_orig[2],
                  ))
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @staticmethod
     def elem_count(context):
@@ -594,12 +596,12 @@ class Print3DCleanThin(Operator):
     """Ensure minimum thickness"""
     bl_idname = "mesh.print3d_clean_thin"
     bl_label = "Print3D Clean Thin"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def execute(self, context):
         TODO
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 # -------------
@@ -610,7 +612,7 @@ class Print3DSelectReport(Operator):
     """Select the data associated with this report"""
     bl_idname = "mesh.print3d_select_report"
     bl_label = "Print3D Select Report"
-    bl_options = {'INTERNAL'}
+    bl_options = set(['INTERNAL'])
 
     index = IntProperty()
 
@@ -644,12 +646,12 @@ class Print3DSelectReport(Operator):
                 elems[i].select_set(True)
         except:
             # possible arrays are out of sync
-            self.report({'WARNING'}, "Report is out of date, re-run check")
+            self.report(set(['WARNING']), "Report is out of date, re-run check")
 
         # cool, but in fact annoying
         #~ bpy.ops.view3d.view_selected(use_all_regions=False)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 # -----------
@@ -662,17 +664,17 @@ def _scale(scale, report=None, report_suffix=""):
                                  snap=False,
                                  texture_space=False)
     if report is not None:
-        report({'INFO'}, "Scaled by %s%s" % (clean_float("%.6f" % scale), report_suffix))
+        report(set(['INFO']), "Scaled by %s%s" % (clean_float("%.6f" % scale), report_suffix))
 
 
 class Print3DScaleToVolume(Operator):
     """Scale edit-mesh or selected-objects to a set volume"""
     bl_idname = "mesh.print3d_scale_to_volume"
     bl_label = "Scale to Volume"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     volume_init = FloatProperty(
-            options={'HIDDEN'},
+            options=set(['HIDDEN']),
             )
     volume = FloatProperty(
             name="Volume",
@@ -683,9 +685,9 @@ class Print3DScaleToVolume(Operator):
     def execute(self, context):
         import math
         scale = math.pow(self.volume, 1 / 3) / math.pow(self.volume_init, 1 / 3)
-        self.report({'INFO'}, "Scaled by %s" % clean_float("%.6f" % scale))
+        self.report(set(['INFO']), "Scaled by %s" % clean_float("%.6f" % scale))
         _scale(scale, self.report)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
 
@@ -702,8 +704,8 @@ class Print3DScaleToVolume(Operator):
                          if obj.type == 'MESH')
 
         if volume == 0.0:
-            self.report({'WARNING'}, "Object has zero volume")
-            return {'CANCELLED'}
+            self.report(set(['WARNING']), "Object has zero volume")
+            return set(['CANCELLED'])
 
         self.volume_init = self.volume = abs(volume)
 
@@ -715,13 +717,13 @@ class Print3DScaleToBounds(Operator):
     """Scale edit-mesh or selected-objects to fit within a maximum length"""
     bl_idname = "mesh.print3d_scale_to_bounds"
     bl_label = "Scale to Bounds"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     length_init = FloatProperty(
-            options={'HIDDEN'},
+            options=set(['HIDDEN']),
             )
     axis_init = IntProperty(
-            options={'HIDDEN'},
+            options=set(['HIDDEN']),
             )
     length = FloatProperty(
             name="Length Limit",
@@ -734,13 +736,13 @@ class Print3DScaleToBounds(Operator):
         _scale(scale,
                report=self.report,
                report_suffix=", Clamping %s-Axis" % "XYZ"[self.axis_init])
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         from mathutils import Vector
 
         def calc_length(vecs):
-            return max(((max(v[i] for v in vecs) - min(v[i] for v in vecs)), i) for i in range(3))
+            return max(((max(v[i] for v in vecs) - min(v[i] for v in vecs)), i) for i in xrange(3))
 
         if context.mode == 'EDIT_MESH':
             length, axis = calc_length([Vector(v) * obj.matrix_world
@@ -752,8 +754,8 @@ class Print3DScaleToBounds(Operator):
                                         if obj.type == 'MESH' for v in obj.bound_box])
 
         if length == 0.0:
-            self.report({'WARNING'}, "Object has zero bounds")
-            return {'CANCELLED'}
+            self.report(set(['WARNING']), "Object has zero bounds")
+            return set(['CANCELLED'])
 
         self.length_init = self.length = length
         self.axis_init = axis
@@ -780,6 +782,6 @@ class Print3DExport(Operator):
         report.update(*info)
 
         if ret:
-            return {'FINISHED'}
+            return set(['FINISHED'])
         else:
-            return {'CANCELLED'}
+            return set(['CANCELLED'])

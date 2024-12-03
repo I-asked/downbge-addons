@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 import blf
 
@@ -142,7 +144,7 @@ def draw_callback_view():
     y_n = Vector((0.0, -1.0, 0.0))
     z_p = Vector((0.0, 0.0, 1.0))
     z_n = Vector((0.0, 0.0, -1.0))
-    bb = [Vector() for i in range(8)]
+    bb = [Vector() for i in xrange(8)]
 
     def draw_matrix(mat):
         zero_tx = mat * zero

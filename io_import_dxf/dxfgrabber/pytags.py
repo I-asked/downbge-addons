@@ -2,6 +2,7 @@
 # Created: 21.07.2012, taken from my ezdxf project
 # Copyright (C) 2012, Manfred Moitzi
 # License: MIT License
+from __future__ import absolute_import
 from __future__ import unicode_literals
 __author__ = "mozman <mozman@gmx.at>"
 
@@ -26,7 +27,7 @@ def point_tuple(value):
     return tuple(float(f) for f in value)
 
 
-POINT_CODES = frozenset(chain(range(10, 20), (210, ), range(110, 113), range(1010, 1020)))
+POINT_CODES = frozenset(chain(xrange(10, 20), (210, ), xrange(110, 113), xrange(1010, 1020)))
 
 
 def is_point_tag(tag):
@@ -46,7 +47,7 @@ class TagIterator(object):
     def __iter__(self):
         return self
 
-    def __next__(self):
+    def next(self):
         def undo_tag():
             self.undo = False
             tag = self.last_tag
@@ -129,7 +130,7 @@ class StringIterator(TagIterator):
         super(StringIterator, self).__init__(StringIO(dxfcontent))
 
 
-class TagCaster:
+class TagCaster(object):
     def __init__(self):
         self._cast = self._build()
 
@@ -163,33 +164,33 @@ class TagCaster:
                 raise
 
 TYPES = [
-    (tostr, range(0, 10)),
-    (point_tuple, range(10, 20)),
-    (float, range(20, 60)),
-    (int, range(60, 100)),
-    (tostr, range(100, 106)),
-    (point_tuple, range(110, 113)),
-    (float, range(113, 150)),
-    (int, range(170, 180)),
+    (tostr, xrange(0, 10)),
+    (point_tuple, xrange(10, 20)),
+    (float, xrange(20, 60)),
+    (int, xrange(60, 100)),
+    (tostr, xrange(100, 106)),
+    (point_tuple, xrange(110, 113)),
+    (float, xrange(113, 150)),
+    (int, xrange(170, 180)),
     (point_tuple, [210]),
-    (float, range(211, 240)),
-    (int, range(270, 290)),
-    (int, range(290, 300)),  # bool 1=True 0=False
-    (tostr, range(300, 370)),
-    (int, range(370, 390)),
-    (tostr, range(390, 400)),
-    (int, range(400, 410)),
-    (tostr, range(410, 420)),
-    (int, range(420, 430)),
-    (tostr, range(430, 440)),
-    (int, range(440, 460)),
-    (float, range(460, 470)),
-    (tostr, range(470, 480)),
-    (tostr, range(480, 482)),
-    (tostr, range(999, 1010)),
-    (point_tuple, range(1010, 1020)),
-    (float, range(1020, 1060)),
-    (int, range(1060, 1072)),
+    (float, xrange(211, 240)),
+    (int, xrange(270, 290)),
+    (int, xrange(290, 300)),  # bool 1=True 0=False
+    (tostr, xrange(300, 370)),
+    (int, xrange(370, 390)),
+    (tostr, xrange(390, 400)),
+    (int, xrange(400, 410)),
+    (tostr, xrange(410, 420)),
+    (int, xrange(420, 430)),
+    (tostr, xrange(430, 440)),
+    (int, xrange(440, 460)),
+    (float, xrange(460, 470)),
+    (tostr, xrange(470, 480)),
+    (tostr, xrange(480, 482)),
+    (tostr, xrange(999, 1010)),
+    (point_tuple, xrange(1010, 1020)),
+    (float, xrange(1020, 1060)),
+    (int, xrange(1060, 1072)),
 ]
 
 _TagCaster = TagCaster()
@@ -243,9 +244,9 @@ class TagGroups(list):
                 self.append(group)
 
         def start_tag(itags):
-            tag = next(itags)
+            tag = itags.next()
             while tag.code != split_code:
-                tag = next(itags)
+                tag = itags.next()
             return tag
 
         itags = iter(tags)
@@ -267,7 +268,7 @@ class TagGroups(list):
         return TagGroups(Tags.from_text(text), split_code)
 
 
-class ClassifiedTags:
+class ClassifiedTags(object):
     """ Manage Subclasses, AppData and Extended Data """
 
     def __init__(self, iterable=None):
@@ -291,7 +292,7 @@ class ClassifiedTags:
             data = Tags() if start_tag is None else Tags([start_tag])
             try:
                 while True:
-                    tag = next(tagstream)
+                    tag = tagstream.next()
                     if tag.code == APP_DATA_MARKER and tag.value[0] == '{':
                         app_data_pos = len(self.appdata)
                         data.append(DXFTag(tag.code, app_data_pos))
@@ -311,7 +312,7 @@ class ClassifiedTags:
             data = Tags([starttag])
             while True:
                 try:
-                    tag = next(tagstream)
+                    tag = tagstream.next()
                 except StopIteration:
                     raise DXFStructureError("Missing closing DXFTag(102, '}') for appdata structure.")
                 data.append(tag)
@@ -326,7 +327,7 @@ class ClassifiedTags:
             data = Tags([starttag])
             try:
                 while True:
-                    tag = next(tagstream)
+                    tag = tagstream.next()
                     if tag.code == XDATA_MARKER:
                         self.xdata.append(data)
                         return tag

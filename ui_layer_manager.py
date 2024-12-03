@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 #
+from __future__ import absolute_import
+from itertools import izip
 bl_info = {
     "name": "Layer Management",
     "author": "Alfonso Annarumma, Bastien Montagne",
@@ -35,7 +37,7 @@ from bpy.types import Menu, Panel, UIList, PropertyGroup
 from bpy.props import StringProperty, BoolProperty, IntProperty, CollectionProperty, BoolVectorProperty, PointerProperty
 from bpy.app.handlers import persistent
 
-EDIT_MODES = {'EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_METABALL', 'EDIT_TEXT', 'EDIT_ARMATURE'}
+EDIT_MODES = set(['EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_METABALL', 'EDIT_TEXT', 'EDIT_ARMATURE'])
 
 NUM_LAYERS = 20
 
@@ -55,7 +57,7 @@ class NamedLayers(PropertyGroup):
     use_layer_indices = BoolProperty(name="Show Layer Indices", default=False)
     use_classic = BoolProperty(name="Classic", default=False, description="Use a classic layer selection visibility")
 
-    use_init = BoolProperty(default=True, options={'HIDDEN'})
+    use_init = BoolProperty(default=True, options=set(['HIDDEN']))
 
 
 # Stupid, but only solution currently is to use a handler to init that layers collection...
@@ -65,7 +67,7 @@ def check_init_data(scene):
     if namedlayers.use_init:
         while namedlayers.layers:
             namedlayers.layers.remove(0)
-        for i in range(NUM_LAYERS):
+        for i in xrange(NUM_LAYERS):
             layer = namedlayers.layers.add()
             layer.name = "Layer%.2d" % (i + 1)  # Blender use layer nums starting from 1, not 0.
         namedlayers.use_init = False
@@ -101,7 +103,7 @@ class SCENE_OT_namedlayer_group_add(bpy.types.Operator):
         layer_group.layers = layers
         scene.layergroups_index = group_idx
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class SCENE_OT_namedlayer_group_remove(bpy.types.Operator):
@@ -123,7 +125,7 @@ class SCENE_OT_namedlayer_group_remove(bpy.types.Operator):
         if scene.layergroups_index > len(scene.layergroups) - 1:
             scene.layergroups_index = len(scene.layergroups) - 1
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class SCENE_OT_namedlayer_toggle_visibility(bpy.types.Operator):
@@ -134,7 +136,7 @@ class SCENE_OT_namedlayer_toggle_visibility(bpy.types.Operator):
     layer_idx = IntProperty()
     group_idx = IntProperty()
     use_spacecheck = BoolProperty()
-    extend = BoolProperty(options={'SKIP_SAVE'})
+    extend = BoolProperty(options=set(['SKIP_SAVE']))
 
     @classmethod
     def poll(cls, context):
@@ -152,10 +154,10 @@ class SCENE_OT_namedlayer_toggle_visibility(bpy.types.Operator):
             layers = layer_cont.layers
 
             if layergroups.use_toggle:
-                layer_cont.layers = [not group_layer and layer for group_layer, layer in zip(group_layers, layers)]
+                layer_cont.layers = [not group_layer and layer for group_layer, layer in izip(group_layers, layers)]
                 layergroups.use_toggle = False
             else:
-                layer_cont.layers = [group_layer or layer for group_layer, layer in zip(group_layers, layers)]
+                layer_cont.layers = [group_layer or layer for group_layer, layer in izip(group_layers, layers)]
                 layergroups.use_toggle = True
         else:
             if self.extend:
@@ -164,7 +166,7 @@ class SCENE_OT_namedlayer_toggle_visibility(bpy.types.Operator):
                 layers = [False] * NUM_LAYERS
                 layers[layer_idx] = True
                 layer_cont.layers = layers
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         self.extend = event.shift
@@ -177,7 +179,7 @@ class SCENE_OT_namedlayer_move_to_layer(bpy.types.Operator):
     bl_label = "Move Objects To Layer"
 
     layer_idx = IntProperty()
-    extend = BoolProperty(options={'SKIP_SAVE'})
+    extend = BoolProperty(options=set(['SKIP_SAVE']))
 
     @classmethod
     def poll(cls, context):
@@ -191,14 +193,14 @@ class SCENE_OT_namedlayer_move_to_layer(bpy.types.Operator):
         for obj in scene.objects:
             if obj.select:
                 # If object is in at least one of the scene's visible layers...
-                if True in {ob_layer and sce_layer for ob_layer, sce_layer in zip(obj.layers, scene.layers)}:
+                if True in set(ob_layer and sce_layer for ob_layer, sce_layer in izip(obj.layers, scene.layers)):
                     if self.extend:
                         obj.layers[layer_idx] = not obj.layers[layer_idx]
                     else:
                         layer = [False] * NUM_LAYERS
                         layer[layer_idx] = True
                         obj.layers = layer
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         self.extend = event.shift
@@ -234,7 +236,7 @@ class SCENE_OT_namedlayer_toggle_wire(bpy.types.Operator):
                     group_idx = self.group_idx
                     group_layers = scene.layergroups[group_idx].layers
                     layers = obj.layers
-                    if True in {layer and group_layer for layer, group_layer in zip(layers, group_layers)}:
+                    if True in set(layer and group_layer for layer, group_layer in izip(layers, group_layers)):
                         obj.draw_type = display
                         scene.layergroups[group_idx].use_wire = use_wire
                 else:
@@ -242,7 +244,7 @@ class SCENE_OT_namedlayer_toggle_wire(bpy.types.Operator):
                         obj.draw_type = display
                         scene.namedlayers.layers[layer_idx].use_wire = use_wire
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class SCENE_OT_namedlayer_lock_all(bpy.types.Operator):
@@ -272,7 +274,7 @@ class SCENE_OT_namedlayer_lock_all(bpy.types.Operator):
             for obj in context.scene.objects:
                 if layer_idx == -1:
                     layers = obj.layers
-                    if True in {layer and group_layer for layer, group_layer in zip(layers, group_layers)}:
+                    if True in set(layer and group_layer for layer, group_layer in izip(layers, group_layers)):
                         obj.hide_select = not use_lock
                         obj.select = False
                         scene.layergroups[group_idx].use_lock = not use_lock
@@ -282,7 +284,7 @@ class SCENE_OT_namedlayer_lock_all(bpy.types.Operator):
                         obj.select = False
                         scene.namedlayers.layers[layer_idx].use_lock = not use_lock
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class SCENE_OT_namedlayer_select_objects_by_layer(bpy.types.Operator):
@@ -293,8 +295,8 @@ class SCENE_OT_namedlayer_select_objects_by_layer(bpy.types.Operator):
     select_obj = BoolProperty()
     layer_idx = IntProperty()
 
-    extend = BoolProperty(options={'SKIP_SAVE'})
-    active = BoolProperty(options={'SKIP_SAVE'})
+    extend = BoolProperty(options=set(['SKIP_SAVE']))
+    active = BoolProperty(options=set(['SKIP_SAVE']))
 
     @classmethod
     def poll(cls, context):
@@ -324,7 +326,7 @@ class SCENE_OT_namedlayer_select_objects_by_layer(bpy.types.Operator):
             else:
                 bpy.ops.object.select_by_layer(extend=self.extend, layers=layer_idx + 1)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         self.extend = event.shift
@@ -363,14 +365,14 @@ class SCENE_OT_namedlayer_show_all(bpy.types.Operator):
             layers[active_layer] = True
             layer_cont.layers[:] = layers
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class SCENE_PT_namedlayer_layers(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_label = "Layer Management"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = set(['DEFAULT_CLOSED'])
     bl_category = "Layers"
 
     @classmethod
@@ -401,7 +403,7 @@ class SCENE_PT_namedlayer_layers(bpy.types.Panel):
         col = row.column()
         col.prop(view_3d, "lock_camera_and_layers", text="")
         # Check if there is a layer off
-        show = (False in {layer for layer in layer_cont.layers})
+        show = (False in set(layer for layer in layer_cont.layers))
         icon = 'RESTRICT_VIEW_ON' if show else 'RESTRICT_VIEW_OFF'
         col.operator("scene.namedlayer_show_all", emboss=False, icon=icon, text="").show = show
 
@@ -414,7 +416,7 @@ class SCENE_PT_namedlayer_layers(bpy.types.Panel):
         col.prop(namedlayers, "use_hide_empty_layers", text="Hide Empty")
 
         col = layout.column()
-        for layer_idx in range(NUM_LAYERS):
+        for layer_idx in xrange(NUM_LAYERS):
             namedlayer = namedlayers.layers[layer_idx]
             is_layer_used = view_3d.layers_used[layer_idx]
 
@@ -487,7 +489,7 @@ class SCENE_UL_namedlayer_groups(UIList):
         view_3d = context.area.spaces.active  # Ensured it is a 'VIEW_3D' in panel's poll(), weak... :/
         use_spacecheck = False if view_3d.lock_camera_and_layers else True
 
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+        if self.layout_type in set(['DEFAULT', 'COMPACT']):
             layout.prop(layer_group, "name", text="", emboss=False)
             # lock operator
             use_lock = layer_group.use_lock
@@ -512,7 +514,7 @@ class SCENE_UL_namedlayer_groups(UIList):
             op.group_idx = index
             op.layer_idx = -1
 
-        elif self.layout_type in {'GRID'}:
+        elif self.layout_type in set(['GRID']):
             layout.alignment = 'CENTER'
 
 
@@ -521,7 +523,7 @@ class SCENE_PT_namedlayer_groups(bpy.types.Panel):
     bl_region_type = 'TOOLS'
     bl_category = "Layers"
     bl_label = "Layer Groups"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = set(['DEFAULT_CLOSED'])
 
     @classmethod
     def poll(self, context):

@@ -34,6 +34,7 @@
 #
 #
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Atomic Blender - PDB",
     "description": "Loading and manipulating atoms from PDB files",
@@ -71,10 +72,10 @@ from . import (
 class ImportPDB(Operator, ImportHelper):
     bl_idname = "import_mesh.pdb"
     bl_label  = "Import Protein Data Bank(*.pdb)"
-    bl_options = {'PRESET', 'UNDO'}
+    bl_options = set(['PRESET', 'UNDO'])
 
     filename_ext = ".pdb"
-    filter_glob  = StringProperty(default="*.pdb", options={'HIDDEN'},)
+    filter_glob  = StringProperty(default="*.pdb", options=set(['HIDDEN']),)
 
     use_center = BoolProperty(
         name = "Object to origin", default=True,
@@ -259,7 +260,7 @@ class ImportPDB(Operator, ImportHelper):
                       self.use_lamp,
                       filepath_pdb)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 # This is the class for the file dialog of the exporter.
@@ -269,7 +270,7 @@ class ExportPDB(Operator, ExportHelper):
     filename_ext = ".pdb"
 
     filter_glob  = StringProperty(
-        default="*.pdb", options={'HIDDEN'},)
+        default="*.pdb", options=set(['HIDDEN']),)
 
     atom_pdb_export_type = EnumProperty(
         name="Type of Objects",
@@ -288,7 +289,7 @@ class ExportPDB(Operator, ExportHelper):
         export_pdb.export_pdb(self.atom_pdb_export_type,
                               bpy.path.abspath(self.filepath))
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 # The entry into the menu 'file -> import'

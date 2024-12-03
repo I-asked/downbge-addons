@@ -18,6 +18,9 @@
 
 # <pep8 compliant>
 
+from __future__ import with_statement
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 import os
 import re
@@ -29,6 +32,7 @@ from .. import dxfgrabber
 from . import convert, is_, groupsort
 from .line_merger import line_merger
 from ..transverse_mercator import TransverseMercator
+from io import open
 
 
 try:
@@ -75,7 +79,7 @@ def float_len(f):
         return len(s[2:])
 
 
-class Indicator:
+class Indicator(object):
     spherical = False
     euclidean = False
 
@@ -88,7 +92,7 @@ class Indicator:
             raise AttributeError("Indication must be 'spherical' or 'euclidean'. Given: " + str(i))
 
 
-class Do:
+class Do(object):
     __slots__ = (
         "dwg", "combination", "known_blocks", "import_text", "import_light", "export_acis", "merge_lines",
         "do_bounding_boxes", "acis_files", "errors", "block_representation", "recenter", "did_group_instance",
@@ -194,7 +198,7 @@ class Do:
         spl.use_cyclic_u = True
         b = spl.bezier_points
         b.add(count - 1)
-        for i, j in enumerate(range(1, len(points), 3)):
+        for i, j in enumerate(xrange(1, len(points), 3)):
             b[i].handle_left = self.proj(points[j - 1])
             b[i].co = self.proj(points[j])
             b[i].handle_right = self.proj(points[j + 1])
@@ -213,7 +217,7 @@ class Do:
         b[-1].handle_right = self.proj(points[-1])
         b[-1].handle_left = self.proj(points[-2])
 
-        for i, j in enumerate(range(3, len(points) - 2, 3), 1):
+        for i, j in enumerate(xrange(3, len(points) - 2, 3), 1):
             b[i].handle_left = self.proj(points[j - 1])
             b[i].co = self.proj(points[j])
             b[i].handle_right = self.proj(points[j + 1])
@@ -356,7 +360,7 @@ class Do:
         spline.append(vc + end)
 
         if len(spline) % 3 != 1:
-            print("DXF-IMPORT: DO ARC: CHECK PLEASE: ", len(spline), spline)
+            print "DXF-IMPORT: DO ARC: CHECK PLEASE: ", len(spline), spline
 
         # curve == None means arc is called from bulge conversion
         # nothing should be projected at this stage, since the
@@ -379,7 +383,7 @@ class Do:
         b = c.bezier_points
         b.add(3)
 
-        for i in range(4):
+        for i in xrange(4):
             b[i].handle_left_type = 'AUTO'
             b[i].handle_right_type = 'AUTO'
 
@@ -397,7 +401,7 @@ class Do:
             b[2].co = vc + r * clockwise * clockwise
             b[3].co = vc + r * clockwise * clockwise * clockwise
         except:
-            print("Circle center: ", vc, "radius: ", r)
+            print "Circle center: ", vc, "radius: ", r
             raise
 
         return c
@@ -424,7 +428,7 @@ class Do:
         b = c.bezier_points
 
         if en.ratio < 1:
-            for i in range(4):
+            for i in xrange(4):
                 b[i].handle_left_type = 'ALIGNED'
                 b[i].handle_right_type = 'ALIGNED'
 
@@ -494,7 +498,7 @@ class Do:
         face = bm.faces.new(verts)
 
         if len(points) == 4:
-            for i in range(2):
+            for i in xrange(2):
                 edge1 = verts[i].co
                 edge2 = verts[i + 1].co
                 opposite1 = verts[i + 2].co
@@ -563,10 +567,10 @@ class Do:
         """
         mc = en.mcount if not en.is_mclosed else en.mcount + 1
         nc = en.ncount if not en.is_nclosed else en.ncount + 1
-        for i in range(1, mc):
+        for i in xrange(1, mc):
             i = i % en.mcount
             i_ = (i - 1) % en.mcount
-            for j in range(1, nc):
+            for j in xrange(1, nc):
                 j = j % en.ncount
                 j_ = (j - 1) % en.ncount
                 face = []
@@ -609,7 +613,7 @@ class Do:
         """
         extrusion describes the normal vector of the entity
         """
-        if entity.dxftype not in {"LINE", "POINT"}:
+        if entity.dxftype not in set(["LINE", "POINT"]):
             if Vector(entity.extrusion) != Vector((0, 0, 1)):
                 transformation = convert.extrusion_to_matrix(entity)
                 obj.location = transformation * obj.location
@@ -671,8 +675,8 @@ class Do:
 
         # creating the widgets
         if do_widgets:
-            for i in range(2):
-                for j in range(4):
+            for i in xrange(2):
+                for j in xrange(4):
                     point = verts[j + (i * 4)]
                     prevp = verts[((j - 1) % 4) + (i * 4)]
                     nextp = verts[((j + 1) % 4) + (i * 4)]
@@ -689,8 +693,8 @@ class Do:
 
     def _vertex_duplication(self, x, y, x_count, y_count):
         bm = bmesh.new()
-        for i in range(x_count):
-            for j in range(y_count):
+        for i in xrange(x_count):
+            for j in xrange(y_count):
                 bm.verts.new(Vector((x * i, y * j, 0.)))
 
         d = bpy.data.meshes.new("vertex_duplicator")
@@ -1011,7 +1015,7 @@ class Do:
         sep = sum(1 for sep in self.dwg.blocks[entity.name] if is_.separated_entity(sep))
         objtypes = sum(1 for ot, ens in groupsort.by_blender_type(en for en in self.dwg.blocks[entity.name]
                                                                   if is_.combined_entity(en))
-                       if ot in {"object_mesh", "object_curve"})
+                       if ot in set(["object_mesh", "object_curve"]))
         if need_group_inst is None:
             need_group_inst = (entity.row_count or entity.col_count) > 1 and \
                               (kids > 0 or objtypes > 1 or sep > 1 or (objtypes > 0 and sep > 0))

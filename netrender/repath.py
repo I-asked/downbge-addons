@@ -16,6 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import absolute_import
 import sys, os
 import subprocess
 
@@ -80,25 +81,25 @@ def update(job):
         os.renames(new_path, job_full_path)
 
 def process(original_path, paths):
-    if DEBUG: print("==========================================================")
+    if DEBUG: print "=========================================================="
     original_directory = os.path.dirname(original_path)
     path_map = {}
-    for i in range(0, len(paths), 2):
+    for i in xrange(0, len(paths), 2):
         # special case for point cache
         if paths[i].endswith(".bphys"):
             path, filename = os.path.split(paths[i+1])
             cache_name = filename.split("_")[0]
-            if DEBUG: print(cache_name, path)
+            if DEBUG: print cache_name, path
             path_map[cache_name] = path
         # special case for fluids
         elif paths[i].endswith(".bobj.gz"):
-            if DEBUG: print(os.path.split(paths[i])[0], os.path.split(paths[i+1])[0])
+            if DEBUG: print os.path.split(paths[i])[0], os.path.split(paths[i+1])[0]
             path_map[os.path.split(paths[i])[0]] = os.path.split(paths[i+1])[0]
         else:
-            if DEBUG: print(paths[i], paths[i+1])
+            if DEBUG: print paths[i], paths[i+1]
             path_map[paths[i]] = paths[i+1]
             
-    if DEBUG: print("----------------------------------------------------------")
+    if DEBUG: print "----------------------------------------------------------"
 
     # TODO original paths aren't really the original path, they are the normalized path
     # so we repath using the filenames only. 
@@ -109,7 +110,7 @@ def process(original_path, paths):
     for lib in bpy.data.libraries:
         file_path = bpy.path.abspath(lib.filepath, start=original_directory)
         new_path = path_map.get(file_path, None)
-        if DEBUG: print(file_path, new_path)
+        if DEBUG: print file_path, new_path
         if new_path:
             lib.filepath = new_path
 
@@ -120,7 +121,7 @@ def process(original_path, paths):
         if image.source == "FILE" and not image.packed_file:
             file_path = bpy.path.abspath(image.filepath, start=original_directory)
             new_path = path_map.get(file_path, None)
-            if DEBUG: print(file_path, new_path)
+            if DEBUG: print file_path, new_path
             if new_path:
                 image.filepath = new_path
             
@@ -134,7 +135,7 @@ def process(original_path, paths):
 
         cache_name = cacheName(object, point_cache)
         new_path = path_map.get(cache_name, None)
-        if DEBUG: print(cache_name, new_path)
+        if DEBUG: print cache_name, new_path
         if new_path:
             point_cache.use_external = True
             point_cache.filepath = new_path
@@ -152,7 +153,7 @@ def process(original_path, paths):
             modifier.filepath = new_path
         
     processObjectDependencies(pointCacheFunc, fluidFunc, multiresFunc)
-    if DEBUG: print("==========================================================")
+    if DEBUG: print "=========================================================="
                 
 
 if __name__ == "__main__":
@@ -162,7 +163,8 @@ if __name__ == "__main__":
         i = 0
     
     if i:
-        new_path, original_path, *args = sys.argv[i+1:]
+        _3to2list = list(sys.argv[i+1:])
+        new_path, original_path, args, = _3to2list[:2] + [_3to2list[2:]]
         
         process(original_path, args)
         

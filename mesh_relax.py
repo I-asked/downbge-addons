@@ -46,6 +46,7 @@ Additional links:
 """
 
 
+from __future__ import absolute_import
 import bpy
 from bpy.props import IntProperty
 
@@ -65,7 +66,7 @@ def relax_mesh(context):
     target = context.active_object
 
     # remove all other modifiers from the target
-    for m in range(0, len(target.modifiers)):
+    for m in xrange(0, len(target.modifiers)):
         target.modifiers.remove(target.modifiers[0])
 
     context.scene.objects.active = obj
@@ -95,7 +96,7 @@ class Relax(bpy.types.Operator):
     """as much as possible"""
     bl_idname = 'mesh.relax'
     bl_label = 'Relax'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     iterations = IntProperty(name="Relax iterations",
                 default=1, min=0, max=100, soft_min=0, soft_max=10)
@@ -106,9 +107,9 @@ class Relax(bpy.types.Operator):
         return (obj and obj.type == 'MESH')
 
     def execute(self, context):
-        for i in range(0,self.iterations):
+        for i in xrange(0,self.iterations):
             relax_mesh(context)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 def menu_func(self, context):

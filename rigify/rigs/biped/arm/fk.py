@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 
 from .. import limb_common
@@ -29,7 +30,7 @@ from ....utils import strip_org
 from ....utils import get_layers
 
 
-class Rig:
+class Rig(object):
     """ An FK arm rig, with hinge switch.
 
     """

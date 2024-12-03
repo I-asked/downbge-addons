@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 
 from .. import limb_common
@@ -28,7 +29,7 @@ from ....utils import connected_children_names, has_connected_children
 from ....utils import strip_org, make_deformer_name
 
 
-class Rig:
+class Rig(object):
     """ A leg deform-bone setup.
 
     """

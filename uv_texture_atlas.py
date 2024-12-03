@@ -17,6 +17,7 @@
 # END GPL LICENSE BLOCK #####
 
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Texture Atlas",
     "author": "Andreas Esau, Paul Geraskin, Campbell Barton",
@@ -54,7 +55,7 @@ def check_all_objects_visible(self, context):
     for thisObject in bpy.data.groups[group.name].objects:
         isThisObjectVisible = False
         # scene.objects.active = thisObject
-        for thisLayerNumb in range(20):
+        for thisLayerNumb in xrange(20):
             if thisObject.layers[thisLayerNumb] is True and scene.layers[thisLayerNumb] is True:
                 isThisObjectVisible = True
                 break
@@ -72,7 +73,7 @@ def check_group_exist(self, context, use_report=True):
         return True
     else:
         if use_report:
-            self.report({'INFO'}, "No Such Group %r!" % group.name)
+            self.report(set(['INFO']), "No Such Group %r!" % group.name)
         return False
 
 
@@ -81,7 +82,7 @@ class TexAtl_Main(Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = set(['DEFAULT_CLOSED'])
 
     def draw(self, context):
         scene = context.scene
@@ -148,7 +149,7 @@ class TexAtl_RunAuto(Operator):
 
         # Check if group exists
         if check_group_exist(self, context) is False:
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         group = scene.ms_lightmap_groups[scene.ms_lightmap_groups_index]
         context.area.type = 'VIEW_3D'
@@ -170,11 +171,11 @@ class TexAtl_RunAuto(Operator):
                     group_name=group.name, unwrap=True)
                 bpy.ops.object.ms_separate_objects(group_name=group.name)
             else:
-                self.report({'INFO'}, "Not All Objects Are Visible!!!")
+                self.report(set(['INFO']), "Not All Objects Are Visible!!!")
 
         context.area.type = old_context
 
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 
 class TexAtl_RunStart(Operator):
@@ -188,7 +189,7 @@ class TexAtl_RunStart(Operator):
 
         # Check if group exists
         if check_group_exist(self, context) is False:
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         context.area.type = 'VIEW_3D'
         group = scene.ms_lightmap_groups[scene.ms_lightmap_groups_index]
@@ -202,9 +203,9 @@ class TexAtl_RunStart(Operator):
             isAllObjVisible = check_all_objects_visible(self, context)
 
             if bpy.data.objects.get(group.name + "_mergedObject") is not None:
-                self.report({'INFO'}, "Old Merged Object Exists!!!")
+                self.report(set(['INFO']), "Old Merged Object Exists!!!")
             elif isAllObjVisible is False:
-                self.report({'INFO'}, "Not All Objects Are Visible!!!")
+                self.report(set(['INFO']), "Not All Objects Are Visible!!!")
             else:
                 resX = int(group.resolutionX)
                 resY = int(group.resolutionY)
@@ -215,7 +216,7 @@ class TexAtl_RunStart(Operator):
 
         context.area.type = old_context
 
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 
 class TexAtl_RunFinish(Operator):
@@ -229,7 +230,7 @@ class TexAtl_RunFinish(Operator):
 
         # Check if group exists
         if check_group_exist(self, context) is False:
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         group = scene.ms_lightmap_groups[scene.ms_lightmap_groups_index]
         context.area.type = 'VIEW_3D'
@@ -245,10 +246,10 @@ class TexAtl_RunFinish(Operator):
             if isAllObjVisible is True:
                 bpy.ops.object.ms_separate_objects(group_name=group.name)
             else:
-                self.report({'INFO'}, "Not All Objects Are Visible!!!")
+                self.report(set(['INFO']), "Not All Objects Are Visible!!!")
 
         context.area.type = old_context
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 
 class TexAtl_UVLayers(PropertyGroup):
@@ -307,7 +308,7 @@ class TexAtl_MSLightmapGroups(PropertyGroup):
     )
     template_list_controls = StringProperty(
         default="bake",
-        options={"HIDDEN"},
+        options=set(["HIDDEN"]),
     )
 
 
@@ -343,7 +344,7 @@ class TexAtl_AddSelectedToGroup(Operator):
             if object.type == 'MESH' and object.name not in obj_group.objects:
                 obj_group.objects.link(object)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class TexAtl_SelectGroup(Operator):
@@ -358,7 +359,7 @@ class TexAtl_SelectGroup(Operator):
 
         # Check if group exists
         if check_group_exist(self, context) is False:
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
@@ -367,7 +368,7 @@ class TexAtl_SelectGroup(Operator):
         obj_group = bpy.data.groups[group_name]
         for object in obj_group.objects:
             object.select = True
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class TexAtl_RemoveFromGroup(Operator):
@@ -384,7 +385,7 @@ class TexAtl_RemoveFromGroup(Operator):
 
         # Check if group exists
         if check_group_exist(self, context) is False:
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
@@ -407,7 +408,7 @@ class TexAtl_RemoveFromGroup(Operator):
                     obj_group.objects.unlink(object)
                     object.hide_render = False
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class TexAtl_RemoveOtherUVs(Operator):
@@ -422,7 +423,7 @@ class TexAtl_RemoveOtherUVs(Operator):
 
         # Check if group exists
         if check_group_exist(self, context) is False:
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
@@ -447,7 +448,7 @@ class TexAtl_RemoveOtherUVs(Operator):
 
                 UVLIST.clear()  # clear array
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class TexAtl_AddLightmapGroup(Operator):
@@ -471,7 +472,7 @@ class TexAtl_AddLightmapGroup(Operator):
             if object.type == 'MESH':
                 obj_group.objects.link(object)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -506,7 +507,7 @@ class TexAtl_DelLightmapGroup(Operator):
             if scene.ms_lightmap_groups_index < 0:
                 scene.ms_lightmap_groups_index = 0
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class TexAtl_CreateLightmap(Operator):
@@ -567,7 +568,7 @@ class TexAtl_CreateLightmap(Operator):
 
         NON_MESH_LIST.clear()  # clear array
 
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 
 class TexAtl_MergeObjects(Operator):
@@ -649,7 +650,7 @@ class TexAtl_MergeObjects(Operator):
             scene.objects.active = activeNowObject
             vgroup = activeNowObject.vertex_groups.new(name=object.name)
             vgroup.add(
-                list(range(len(activeNowObject.data.vertices))), weight=1.0, type='ADD')
+                range(len(activeNowObject.data.vertices)), weight=1.0, type='ADD')
 
             # save object name in merged object
             item = ob_merge.ms_merged_objects.add()
@@ -702,7 +703,7 @@ class TexAtl_MergeObjects(Operator):
                     PREF_APPLY_IMAGE=False, PREF_IMG_PX_SIZE=1024, PREF_BOX_DIV=48, PREF_MARGIN_DIV=groupProps.autoUnwrapPrecision)
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 
 class TexAtl_SeparateObjects(Operator):
@@ -781,7 +782,7 @@ class TexAtl_SeparateObjects(Operator):
             ob_merged.select = True
             bpy.ops.object.delete(use_global=False)
 
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 
 def register():

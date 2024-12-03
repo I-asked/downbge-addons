@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 if "bpy" in locals():
     import importlib
     importlib.reload(settings)
@@ -57,12 +58,12 @@ def validate_module(op, context):
         module_name = addon.module
 
     if not module_name:
-        op.report({'ERROR'}, "No addon module given!")
+        op.report(set(['ERROR']), "No addon module given!")
         return None, None
 
-    mod = utils_i18n.enable_addons(addons={module_name}, check_only=True)
+    mod = utils_i18n.enable_addons(addons=set([module_name]), check_only=True)
     if not mod:
-        op.report({'ERROR'}, "Addon '{}' not found!".format(module_name))
+        op.report(set(['ERROR']), "Addon '{}' not found!".format(module_name))
         return None, None
     return module_name, mod[0]
 
@@ -77,7 +78,7 @@ def enum_addons(self, context):
         for mod in addon_utils.modules(addon_utils.addons_fake_modules):
             mod_info = addon_utils.module_bl_info(mod)
             # Skip OFFICIAL addons, they are already translated in main i18n system (together with Blender itself).
-            if mod_info["support"] in {'OFFICIAL'}:
+            if mod_info["support"] in set(['OFFICIAL']):
                 continue
             src = mod.__file__
             if src.endswith("__init__.py"):
@@ -106,19 +107,19 @@ class UI_OT_i18n_addon_translation_invoke(bpy.types.Operator):
         global _cached_enum_addons
         _cached_enum_addons[:] = []
         context.window_manager.invoke_search_popup(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
     def execute(self, context):
         global _cached_enum_addons
         _cached_enum_addons[:] = []
         if not self.op_id:
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
         op = bpy.ops
         for item in self.op_id.split('.'):
             op = getattr(op, item, None)
             #print(self.op_id, item, op)
             if op is None:
-                return {'CANCELLED'}
+                return set(['CANCELLED'])
         return op('INVOKE_DEFAULT', module_name=self.module_name)
 
 class UI_OT_i18n_addon_translation_update(bpy.types.Operator):
@@ -151,15 +152,15 @@ class UI_OT_i18n_addon_translation_update(bpy.types.Operator):
         uids = set()
         for lng in i18n_sett.langs:
             if lng.uid in self.settings.IMPORT_LANGUAGES_SKIP:
-                print("Skipping {} language ({}), edit settings if you want to enable it.".format(lng.name, lng.uid))
+                print "Skipping {} language ({}), edit settings if you want to enable it.".format(lng.name, lng.uid)
                 continue
             if not lng.use:
-                print("Skipping {} language ({}).".format(lng.name, lng.uid))
+                print "Skipping {} language ({}).".format(lng.name, lng.uid)
                 continue
             uids.add(lng.uid)
         # For now, add to processed uids all those not found in "official" list, minus "tech" ones.
-        uids |= (trans.trans.keys() - {lng.uid for lng in i18n_sett.langs} -
-                                      {self.settings.PARSER_TEMPLATE_ID, self.settings.PARSER_PY_ID})
+        uids |= (trans.trans.keys() - set(lng.uid for lng in i18n_sett.langs) -
+                                      set([self.settings.PARSER_TEMPLATE_ID, self.settings.PARSER_PY_ID]))
 
         # And merge!
         for uid in uids:
@@ -171,7 +172,7 @@ class UI_OT_i18n_addon_translation_update(bpy.types.Operator):
         # For now we write all languages found in this trans!
         trans.write(kind='PY')
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class UI_OT_i18n_addon_translation_import(bpy.types.Operator):
@@ -180,7 +181,7 @@ class UI_OT_i18n_addon_translation_import(bpy.types.Operator):
     bl_label = "I18n Addon Import"
 
     module_name = EnumProperty(items=enum_addons, name="Addon", description="Addon to process", options=set())
-    directory = StringProperty(maxlen=1024, subtype='FILE_PATH', options={'HIDDEN', 'SKIP_SAVE'})
+    directory = StringProperty(maxlen=1024, subtype='FILE_PATH', options=set(['HIDDEN', 'SKIP_SAVE']))
 
     def _dst(self, trans, path, uid, kind):
         if kind == 'PO':
@@ -204,7 +205,7 @@ class UI_OT_i18n_addon_translation_import(bpy.types.Operator):
             self.directory = os.path.dirname(mod.__file__)
             self.module_name = module_name
         context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
     def execute(self, context):
         global _cached_enum_addons
@@ -215,7 +216,7 @@ class UI_OT_i18n_addon_translation_import(bpy.types.Operator):
 
         module_name, mod = validate_module(self, context)
         if not (module_name and mod):
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         path = mod.__file__
         if path.endswith("__init__.py"):
@@ -231,15 +232,15 @@ class UI_OT_i18n_addon_translation_import(bpy.types.Operator):
         #       file). So we just try to find the best match in po's for each enabled uid.
         for lng in i18n_sett.langs:
             if lng.uid in self.settings.IMPORT_LANGUAGES_SKIP:
-                print("Skipping {} language ({}), edit settings if you want to enable it.".format(lng.name, lng.uid))
+                print "Skipping {} language ({}), edit settings if you want to enable it.".format(lng.name, lng.uid)
                 continue
             if not lng.use:
-                print("Skipping {} language ({}).".format(lng.name, lng.uid))
+                print "Skipping {} language ({}).".format(lng.name, lng.uid)
                 continue
             uid = lng.uid
             po_uid = utils_i18n.find_best_isocode_matches(uid, po_files.keys())
             if not po_uid:
-                print("Skipping {} language, no PO file found for it ({}).".format(lng.name, uid))
+                print "Skipping {} language, no PO file found for it ({}).".format(lng.name, uid)
                 continue
             po_uid = po_uid[0]
             msgs = utils_i18n.I18nMessages(uid=uid, kind='PO', key=uid, src=po_files[po_uid], settings=self.settings)
@@ -250,7 +251,7 @@ class UI_OT_i18n_addon_translation_import(bpy.types.Operator):
 
         trans.write(kind='PY')
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class UI_OT_i18n_addon_translation_export(bpy.types.Operator):
@@ -262,7 +263,7 @@ class UI_OT_i18n_addon_translation_export(bpy.types.Operator):
     use_export_pot = BoolProperty(name="Export POT", default=True, description="Export (generate) a POT file too")
     use_update_existing = BoolProperty(name="Update Existing", default=True,
                                        description="Update existing po files, if any, instead of overwriting them")
-    directory = StringProperty(maxlen=1024, subtype='FILE_PATH', options={'HIDDEN', 'SKIP_SAVE'})
+    directory = StringProperty(maxlen=1024, subtype='FILE_PATH', options=set(['HIDDEN', 'SKIP_SAVE']))
 
     def _dst(self, trans, path, uid, kind):
         if kind == 'PO':
@@ -286,7 +287,7 @@ class UI_OT_i18n_addon_translation_export(bpy.types.Operator):
             self.directory = os.path.dirname(mod.__file__)
             self.module_name = module_name
         context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
     def execute(self, context):
         global _cached_enum_addons
@@ -297,7 +298,7 @@ class UI_OT_i18n_addon_translation_export(bpy.types.Operator):
 
         module_name, mod = validate_module(self, context)
         if not (module_name and mod):
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         path = mod.__file__
         if path.endswith("__init__.py"):
@@ -309,10 +310,10 @@ class UI_OT_i18n_addon_translation_export(bpy.types.Operator):
         uids = [self.settings.PARSER_TEMPLATE_ID] if self.use_export_pot else []
         for lng in i18n_sett.langs:
             if lng.uid in self.settings.IMPORT_LANGUAGES_SKIP:
-                print("Skipping {} language ({}), edit settings if you want to enable it.".format(lng.name, lng.uid))
+                print "Skipping {} language ({}), edit settings if you want to enable it.".format(lng.name, lng.uid)
                 continue
             if not lng.use:
-                print("Skipping {} language ({}).".format(lng.name, lng.uid))
+                print "Skipping {} language ({}).".format(lng.name, lng.uid)
                 continue
             uid = utils_i18n.find_best_isocode_matches(lng.uid, trans.trans.keys())
             if uid:
@@ -332,4 +333,4 @@ class UI_OT_i18n_addon_translation_export(bpy.types.Operator):
 
         trans.write(kind='PO', langs=set(uids))
 
-        return {'FINISHED'}
+        return set(['FINISHED'])

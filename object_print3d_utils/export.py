@@ -20,6 +20,7 @@
 
 # Export wrappers and integration with external tools.
 
+from __future__ import absolute_import
 import bpy
 import os
 
@@ -41,7 +42,7 @@ def image_copy_guess(filepath, objects):
             ext = os.path.splitext(imagepath)[1]
 
             imagepath_dst = filepath_noext + ext
-            print("copying texture: %r -> %r" % (imagepath, imagepath_dst))
+            print "copying texture: %r -> %r" % (imagepath, imagepath_dst)
             try:
                 shutil.copy(imagepath, imagepath_dst)
             except:
@@ -170,7 +171,7 @@ def write_mesh(context, info, report_cb):
         assert(0)
 
     # for formats that don't support images
-    if export_format in {'STL', 'PLY'}:
+    if export_format in set(['STL', 'PLY']):
         if path_mode == 'COPY':
             image_copy_guess(filepath, context_override["selected_objects"])
 
@@ -193,7 +194,7 @@ def write_mesh(context, info, report_cb):
         info.append(("%r ok" % os.path.basename(filepath), None))
 
         if report_cb is not None:
-            report_cb({'INFO'}, "Exported: %r" % filepath)
+            report_cb(set(['INFO']), "Exported: %r" % filepath)
         return True
     else:
         info.append(("%r fail" % os.path.basename(filepath), None))

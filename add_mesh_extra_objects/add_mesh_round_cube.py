@@ -1,9 +1,12 @@
 # GPL # Author: Alain Ducharme (phymec)
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from bpy_extras import object_utils
 from itertools import permutations
 from math import copysign, pi, sqrt
+from itertools import izip
 
 def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='CORNERS', odd_axis_align=False, info_only=False):
     # subdiv bitmasks
@@ -57,7 +60,7 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
     dxyz = [0, 0, 0]      # extrusion divisions per axis
     dssxyz = [0., 0., 0.] # extrusion division step sizes per axis
 
-    for i in range(3):
+    for i in xrange(3):
         sc = 2. * (exyz[i] + half_chord)
         dxyz[i] = round(sc * lindiv) if subdiv else 0
         if dxyz[i]:
@@ -69,7 +72,7 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
     if info_only:
         ec = sum(1 for n in exyz if n)
         if subdiv:
-            fxyz = [d + (e and axis_aligned) for d, e in zip(dxyz, exyz)]
+            fxyz = [d + (e and axis_aligned) for d, e in izip(dxyz, exyz)]
             dvc = arcdiv * 4 * sum(fxyz)
             if subdiv == ALL:
                 dvc += sum(p1 * p2 for p1, p2 in permutations(fxyz, 2))
@@ -90,7 +93,7 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
     # uv lookup table
     uvlt = []
     v = vi
-    for j in range(1, steps + 1):
+    for j in xrange(1, steps + 1):
         v2 = v*v
         uvlt.append((v, v2, radius * sqrt(18. - 6. * v2) / 6.))
         v = vi + j * step_size # v += step_size # instead of accumulating errors
@@ -108,20 +111,20 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
              (0, 1, 2, (-1, -1,  1)))   # Z+ Top
 
     # side vertex index table (for sphere)
-    svit = [[[] for i in range(steps)] for i in range(6)]
+    svit = [[[] for i in xrange(steps)] for i in xrange(6)]
     # Extend svit rows for extrusion
     yer = zer = 0
     if ey:
         yer = axis_aligned + (dxyz[1] if subdiv else 0)
-        svit[4].extend([[] for i in range(yer)])
-        svit[5].extend([[] for i in range(yer)])
+        svit[4].extend([[] for i in xrange(yer)])
+        svit[5].extend([[] for i in xrange(yer)])
     if ez:
         zer = axis_aligned + (dxyz[2] if subdiv else 0)
-        for side in range(4):
-            svit[side].extend([[] for i in range(zer)])
+        for side in xrange(4):
+            svit[side].extend([[] for i in xrange(zer)])
     # Extend svit rows for odd_aligned
     if odd_aligned:
-        for side in range(4):
+        for side in xrange(4):
             svit[side].append([])
 
     hemi = steps // 2
@@ -136,11 +139,11 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
             svitc = svit[side]
             rows = len(svitc)
             if rows < dxyz[yp] + 2:
-                svitc.extend([[] for i in range(dxyz[yp] + 2 - rows)])
+                svitc.extend([[] for i in xrange(dxyz[yp] + 2 - rows)])
             vert[zp] = (half_chord + exyz[zp]) * dir[zp]
-            for j in range(dxyz[yp] + 2):
+            for j in xrange(dxyz[yp] + 2):
                 vert[yp] = (j * dssxyz[yp] - half_chord - exyz[yp]) * dir[yp]
-                for i in range(dxyz[xp] + 2):
+                for i in xrange(dxyz[xp] + 2):
                     vert[xp] = (i * dssxyz[xp] - half_chord - exyz[xp]) * dir[xp]
                     if (side == 5) or ((i < dxyz[xp] + 1 and j < dxyz[yp] + 1) and (side < 4 or (i and j))):
                         svitc[j].append(len(verts))
@@ -154,11 +157,11 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
             rij = zer if side < 4 else yer
 
             if side == 5:
-                span = range(steps)
+                span = xrange(steps)
             elif side < 4 or odd_aligned:
-                span = range(arcdiv)
+                span = xrange(arcdiv)
             else:
-                span = range(1, arcdiv)
+                span = xrange(1, arcdiv)
                 ri = 1
 
             for j in span: # rows
@@ -189,7 +192,7 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
                             verts.append(tuple(vert))
                         if subdiv:
                             offsetx = dssxyz[xp] * dir[xp]
-                            for k in range(dxyz[xp]):
+                            for k in xrange(dxyz[xp]):
                                 vert[xp] += offsetx
                                 svitc[ri].append(len(verts))
                                 verts.append(tuple(vert))
@@ -201,17 +204,17 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
                             if subdiv:
                                 offsety = dssxyz[yp] * dir[yp]
                                 ry = vert[yp]
-                                for k in range(dxyz[yp]):
+                                for k in xrange(dxyz[yp]):
                                     vert[yp] += offsety
                                     svitc[hemi + axis_aligned + k].append(len(verts))
                                     verts.append(tuple(vert))
                                 vert[yp] = ry
-                                for k in range(dxyz[xp]):
+                                for k in xrange(dxyz[xp]):
                                     vert[xp] += offsetx
                                     svitc[hemi].append(len(verts))
                                     verts.append(tuple(vert))
                                     if subdiv & ALL:
-                                        for l in range(dxyz[yp]):
+                                        for l in xrange(dxyz[yp]):
                                             vert[yp] += offsety
                                             svitc[hemi + axis_aligned + l].append(len(verts))
                                             verts.append(tuple(vert))
@@ -225,11 +228,11 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
                             verts.append(tuple(vert))
                         if subdiv:
                             offsety = dssxyz[yp] * dir[yp]
-                            for k in range(dxyz[yp]):
+                            for k in xrange(dxyz[yp]):
                                 vert[yp] += offsety
                                 if exr and i == hemi and not axis_aligned and subdiv & ALL:
                                     vert[xp] = rxi
-                                    for l in range(dxyz[xp]):
+                                    for l in xrange(dxyz[xp]):
                                         vert[xp] += offsetx
                                         svitc[hemi + k].append(len(verts))
                                         verts.append(tuple(vert))
@@ -321,7 +324,7 @@ class AddRoundCube(bpy.types.Operator, object_utils.AddObjectHelper):
     bl_idname = 'mesh.primitive_round_cube_add'
     bl_label = 'Add Round Cube'
     bl_description = 'Add mesh primitives: Quadspheres, Capsules, Rounded Cuboids, 3D Grids, etc.'
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     sanity_check_verts = 200000
     vert_count = 0
@@ -368,18 +371,18 @@ class AddRoundCube(bpy.types.Operator, object_utils.AddObjectHelper):
     no_limit = BoolProperty(
             name = 'No Limit',
             description = 'Do not limit to '+str(sanity_check_verts)+' vertices (sanity check)',
-            options = {'HIDDEN'}
+            options = set(['HIDDEN'])
             )
 
     def execute(self, context):
         if self.arc_div <=0 and self.lin_div <= 0:
-            self.report({'ERROR'}, 'Either Arc Divisions or Linear Divisions must be greater than zero!')
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), 'Either Arc Divisions or Linear Divisions must be greater than zero!')
+            return set(['CANCELLED'])
 
         if not self.no_limit:
             if self.vert_count > self.sanity_check_verts:
-                self.report({'ERROR'}, 'More than '+str(self.sanity_check_verts)+' vertices!  Check "No Limit" to proceed')
-                return {'CANCELLED'}
+                self.report(set(['ERROR']), 'More than '+str(self.sanity_check_verts)+' vertices!  Check "No Limit" to proceed')
+                return set(['CANCELLED'])
 
         verts, faces = round_cube(self.radius, self.arc_div, self.lin_div, self.size, self.div_type, self.odd_axis_align)
 
@@ -387,7 +390,7 @@ class AddRoundCube(bpy.types.Operator, object_utils.AddObjectHelper):
         mesh.from_pydata(verts,[],faces)
         object_utils.object_data_add(context, mesh, operator=self)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def check(self, context):
         self.arcdiv, self.lindiv, self.vert_count = round_cube(self.radius, self.arc_div, self.lin_div, self.size, self.div_type, self.odd_axis_align, True)

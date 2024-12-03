@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 if "bpy" in locals():
     import importlib
     importlib.reload(settings)
@@ -68,7 +69,7 @@ class I18nUpdateTranslationSettings(bpy.types.PropertyGroup):
                               description="Index of active language in langs collection")
     pot_path = StringProperty(name="POT File Path", default="", subtype='FILE_PATH',
                               description="Path to the pot template file")
-    is_init = BoolProperty(default=False, options={'HIDDEN'},
+    is_init = BoolProperty(default=False, options=set(['HIDDEN']),
                            description="Whether these settings have already been auto-set or not")
 
 
@@ -76,10 +77,10 @@ class I18nUpdateTranslationSettings(bpy.types.PropertyGroup):
 class UI_UL_i18n_languages(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         #assert(isinstance(item, bpy.types.I18nUpdateTranslationLanguage))
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+        if self.layout_type in set(['DEFAULT', 'COMPACT']):
             layout.label(item.name, icon_value=icon)
             layout.prop(item, "use", text="")
-        elif self.layout_type in {'GRID'}:
+        elif self.layout_type in set(['GRID']):
             layout.alignment = 'CENTER'
             layout.label(item.uid)
             layout.prop(item, "use", text="")
@@ -147,7 +148,7 @@ class UI_OT_i18n_updatetranslation_svn_init_settings(bpy.types.Operator):
     """Init settings for i18n svn's update operators"""
     bl_idname = "ui.i18n_updatetranslation_svn_init_settings"
     bl_label = "Init I18n Update Settings"
-    bl_option = {'REGISTER'}
+    bl_option = set(['REGISTER'])
 
     @classmethod
     def poll(cls, context):
@@ -165,7 +166,7 @@ class UI_OT_i18n_updatetranslation_svn_init_settings(bpy.types.Operator):
         root_git_po = self.settings.GIT_I18N_PO_DIR
         root_tr_mo = os.path.join(self.settings.TRUNK_DIR, self.settings.MO_PATH_TEMPLATE, self.settings.MO_FILE_NAME)
         if not (os.path.isdir(root_br) and os.path.isdir(root_tr_po)):
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
         isocodes = ((e, os.path.join(root_br, e, e + ".po")) for e in os.listdir(root_br))
         isocodes = dict(e for e in isocodes if os.path.isfile(e[1]))
         for num_id, name, uid in self.settings.LANGUAGES[2:]:  # Skip "default" and "en" languages!
@@ -197,7 +198,7 @@ class UI_OT_i18n_updatetranslation_svn_init_settings(bpy.types.Operator):
 
         i18n_sett.pot_path = self.settings.FILE_NAME_POT
         i18n_sett.is_init = True
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class UI_OT_i18n_updatetranslation_svn_settings_select(bpy.types.Operator):
@@ -220,4 +221,4 @@ class UI_OT_i18n_updatetranslation_svn_settings_select(bpy.types.Operator):
         else:
             for lng in context.window_manager.i18n_update_svn_settings.langs:
                 lng.use = self.use_select
-        return {'FINISHED'}
+        return set(['FINISHED'])

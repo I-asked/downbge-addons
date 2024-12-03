@@ -1,4 +1,6 @@
+from __future__ import absolute_import
 from .base_exporter import BasePrimitiveDXFExporter
+from itertools import izip
 
 
 class CurveDXFExporter(BasePrimitiveDXFExporter):
@@ -197,7 +199,7 @@ def writeCurveEntities(curve, mx,
                     else: closed = 0
                     points = toGlobalOrigin(points)
                     points_temp = []
-                    for p,f in zip(points,flags):
+                    for p,f in izip(points,flags):
                         points_temp.append([p,f[0],f[1]])    
                     points = points_temp
                     #print 'deb: points', points #--------------
@@ -241,13 +243,13 @@ def writeCurveEntities(curve, mx,
                     common['elevation']= Elevation
                     common['thickness']= Thickness
                     #print 'deb: common=', common #------------------
-                    for i in range(len(points)-1):
+                    for i in xrange(len(points)-1):
                         linepoints = [points[i], points[i+1]]
                         dxfLINE = DXF.Line(linepoints,**common)
                         entities.append(dxfLINE)
                     if Thickness:
                         common['thickness']= -Thickness
-                        for i in range(len(points)-1):
+                        for i in xrange(len(points)-1):
                             linepoints = [points[i], points[i+1]]
                             dxfLINE = DXF.Line(linepoints,**common)
                             entities.append(dxfLINE)

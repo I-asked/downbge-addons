@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 import mathutils
 
@@ -15,12 +16,12 @@ def exportDXF(context, filePath, settings):
 	"""
 	Main entry point into export facility.
 	"""
-	print("----------\nExporting to {}".format(filePath))
+	print "----------\nExporting to {}".format(filePath)
 	import time
 	time1 = time.clock()
 
 	if settings['verbose']:
-		print("Generating Object list for export... (Root parents only)")
+		print "Generating Object list for export... (Root parents only)"
 
 	scene = context.scene
 
@@ -54,14 +55,14 @@ def exportDXF(context, filePath, settings):
 			drawing.convert(filePath)
 			
 		duration = time.clock() - time1
-		print('%s objects exported in %.2f seconds. -----DONE-----' %\
-			(exported, duration))
+		print '%s objects exported in %.2f seconds. -----DONE-----' %\
+			(exported, duration)
 	except IOError:
-		print('DXF Exporter: Write Error: ', filePath)
-	except Exception as e:
-		print('Nothing exported. Error: %s' % str(e))
+		print 'DXF Exporter: Write Error: ', filePath
+	except Exception, e:
+		print 'Nothing exported. Error: %s' % str(e)
 
-	print("Finished")
+	print "Finished"
 
 #-------------------------------------------------
 def getCommons(ob, settings):
@@ -87,7 +88,7 @@ def getCommons(ob, settings):
 
 	layers = ob.layers #gives a list e.g.[1,5,19]
 	if layers: ob_layer_nr = layers[0]
-	if DEBUG: print('ob_layer_nr=', ob_layer_nr) #--------------
+	if DEBUG: print 'ob_layer_nr=', ob_layer_nr #--------------
 
 	materials = ob.material_slots
 	if materials:
@@ -95,7 +96,7 @@ def getCommons(ob, settings):
 		ob_mat_color = ob_material.material.diffuse_color
 	else: ob_mat_color, ob_material = None, None
 	if DEBUG: 
-		print('ob_mat_color, ob_material=', ob_mat_color, ob_material) #--------------
+		print 'ob_mat_color, ob_material=', ob_mat_color, ob_material #--------------
 
 	data_materials = ob.material_slots
 	if data_materials:
@@ -103,7 +104,7 @@ def getCommons(ob, settings):
 		data_mat_color = data_material.material.diffuse_color
 	else: data_mat_color, data_material = None, None
 	if DEBUG:
-		print('data_mat_color, data_material=', data_mat_color, data_material) #--------------
+		print 'data_mat_color, data_material=', data_mat_color, data_material #--------------
 
 	entitylayer = ENTITYLAYER_DEF
 	c = settings['entitylayer_from']
@@ -220,7 +221,7 @@ def _exportItem(ctx, o, mw, drawing, settings):
 	Export one item from export list.
 	mw - modelview
 	"""
-	if settings['verbose']: print('Exporting %s' % o)
+	if settings['verbose']: print 'Exporting %s' % o
 	#mx = ob.matrix.copy()
 	#print 'deb: ob	=', ob	 #---------
 	#print 'deb: ob.type	=', ob.type	 #---------
@@ -235,7 +236,7 @@ def _exportItem(ctx, o, mw, drawing, settings):
 	#mx_inv = mx.copy().invert()
 	elayer, ecolor, eltype = getCommons(o, settings)
 	if settings['verbose']:
-		print('elayer=%s, ecolor=%s, eltype=%s' % (elayer, ecolor, eltype))
+		print 'elayer=%s, ecolor=%s, eltype=%s' % (elayer, ecolor, eltype)
 	#TODO: use o.boundBox for drawing extends ??
 
 	if elayer != None and not drawing.containsLayer(elayer):

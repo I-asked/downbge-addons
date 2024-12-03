@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import absolute_import
 import bpy, re
 from   .arm            import create_arm
 from   .leg            import create_leg
@@ -13,8 +15,9 @@ from   ....utils       import create_limb_widget, connected_children_names
 from   rna_prop_ui     import rna_idprop_ui_prop_get
 from   ..super_widgets import create_ikarrow_widget
 from   math            import trunc
+from itertools import izip
 
-class Rig:
+class Rig(object):
     def __init__(self, obj, bone_name, params):
         """ Initialize torso rig and key rig properties """
         self.obj       = obj
@@ -106,7 +109,7 @@ class Rig:
         for i,org in enumerate(org_bones):
             if i < len(org_bones) - 1:
                 # Create segments if specified
-                for j in range( self.segments ):
+                for j in xrange( self.segments ):
                     # MCH
                     name = get_bone_name( strip_org(org), 'mch', 'tweak' )
                     mch = copy_bone( self.obj, org, name )
@@ -153,7 +156,7 @@ class Rig:
                 eb[ ctrl ].parent = eb[ mch ]
 
         # Scale to reduce widget size and maintain conventions!
-        for mch, ctrl in zip( tweaks['mch'], tweaks['ctrl'] ):
+        for mch, ctrl in izip( tweaks['mch'], tweaks['ctrl'] ):
             eb[ mch  ].length /= 4
             eb[ ctrl ].length /= 2
 
@@ -220,7 +223,7 @@ class Rig:
         for i,org in enumerate(org_bones):
             if i < len(org_bones) - 1:
                 # Create segments if specified
-                for j in range( self.segments ):
+                for j in xrange( self.segments ):
                     name = get_bone_name( strip_org(org), 'def' )
                     def_name = copy_bone( self.obj, org, name )
                     
@@ -244,7 +247,7 @@ class Rig:
                 eb[b].use_connect = True
 
         # Constraint def to tweaks
-        for d,t in zip(def_bones, tweaks):
+        for d,t in izip(def_bones, tweaks):
             tidx = tweaks.index(t)
 
             make_constraint( self, d, {
@@ -326,7 +329,7 @@ class Rig:
         mch_ik     = get_bone_name( org_bones[0], 'mch',  'ik'        )
         mch_target = get_bone_name( org_bones[0], 'mch',  'ik_target' )
 
-        for o, ik in zip( org_bones, [ ctrl, mch_ik, mch_target ] ):
+        for o, ik in izip( org_bones, [ ctrl, mch_ik, mch_target ] ):
             bone = copy_bone( self.obj, o, ik )
 
             if org_bones.index(o) == len( org_bones ) - 1:
@@ -449,7 +452,7 @@ class Rig:
         iks =  [ ik['ctrl']['limb'] ]
         iks += [ ik[k] for k in [ 'mch_ik', 'mch_target'] ]
 
-        for o, i, f in zip( org, iks, fk ):
+        for o, i, f in izip( org, iks, fk ):
             make_constraint( self, o, {
                 'constraint'  : 'COPY_TRANSFORMS',
                 'subtarget'   : i
@@ -557,7 +560,7 @@ def add_parameters( params ):
     params.tweak_layers = bpy.props.BoolVectorProperty(
         size        = 32,
         description = "Layers for the tweak controls to be on",
-        default     = tuple( [ i == 1 for i in range(0, 32) ] )
+        default     = tuple( [ i == 1 for i in xrange(0, 32) ] )
         )
         
     # Setting up extra layers for the FK and tweak
@@ -570,7 +573,7 @@ def add_parameters( params ):
     params.fk_layers = bpy.props.BoolVectorProperty(
         size        = 32,
         description = "Layers for the FK controls to be on",
-        default     = tuple( [ i == 1 for i in range(0, 32) ] )
+        default     = tuple( [ i == 1 for i in xrange(0, 32) ] )
         )
 
 
@@ -597,23 +600,23 @@ def parameters_ui(layout, params):
         col = r.column(align=True)
         row = col.row(align=True)
 
-        for i in range(8):
+        for i in xrange(8):
             row.prop(params, layer + "_layers", index=i, toggle=True, text="")
 
         row = col.row(align=True)
 
-        for i in range(16,24):
+        for i in xrange(16,24):
             row.prop(params, layer + "_layers", index=i, toggle=True, text="")
 
         col = r.column(align=True)
         row = col.row(align=True)
 
-        for i in range(8,16):
+        for i in xrange(8,16):
             row.prop(params, layer + "_layers", index=i, toggle=True, text="")
 
         row = col.row(align=True)
 
-        for i in range(24,32):
+        for i in xrange(24,32):
             row.prop(params, layer + "_layers", index=i, toggle=True, text="")
 
 def create_sample(obj):

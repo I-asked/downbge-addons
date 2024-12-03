@@ -18,6 +18,7 @@
 
 # <pep8-80 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "VRML2 (Virtual Reality Modeling Language)",
     "author": "Campbell Barton",
@@ -62,7 +63,7 @@ class ExportVRML(bpy.types.Operator, ExportHelper, ExportVRMLOrientationHelper):
     bl_label = "Export VRML2"
 
     filename_ext = ".wrl"
-    filter_glob = StringProperty(default="*.wrl", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.wrl", options=set(['HIDDEN']))
 
     use_selection = BoolProperty(
             name="Selection Only",

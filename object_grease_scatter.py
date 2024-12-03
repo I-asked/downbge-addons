@@ -20,6 +20,8 @@
 
 # Script copyright (C) Campbell Barton
 
+from __future__ import division
+from __future__ import absolute_import
 bl_info = {
     "name": "Grease Scatter Objects",
     "author": "Campbell Barton",
@@ -68,7 +70,7 @@ def _main(self,
     Y_UP = Vector((0.0, 1.0, 0.0))
 
     if not group:
-        self.report({'WARNING'}, "Group '%s' not found" % obj.name)
+        self.report(set(['WARNING']), "Group '%s' not found" % obj.name)
         return
 
     def debug_edge(v1, v2):
@@ -100,7 +102,7 @@ def _main(self,
                 return [hit, no, None]
 
         # worry!
-        print("bad!", p, BAD_NORMAL)
+        print "bad!", p, BAD_NORMAL
 
         return [p, BAD_NORMAL, None]
 
@@ -127,7 +129,7 @@ def _main(self,
             gp = scene.grease_pencil
 
         if not gp:
-            self.report({'WARNING'}, "No grease pencil layer found")
+            self.report(set(['WARNING']), "No grease pencil layer found")
             return
 
         splines = get_splines(gp)
@@ -195,7 +197,7 @@ def _main(self,
                     #for f in (0.0, 0.2, 0.4, 0.6, 0.8, 1.0):
                     TOT = int(10 * DENSITY)
                     #for i in list(range(TOT)):
-                    for i in list(range(TOT))[int(TOT / 1.5):]:  # second half
+                    for i in range(TOT)[int(TOT / 1.5):]:  # second half
                         f = i / (TOT - 1)
 
                         # focus on the center
@@ -253,7 +255,7 @@ def _main(self,
 
                     mesh = bpy.data.meshes.new("ScatterDupliFace")
                     mesh.from_pydata(vv, [], [(i * 3, i * 3 + 1, i * 3 + 2)
-                                              for i in range(len(triple_sub))])
+                                              for i in xrange(len(triple_sub))])
 
                     scene = bpy.context.scene
                     mesh.update()
@@ -289,7 +291,7 @@ def _main(self,
 
             coords = []
             # face_ind = []
-            for i in range(len(hits)):
+            for i in xrange(len(hits)):
                 co = hits[i]
                 no = nors[i]
                 ori = oris[i]
@@ -355,8 +357,8 @@ class Scatter(bpy.types.Operator):
         group = bpy.data.groups.get(self.group)
 
         if not group:
-            self.report({'ERROR'}, "Group %r not found" % self.group)
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "Group %r not found" % self.group)
+            return set(['CANCELLED'])
 
         _main(self,
               obj,
@@ -366,7 +368,7 @@ class Scatter(bpy.types.Operator):
               RAND_LOC=self.rand_loc,
               RAND_ALIGN=self.rand_align,
               )
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def check(self, context):
         if self.group not in bpy.data.groups:
@@ -382,7 +384,7 @@ class Scatter(bpy.types.Operator):
 
         wm = context.window_manager
         wm.invoke_props_dialog(self, width=180)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 
 def menu_func(self, context):

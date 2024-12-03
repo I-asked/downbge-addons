@@ -16,13 +16,15 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import with_statement
+from __future__ import absolute_import
 import os
 import re
 import subprocess
 
 from netrender.utils import *
 
-class AbstractVCS:
+class AbstractVCS(object):
     name = "ABSTRACT VCS" 
     def __init__(self):
         pass
@@ -48,7 +50,7 @@ class Subversion(AbstractVCS):
     name = "Subversion"
     description = "Use the Subversion version control system"
     def __init__(self):
-        super().__init__()
+        super(Subversion, self).__init__()
         self.version_exp = re.compile("([0-9]*)") 
         self.path_exp = re.compile("URL: (.*)") 
 
@@ -90,7 +92,7 @@ class Git(AbstractVCS):
     name = "Git"
     description = "Use the Git distributed version control system"
     def __init__(self):
-        super().__init__()
+        super(Git, self).__init__()
         self.version_exp = re.compile("^commit (.*)") 
 
     def update(self, info):

@@ -18,6 +18,7 @@
 
 # <pep8-80 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Nuke Animation Format (.chan)",
     "author": "Michael Krupa",
@@ -74,7 +75,7 @@ class ImportChan(Operator, ImportHelper):
 
     filename_ext = ".chan"
 
-    filter_glob = StringProperty(default="*.chan", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.chan", options=set(['HIDDEN']))
 
     rotation_order = rotation_order
     z_up = BoolProperty(
@@ -113,7 +114,7 @@ class ExportChan(Operator, ExportHelper):
     bl_label = "Export chan file"
 
     filename_ext = ".chan"
-    filter_glob = StringProperty(default="*.chan", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.chan", options=set(['HIDDEN']))
     y_up = BoolProperty(
             name="Make Y up",
             description="Switch the Y and Z axis",

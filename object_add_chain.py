@@ -16,6 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Add Chain",
     "author": "Brian Hinton (Nichod)",
@@ -141,12 +142,12 @@ class AddChain(bpy.types.Operator):
     """Add a Chain"""
     bl_idname = "mesh.primitive_chain_add"
     bl_label = "Add Chain"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def execute(self, context):
         Add_Chain()
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 class add_chain(Panel):
     bl_space_type = 'VIEW_3D'
@@ -154,7 +155,7 @@ class add_chain(Panel):
     bl_category = 'Create'
     bl_label = "Add Chain"
     bl_context = "objectmode"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = set(['DEFAULT_CLOSED'])
 
     def draw(self, context):
         layout = self.layout

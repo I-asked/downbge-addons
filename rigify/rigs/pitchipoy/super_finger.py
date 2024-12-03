@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import bpy
 from mathutils import Vector
 from ...utils import copy_bone, flip_bone
@@ -5,6 +6,7 @@ from ...utils import strip_org, make_deformer_name, connected_children_names, ma
 from ...utils import create_circle_widget, create_sphere_widget, create_widget
 from ...utils import MetarigError
 from rna_prop_ui import rna_idprop_ui_prop_get
+from itertools import izip
 
 script = """
 controls    = [%s]
@@ -13,7 +15,7 @@ if is_selected(controls):
     layout.prop(pose_bones[master_name], '["%s"]', text="Curvature", slider=True)
 """
 
-class Rig:
+class Rig(object):
     
     def __init__(self, obj, bone_name, params):
         self.obj = obj
@@ -57,7 +59,7 @@ class Rig:
                eb[bone].parent      = None
         
         # Creating the bone chains
-        for i in range(len(self.org_bones)):
+        for i in xrange(len(self.org_bones)):
             
             name      = self.org_bones[i]
             ctrl_name = strip_org(name)
@@ -94,7 +96,7 @@ class Rig:
         ctrl_bone_master.parent = eb[ org_bones[0] ]
         
         # Parenting chain bones
-        for i in range(len(self.org_bones)):
+        for i in xrange(len(self.org_bones)):
             # Edit bone references
             def_bone_e     = eb[def_chain[i]]
             ctrl_bone_e    = eb[ctrl_chain[i]]
@@ -158,7 +160,7 @@ class Rig:
         prop["description"] = "Rubber hose finger cartoon effect"
 
         # Pose settings
-        for org, ctrl, deform, mch, mch_drv in zip(self.org_bones, ctrl_chain, def_chain, mch_chain, mch_drv_chain):
+        for org, ctrl, deform, mch, mch_drv in izip(self.org_bones, ctrl_chain, def_chain, mch_chain, mch_drv_chain):
             
             # Constraining the org bones
             #con           = pb[org].constraints.new('COPY_TRANSFORMS')

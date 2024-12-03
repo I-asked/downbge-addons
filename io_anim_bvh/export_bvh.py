@@ -21,7 +21,10 @@
 # Script copyright (C) Campbell Barton
 # fixes from Andrea Rugliancich
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
+from io import open
 
 
 def write_armature(context,
@@ -34,7 +37,7 @@ def write_armature(context,
                    ):
 
     def ensure_rot_order(rot_order_str):
-        if set(rot_order_str) != {'X', 'Y', 'Z'}:
+        if set(rot_order_str) != set(['X', 'Y', 'Z']):
             rot_order_str = "XYZ"
         return rot_order_str
 
@@ -147,7 +150,7 @@ def write_armature(context,
     # redefine bones as sorted by serialized_names
     # so we can write motion
 
-    class DecoratedBone:
+    class DecoratedBone(object):
         __slots__ = (
             "name",  # bone name, used as key in many places
             "parent",  # decorated bone parent, set in a later loop
@@ -234,7 +237,7 @@ def write_armature(context,
     file.write("Frames: %d\n" % (frame_end - frame_start + 1))
     file.write("Frame Time: %.6f\n" % (1.0 / (scene.render.fps / scene.render.fps_base)))
 
-    for frame in range(frame_start, frame_end + 1):
+    for frame in xrange(frame_start, frame_end + 1):
         scene.frame_set(frame)
 
         for dbone in bones_decorated:
@@ -269,7 +272,7 @@ def write_armature(context,
 
     scene.frame_set(frame_current)
 
-    print("BVH Exported: %s frames:%d\n" % (filepath, frame_end - frame_start + 1))
+    print "BVH Exported: %s frames:%d\n" % (filepath, frame_end - frame_start + 1)
 
 
 def save(operator, context, filepath="",
@@ -288,4 +291,4 @@ def save(operator, context, filepath="",
            root_transform_only=root_transform_only,
            )
 
-    return {'FINISHED'}
+    return set(['FINISHED'])

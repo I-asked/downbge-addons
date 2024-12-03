@@ -16,11 +16,13 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import absolute_import
 import os
 import shutil
 from netrender.utils import *
 import netrender.model
 import json
+from io import open
 #import rpdb2
 
 # bitwise definition of the different files type
@@ -50,7 +52,7 @@ def countFiles(job):
     
 def get(handler):
     def output(text):
-        handler.wfile.write(bytes(text, encoding='utf8'))
+        handler.wfile.write(str(text).encode('utf8'))
 
     def head(title, refresh = False):
         output("<html><head>")
@@ -88,7 +90,13 @@ def get(handler):
 
         output("</tr></thead>")
 
-    def rowTable(*data, id = None, class_style = None, extra = None):
+    def rowTable(*data, **_3to2kwargs):
+        if 'extra' in _3to2kwargs: extra = _3to2kwargs['extra']; del _3to2kwargs['extra']
+        else: extra =  None
+        if 'class_style' in _3to2kwargs: class_style = _3to2kwargs['class_style']; del _3to2kwargs['class_style']
+        else: class_style =  None
+        if 'id' in _3to2kwargs: id = _3to2kwargs['id']; del _3to2kwargs['id']
+        else: id =  None
         output("<tr")
 
         if id:
@@ -157,7 +165,7 @@ def get(handler):
     def getFiles(job_id,message,file_type):
         
         job=handler.server.getJobID(job_id)
-        print ("job.files.length="+str(len(job.files)))
+        print "job.files.length="+str(len(job.files))
                 
         for file in job.files:
             filedata=file.serialize()

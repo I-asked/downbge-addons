@@ -16,6 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import absolute_import
 bl_info = {
     "name": "HiRISE DTM from PDS IMG",
     "author": "Tim Spriggs (tims@uahirise.org)",
@@ -61,10 +62,10 @@ class ImportHiRISEIMGDTM(bpy.types.Operator, ImportHelper):
     """Import a HiRISE DTM formatted as a PDS IMG file"""
     bl_idname = "import_shape.img"
     bl_label  = "Import HiRISE DTM from PDS IMG"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     filename_ext = ".IMG"
-    filter_glob = StringProperty(default="*.IMG", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.IMG", options=set(['HIDDEN']))
 
     scale = FloatProperty(name="Scale",
                           description="Scale the IMG by this value",

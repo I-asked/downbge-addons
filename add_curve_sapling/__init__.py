@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+from __future__ import absolute_import
+from io import open
 bl_info = {
     "name": "Sapling",
     "author": "Andrew Hale (TrumanBlending)",
@@ -100,17 +102,17 @@ class ExportData(bpy.types.Operator):
             f = open(os.path.join(getPresetpath(), filename + '.py'), 'r')
             f.close()
             # If it exists then report an error
-            self.report({'ERROR_INVALID_INPUT'}, 'Preset Already Exists')
-            return {'CANCELLED'}
+            self.report(set(['ERROR_INVALID_INPUT']), 'Preset Already Exists')
+            return set(['CANCELLED'])
         except IOError:
             if data:
                 # If it doesn't exist, create the file with the required data
                 f = open(os.path.join(getPresetpath(), filename + '.py'), 'w')
                 f.write(data)
                 f.close()
-                return {'FINISHED'}
+                return set(['FINISHED'])
             else:
-                return {'CANCELLED'}
+                return set(['CANCELLED'])
 
 
 class ImportData(bpy.types.Operator):
@@ -131,7 +133,7 @@ class ImportData(bpy.types.Operator):
         settings = eval(settings)
         # Set the flag to use the settings
         useSet = True
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class PresetMenu(bpy.types.Menu):
@@ -152,7 +154,7 @@ class PresetMenu(bpy.types.Menu):
 class AddTree(bpy.types.Operator):
     bl_idname = "curve.tree_add"
     bl_label = "Sapling: Add Tree"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
 
     def update_tree(self, context):
@@ -162,7 +164,7 @@ class AddTree(bpy.types.Operator):
         self.do_update = False
 
     do_update = BoolProperty(name='Do Update',
-        default=True, options={'HIDDEN'})
+        default=True, options=set(['HIDDEN']))
 
     chooseSet = EnumProperty(name='Settings',
         description='Choose the settings to modify',
@@ -554,10 +556,10 @@ class AddTree(bpy.types.Operator):
                 setattr(self, 'showLeaves', False)
             useSet = False
         if not self.do_update:
-            return {'PASS_THROUGH'}
+            return set(['PASS_THROUGH'])
         addTree(self)
-        print("Tree creation in %0.1fs" %(time.time()-start_time))
-        return {'FINISHED'}
+        print "Tree creation in %0.1fs" %(time.time()-start_time)
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
 #        global settings, useSet

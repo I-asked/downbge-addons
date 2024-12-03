@@ -33,6 +33,9 @@ bl_info = {
 This script imports GIMP layered image files into 3D Scenes (.xcf, .xjt)
 """
 
+from __future__ import absolute_import
+from itertools import imap
+from io import open
 def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
          LayerScale, OpacityMode, AlphaMode, ShadelessMats,
          SetCamera, SetupCompo, GroupUntagged, Ext):
@@ -83,7 +86,7 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
             if Line.startswith("b'GIMP_XJ_IMAGE"):
                 for Segment in Line.split():
                     if Segment.startswith('w/h:'):
-                        ResX, ResY = map (int, Segment[4:].split(','))
+                        ResX, ResY = imap (int, Segment[4:].split(','))
             if Line.startswith(("b'L", "b'l")):
                 
                 """The "nice" method to check if layer has alpha channel
@@ -115,7 +118,7 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
                             byt = "%02X" % ch
                             hexList.append(byt)
                         
-                        for k in range(len(hexList)-1):
+                        for k in xrange(len(hexList)-1):
                             if hexList[k] == 'FF' and (hexList[k+1] == 'C0' or hexList[k+1] == 'C2'):
                                 ow = int(hexList[k+7],16)*256 + int(hexList[k+8],16)
                                 oh = int(hexList[k+5],16)*256 + int(hexList[k+6],16)
@@ -127,7 +130,7 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
                         op = float(Segment[3:])*.01
                     
                     elif Segment.startswith('o:'): # origin
-                        ox, oy = map(int, Segment[2:].split(','))
+                        ox, oy = imap(int, Segment[2:].split(','))
                     
                     elif Segment.startswith('n:'): # name
                         n = Segment[3:-4]
@@ -160,9 +163,9 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
 
         try:
             Info = subprocess.check_output((XCFInfo, Path+File))
-        except FileNotFoundError as e:
+        except FileNotFoundError, e:
             if XCFInfo in str(e):
-                report({'ERROR'}, "Please install xcftools, xcfinfo seems to be missing (%s)" % str(e))
+                report(set(['ERROR']), "Please install xcftools, xcfinfo seems to be missing (%s)" % str(e))
                 return False
             else:
                 raise e
@@ -203,12 +206,12 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
                     'LayerOpacity': Opacity,
                     'LayerName': Line[4].rstrip(),
                     'LayerNameShort': NameShort,
-                    'LayerCoords': list(map(int, Line[1].replace('x', ' ').replace('+', ' +').replace('-', ' -').split())),
+                    'LayerCoords': list(imap(int, Line[1].replace('x', ' ').replace('+', ' +').replace('-', ' -').split())),
                     'RenderLayer': RenderLayer,
                     'HasAlpha': True,
                     })
             elif Line.startswith('Version'):
-                ResX, ResY = map (int, Line.split()[2].split('x'))
+                ResX, ResY = imap (int, Line.split()[2].split('x'))
         
         #-------------------------------------------------
         # EXTRACT XCF
@@ -279,7 +282,7 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
                 LayerActive.use_halo = False
                 
                 global LayerNum
-                for i in range (0,20):
+                for i in xrange (0,20):
                     if not i == LayerNum:
                         LayerActive.layers[i] = False
                 
@@ -476,29 +479,29 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
                 Mode = LayerList[Offset][1] # has to go one step further
                 LayerOpacity = LayerList[Offset][2]
                 
-                if not Mode in {'Normal', '-1'}:
+                if not Mode in set(['Normal', '-1']):
                     
                     Node = Tree.nodes.new('CompositorNodeMixRGB')
                     if OpacityMode == 'COMPO': Node.inputs['Fac'].default_value = LayerOpacity
                     else: Node.inputs['Fac'].default_value = 1
                     Node.use_alpha = True
                     
-                    if Mode in {'Addition', '7'}: Node.blend_type = 'ADD'
-                    elif Mode in {'Subtract', '8'}: Node.blend_type = 'SUBTRACT'
-                    elif Mode in {'Multiply', '3'}: Node.blend_type = 'MULTIPLY'
-                    elif Mode in {'DarkenOnly', '9'}: Node.blend_type = 'DARKEN'
-                    elif Mode in {'Dodge', '16'}: Node.blend_type = 'DODGE'
-                    elif Mode in {'LightenOnly', '10'}: Node.blend_type = 'LIGHTEN'
-                    elif Mode in {'Difference', '6'}: Node.blend_type = 'DIFFERENCE'
-                    elif Mode in {'Divide', '15'}: Node.blend_type = 'DIVIDE'
-                    elif Mode in {'Overlay', '5'}: Node.blend_type = 'OVERLAY'
-                    elif Mode in {'Screen', '4'}: Node.blend_type = 'SCREEN'
-                    elif Mode in {'Burn', '17'}: Node.blend_type = 'BURN'
-                    elif Mode in {'Color', '13'}: Node.blend_type = 'COLOR'
-                    elif Mode in {'Value', '14'}: Node.blend_type = 'VALUE'
-                    elif Mode in {'Saturation', '12'}: Node.blend_type = 'SATURATION'
-                    elif Mode in {'Hue', '11'}: Node.blend_type = 'HUE'
-                    elif Mode in {'Softlight', '19'}: Node.blend_type = 'SOFT_LIGHT'
+                    if Mode in set(['Addition', '7']): Node.blend_type = 'ADD'
+                    elif Mode in set(['Subtract', '8']): Node.blend_type = 'SUBTRACT'
+                    elif Mode in set(['Multiply', '3']): Node.blend_type = 'MULTIPLY'
+                    elif Mode in set(['DarkenOnly', '9']): Node.blend_type = 'DARKEN'
+                    elif Mode in set(['Dodge', '16']): Node.blend_type = 'DODGE'
+                    elif Mode in set(['LightenOnly', '10']): Node.blend_type = 'LIGHTEN'
+                    elif Mode in set(['Difference', '6']): Node.blend_type = 'DIFFERENCE'
+                    elif Mode in set(['Divide', '15']): Node.blend_type = 'DIVIDE'
+                    elif Mode in set(['Overlay', '5']): Node.blend_type = 'OVERLAY'
+                    elif Mode in set(['Screen', '4']): Node.blend_type = 'SCREEN'
+                    elif Mode in set(['Burn', '17']): Node.blend_type = 'BURN'
+                    elif Mode in set(['Color', '13']): Node.blend_type = 'COLOR'
+                    elif Mode in set(['Value', '14']): Node.blend_type = 'VALUE'
+                    elif Mode in set(['Saturation', '12']): Node.blend_type = 'SATURATION'
+                    elif Mode in set(['Hue', '11']): Node.blend_type = 'HUE'
+                    elif Mode in set(['Softlight', '19']): Node.blend_type = 'SOFT_LIGHT'
                     else: pass
                     
                 else:
@@ -522,7 +525,7 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
         Nodes = bpy.context.scene.node_tree.nodes
         
         if LayerLen > 1:
-            for i in range (1, LayerLen + 1):
+            for i in xrange (1, LayerLen + 1):
                 if i == 1:
                     Tree.links.new(Nodes['R_'+str(i)].outputs[0], Nodes['M_'+str(i)].inputs[1])
                 if 1 < i < LayerLen:
@@ -552,7 +555,7 @@ class GIMPImageToScene(bpy.types.Operator):
     bl_idname = "import.gimp_image_to_scene"
     bl_label = "GIMP Image to Scene"
     bl_description = "Imports GIMP multilayer image files into 3D Scenes"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
     
     filename = StringProperty(name="File Name",
         description="Name of the file")
@@ -658,18 +661,18 @@ class GIMPImageToScene(bpy.types.Operator):
                        LayerScale, OpacityMode, AlphaMode, ShadelessMats,
                        SetCamera, SetupCompo, GroupUntagged, Ext)
             if not ret:
-                return {'CANCELLED'}
+                return set(['CANCELLED'])
         else:
-            self.report({'ERROR'},"Selected file wasn't valid, try .xcf or .xjt")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']),"Selected file wasn't valid, try .xcf or .xjt")
+            return set(['CANCELLED'])
         
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         wm = bpy.context.window_manager
         wm.fileselect_add(self)
 
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 
 # Registering / Unregister

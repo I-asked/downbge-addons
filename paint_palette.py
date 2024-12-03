@@ -43,8 +43,11 @@ Set a number of colors (or weights according to the mode) and then associate it
 with the brush by using the button under the color.
 """
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from bpy.props import *
+from io import open
 
 
 def update_panels():
@@ -196,24 +199,24 @@ class LoadGimpPalette(bpy.types.Operator):
             gpl.close()
             pass
         else :
-            self.report({'INFO'}, "Not a supported palette format")
+            self.report(set(['INFO']), "Not a supported palette format")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
-class WriteGimpPalette():
+class WriteGimpPalette(object):
     """Base preset class, only for subclassing
     subclasses must define
      - preset_values
      - preset_subdir """
-    bl_options = {'REGISTER'}  # only because invoke_props_popup requires.
+    bl_options = set(['REGISTER'])  # only because invoke_props_popup requires.
 
 
 
     name = bpy.props.StringProperty(name="Name",
         description="Name of the preset, used to make the path name",
         maxlen=64, default="")
-    remove_active = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
+    remove_active = bpy.props.BoolProperty(default=False, options=set(['HIDDEN']))
 
     @staticmethod
     def as_filename(name):  # could reuse for other presets
@@ -233,14 +236,14 @@ class WriteGimpPalette():
         if not self.remove_active:
 
             if not self.name:
-                return {'FINISHED'}
+                return set(['FINISHED'])
 
             filename = self.as_filename(self.name)
             target_path = pp.presets_folder
 
             if not target_path:
-                self.report({'WARNING'}, "Failed to create presets path")
-                return {'CANCELLED'}
+                self.report(set(['WARNING']), "Failed to create presets path")
+                return set(['CANCELLED'])
 
             filepath = os.path.join(target_path, filename) + ".gpl"
             file_preset = open(filepath, 'wb')
@@ -251,7 +254,7 @@ class WriteGimpPalette():
             if pp.colors.items():
                 for i, color in enumerate(pp.colors):
                     gpl += "%3d%4d%4d %s" % (color.color.r * 255, color.color.g * 255, color.color.b * 255, color.name + '\n')
-            file_preset.write(bytes(gpl, 'UTF-8'))
+            file_preset.write(str(gpl).encode('UTF-8'))
 
             file_preset.close()
 
@@ -268,7 +271,7 @@ class WriteGimpPalette():
                     self.preset_subdir, display_name=True)
 
             if not filepath:
-                return {'CANCELLED'}
+                return set(['CANCELLED'])
 
             if hasattr(self, "remove"):
                 self.remove(context, filepath)
@@ -285,7 +288,7 @@ class WriteGimpPalette():
         if hasattr(self, "post_cb"):
             self.post_cb(context)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def check(self, context):
         self.name = self.as_filename(self.name)
@@ -329,7 +332,7 @@ class PALETTE_OT_add_color(bpy.types.Operator):
         pp.current_color_index = new_index
         sample()
         update_panels()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class PALETTE_OT_remove_color(bpy.types.Operator):
@@ -350,7 +353,7 @@ class PALETTE_OT_remove_color(bpy.types.Operator):
 
         if pp.current_color_index >= pp.colors.__len__():
             pp.index = pp.current_color_index = pp.colors.__len__() - 1
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class PALETTE_OT_sample_tool_color(bpy.types.Operator):
@@ -362,14 +365,14 @@ class PALETTE_OT_sample_tool_color(bpy.types.Operator):
         pp = bpy.context.scene.palette_props
         brush = current_brush()
         pp.colors[pp.current_color_index].color = brush.color
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class IMAGE_OT_select_color(bpy.types.Operator):
     bl_label = ""
     bl_description = "Select this color"
     bl_idname = "paint.select_color"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
 
     color_index = IntProperty()
@@ -379,7 +382,7 @@ class IMAGE_OT_select_color(bpy.types.Operator):
         palette_props.current_color_index = self.color_index
 
         update_panels()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 def color_palette_draw(self, context):
@@ -435,7 +438,7 @@ def color_palette_draw(self, context):
     pass
 
 
-class BrushButtonsPanel():
+class BrushButtonsPanel(object):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
 
@@ -446,7 +449,7 @@ class BrushButtonsPanel():
         return sima.show_paint and toolsettings.brush
 
 
-class PaintPanel():
+class PaintPanel(object):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_category = 'Tools'
@@ -466,7 +469,7 @@ class PaintPanel():
 
 class IMAGE_PT_color_palette(BrushButtonsPanel, bpy.types.Panel):
     bl_label = "Color Palette"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = set(['DEFAULT_CLOSED'])
 
     def draw(self, context):
         color_palette_draw(self, context)
@@ -474,7 +477,7 @@ class IMAGE_PT_color_palette(BrushButtonsPanel, bpy.types.Panel):
 
 class VIEW3D_PT_color_palette(PaintPanel, bpy.types.Panel):
     bl_label = "Color Palette"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = set(['DEFAULT_CLOSED'])
 
     @classmethod
     def poll(cls, context):
@@ -488,7 +491,7 @@ class VIEW3D_OT_select_weight(bpy.types.Operator):
     bl_label = ""
     bl_description = "Select this weight"
     bl_idname = "paint.select_weight"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     weight_index = IntProperty()
 
@@ -547,7 +550,7 @@ class VIEW3D_OT_select_weight(bpy.types.Operator):
             weight = palette_props.weight_10
         palette_props.weight = weight
         #bpy.context.tool_settings.vertex_group_weight = weight
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class VIEW3D_OT_reset_weight_palette(bpy.types.Operator):
@@ -601,11 +604,11 @@ class VIEW3D_OT_reset_weight_palette(bpy.types.Operator):
         if palette_props.current_weight_index == 10:
             palette_props.weight = 1.0
         palette_props.weight_10 = 1.0
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 class VIEW3D_PT_weight_palette(PaintPanel, bpy.types.Panel):
     bl_label = "Weight Palette"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = set(['DEFAULT_CLOSED'])
 
     @classmethod
     def poll(cls, context):

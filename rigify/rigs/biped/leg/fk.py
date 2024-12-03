@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 from mathutils import Vector
 
@@ -30,7 +31,7 @@ from ....utils import get_layers
 from ....utils import create_widget
 
 
-class Rig:
+class Rig(object):
     """ An FK leg rig, with hinge switch.
 
     """

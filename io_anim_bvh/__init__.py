@@ -18,6 +18,7 @@
 
 # <pep8-80 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "BioVision Motion Capture (BVH) format",
     "author": "Campbell Barton",
@@ -60,10 +61,10 @@ class ImportBVH(bpy.types.Operator, ImportHelper, ImportBVHOrientationHelper):
     """Load a BVH motion capture file"""
     bl_idname = "import_anim.bvh"
     bl_label = "Import BVH"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     filename_ext = ".bvh"
-    filter_glob = StringProperty(default="*.bvh", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.bvh", options=set(['HIDDEN']))
 
     target = EnumProperty(items=(
             ('ARMATURE', "Armature", ""),
@@ -138,7 +139,7 @@ class ExportBVH(bpy.types.Operator, ExportHelper):
     filename_ext = ".bvh"
     filter_glob = StringProperty(
             default="*.bvh",
-            options={'HIDDEN'},
+            options=set(['HIDDEN']),
             )
 
     global_scale = FloatProperty(
@@ -187,7 +188,7 @@ class ExportBVH(bpy.types.Operator, ExportHelper):
         self.frame_start = context.scene.frame_start
         self.frame_end = context.scene.frame_end
 
-        return super().invoke(context, event)
+        return super(ExportBVH, self).invoke(context, event)
 
     def execute(self, context):
         if self.frame_start == 0 and self.frame_end == 0:

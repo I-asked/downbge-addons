@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 
 from .. import limb_common
@@ -28,7 +29,7 @@ from ....utils import strip_org
 from ....utils import create_widget
 
 
-class Rig:
+class Rig(object):
     """ An IK arm rig, with an optional ik/fk switch.
 
     """

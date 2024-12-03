@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 from math import sqrt, radians, floor, ceil
 import bpy
 import time
@@ -27,7 +29,7 @@ from mathutils import Vector, Matrix
 # A Python implementation of n sized Vectors.
 # Mathutils has a max size of 4, and we need at least 5 for Simplify Curves and even more for Cross Correlation.
 # Vector utility functions
-class NdVector:
+class NdVector(object):
     vec = []
 
     def __init__(self, vec):
@@ -42,7 +44,7 @@ class NdVector:
             a = self.vec
             b = otherMember.vec
             n = len(self)
-            return sum([a[i] * b[i] for i in range(n)])
+            return sum([a[i] * b[i] for i in xrange(n)])
         else:
             # int/float
             return NdVector([otherMember * x for x in self.vec])
@@ -51,13 +53,13 @@ class NdVector:
         a = self.vec
         b = otherVec.vec
         n = len(self)
-        return NdVector([a[i] - b[i] for i in range(n)])
+        return NdVector([a[i] - b[i] for i in xrange(n)])
 
     def __add__(self, otherVec):
         a = self.vec
         b = otherVec.vec
         n = len(self)
-        return NdVector([a[i] + b[i] for i in range(n)])
+        return NdVector([a[i] + b[i] for i in xrange(n)])
 
     def __div__(self, scalar):
         return NdVector([x / scalar for x in self.vec])
@@ -93,7 +95,7 @@ class NdVector:
 
 
 #Sampled Data Point class for Simplify Curves
-class dataPoint:
+class dataPoint(object):
     index = 0
     # x,y1,y2,y3 coordinate of original point
     co = NdVector((0, 0, 0, 0, 0))
@@ -127,7 +129,7 @@ def crossCorrelationMatch(curvesA, curvesB, margin):
     end = int(min(curvesA[0].range()[1], curvesB[0].range()[1]))
 
     #transfer all fcurves data on each frame to a single NdVector.
-    for i in range(1, end):
+    for i in xrange(1, end):
         vec = []
         for fcurve in curvesA:
             if fcurve.data_path in [otherFcurve.data_path for otherFcurve in curvesB]:
@@ -146,18 +148,18 @@ def crossCorrelationMatch(curvesA, curvesB, margin):
     #Create Rxy, which holds the Cross Correlation data.
     N = len(dataA)
     Rxy = [0.0] * N
-    for i in range(N):
-        for j in range(i, min(i + N, N)):
+    for i in xrange(N):
+        for j in xrange(i, min(i + N, N)):
             Rxy[i] += comp(dataA[j], dataB[j - i])
-        for j in range(i):
+        for j in xrange(i):
             Rxy[i] += comp(dataA[j], dataB[j - i + N])
         Rxy[i] /= float(N)
 
     #Find the Local maximums in the Cross Correlation data via numerical derivative.
     def LocalMaximums(Rxy):
-        Rxyd = [Rxy[i] - Rxy[i - 1] for i in range(1, len(Rxy))]
+        Rxyd = [Rxy[i] - Rxy[i - 1] for i in xrange(1, len(Rxy))]
         maxs = []
-        for i in range(1, len(Rxyd) - 1):
+        for i in xrange(1, len(Rxyd) - 1):
             a = Rxyd[i - 1]
             b = Rxyd[i]
             #sign change (zerocrossing) at point i, denoting max point (only)
@@ -174,13 +176,13 @@ def crossCorrelationMatch(curvesA, curvesB, margin):
     for flm in flms:
         diff = []
 
-        for i in range(len(dataA) - flm):
+        for i in xrange(len(dataA) - flm):
             diff.append((dataA[i] - dataB[i + flm]).lengthSq)
 
         def lowerErrorSlice(diff, e):
             #index, error at index
             bestSlice = (0, 100000)
-            for i in range(e, len(diff) - e):
+            for i in xrange(e, len(diff) - e):
                 errorSlice = sum(diff[i - e:i + e + 1])
                 if errorSlice < bestSlice[1]:
                     bestSlice = (i, errorSlice, flm)
@@ -215,18 +217,18 @@ def autoloop_anim():
     loop = data[s:s + flm]
 
     #performs blending with a root falloff on the seam's neighborhood to ensure good tiling.
-    for i in range(1, margin + 1):
+    for i in xrange(1, margin + 1):
         w1 = sqrt(float(i) / margin)
         loop[-i] = (loop[-i] * w1) + (loop[0] * (1 - w1))
 
     for curve in fcurves:
         pts = curve.keyframe_points
-        for i in range(len(pts) - 1, -1, -1):
+        for i in xrange(len(pts) - 1, -1, -1):
             pts.remove(pts[i])
 
     for c, curve in enumerate(fcurves):
         pts = curve.keyframe_points
-        for i in range(len(loop)):
+        for i in xrange(len(loop)):
             pts.insert(i + 2, loop[i][c])
 
     context.scene.frame_end = flm
@@ -266,7 +268,7 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
             pt.temp = totalLength
         for pt in data_pts[s:e + 1]:
             if totalLength == 0:
-                print(s, e)
+                print s, e
             pt.u = (pt.temp / totalLength)
 
     # get binomial coefficient lookup table, this function/table is only called with args
@@ -311,13 +313,13 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
 
         t1 = unitTangent(s, data_pts)
         t2 = unitTangent(e, data_pts)
-        c11 = sum([A(i, 1, s, e, t1, t2) * A(i, 1, s, e, t1, t2) for i in range(s, e + 1)])
-        c12 = sum([A(i, 1, s, e, t1, t2) * A(i, 2, s, e, t1, t2) for i in range(s, e + 1)])
+        c11 = sum([A(i, 1, s, e, t1, t2) * A(i, 1, s, e, t1, t2) for i in xrange(s, e + 1)])
+        c12 = sum([A(i, 1, s, e, t1, t2) * A(i, 2, s, e, t1, t2) for i in xrange(s, e + 1)])
         c21 = c12
-        c22 = sum([A(i, 2, s, e, t1, t2) * A(i, 2, s, e, t1, t2) for i in range(s, e + 1)])
+        c22 = sum([A(i, 2, s, e, t1, t2) * A(i, 2, s, e, t1, t2) for i in xrange(s, e + 1)])
 
-        x1 = sum([xComponent(i, s, e) * A(i, 1, s, e, t1, t2) for i in range(s, e + 1)])
-        x2 = sum([xComponent(i, s, e) * A(i, 2, s, e, t1, t2) for i in range(s, e + 1)])
+        x1 = sum([xComponent(i, s, e) * A(i, 1, s, e, t1, t2) for i in xrange(s, e + 1)])
+        x2 = sum([xComponent(i, s, e) * A(i, 2, s, e, t1, t2) for i in xrange(s, e + 1)])
 
         # calculate Determinate of the 3 matrices
         det_cc = c11 * c22 - c21 * c12
@@ -367,7 +369,7 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
     #evaluate bezier, represented by a 4 member tuple (pts) at point t.
     def bezierEval(pts, t):
         sumVec = NdVector((0, 0, 0, 0, 0))
-        for i in range(4):
+        for i in xrange(4):
             sumVec += pts[i] * bernsteinPoly(3, i, t)
         return sumVec
 
@@ -394,7 +396,7 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
     def getBezDerivative(bez, t):
         n = len(bez) - 1
         sumVec = NdVector((0, 0, 0, 0, 0))
-        for i in range(n - 1):
+        for i in xrange(n - 1):
             sumVec += (bez[i + 1] - bez[i]) * bernsteinPoly(n - 1, i, t)
         return sumVec
 
@@ -425,7 +427,7 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
         make_editable_fcurves(curveGroup if group_mode else (curveGroup,))
 
         if group_mode:
-            print([x.data_path for x in curveGroup])
+            print [x.data_path for x in curveGroup]
             comp_cos = (0,) * (4 - len(curveGroup))  # We need to add that number of null cos to get our 5D vector.
             kframes = sorted(set(kf.co.x for fc in curveGroup for kf in fc.keyframe_points))
             data_pts = [dataPoint(i, NdVector((fra,) + tuple(fc.evaluate(fra) for fc in curveGroup) + comp_cos))
@@ -450,7 +452,7 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
         maxError, maxErrorPt = maxErrorAmount(data_pts, bez, s, e)
         #if error is small enough, reparameterization might be enough
         if maxError < reparaError and maxError > error:
-            for i in range(maxIterations):
+            for i in xrange(maxIterations):
                 newtonRaphson(data_pts, s, e, bez)
                 if e - s < 3:
                     bez = fitSingleCubic2Pts(data_pts, s, e)
@@ -475,11 +477,11 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
         #remove all existing data points
         if group_mode:
             for fcurve in curveGroup:
-                for i in range(len(fcurve.keyframe_points) - 1, 0, -1):
+                for i in xrange(len(fcurve.keyframe_points) - 1, 0, -1):
                     fcurve.keyframe_points.remove(fcurve.keyframe_points[i], fast=True)
         else:
             fcurve = curveGroup
-            for i in range(len(fcurve.keyframe_points) - 1, 0, -1):
+            for i in xrange(len(fcurve.keyframe_points) - 1, 0, -1):
                 fcurve.keyframe_points.remove(fcurve.keyframe_points[i], fast=True)
 
         #insert the calculated beziers to blender data.
@@ -487,19 +489,19 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
             for fullbez in beziers:
                 for i, fcurve in enumerate(curveGroup):
                     bez = [Vector((vec[0], vec[i + 1])) for vec in fullbez]
-                    newKey = fcurve.keyframe_points.insert(frame=bez[0].x, value=bez[0].y, options={'FAST'})
+                    newKey = fcurve.keyframe_points.insert(frame=bez[0].x, value=bez[0].y, options=set(['FAST']))
                     newKey.handle_right = (bez[1].x, bez[1].y)
 
-                    newKey = fcurve.keyframe_points.insert(frame=bez[3].x, value=bez[3].y, options={'FAST'})
+                    newKey = fcurve.keyframe_points.insert(frame=bez[3].x, value=bez[3].y, options=set(['FAST']))
                     newKey.handle_left = (bez[2].x, bez[2].y)
         else:
             for bez in beziers:
                 for vec in bez:
                     vec.resize_2d()
-                newKey = fcurve.keyframe_points.insert(frame=bez[0].x, value=bez[0].y, options={'FAST'})
+                newKey = fcurve.keyframe_points.insert(frame=bez[0].x, value=bez[0].y, options=set(['FAST']))
                 newKey.handle_right = (bez[1].x, bez[1].y)
 
-                newKey = fcurve.keyframe_points.insert(frame=bez[3].x, value=bez[3].y, options={'FAST'})
+                newKey = fcurve.keyframe_points.insert(frame=bez[3].x, value=bez[3].y, options=set(['FAST']))
                 newKey.handle_left = (bez[2].x, bez[2].y)
 
         # We used fast remove/insert, time to update the curves!
@@ -564,13 +566,13 @@ def fcurves_simplify(context, obj, sel_opt="all", error=0.002, group_mode=True):
         #simplify every selected curve.
         totalt = 0
         for i, fcurveGroup in enumerate(fcurveGroups):
-            print("Processing curve " + str(i + 1) + "/" + str(len(fcurveGroups)))
+            print "Processing curve " + str(i + 1) + "/" + str(len(fcurveGroups))
             t = time.clock()
             simplifyCurves(fcurveGroup, error, reparaError, maxIterations, group_mode)
             t = time.clock() - t
-            print(str(t)[:5] + " seconds to process last curve")
+            print str(t)[:5] + " seconds to process last curve"
             totalt += t
-            print(str(totalt)[:5] + " seconds, total time elapsed")
+            print str(totalt)[:5] + " seconds, total time elapsed"
 
     return
 
@@ -745,7 +747,7 @@ def limit_dof(context, performer_obj, enduser_obj):
     c_frame = context.scene.frame_current
     for bone in perf_bones:
         limitDict[bone.bone.map] = [1000, 1000, 1000, -1000, -1000, -1000]
-    for t in range(context.scene.frame_start, context.scene.frame_end):
+    for t in xrange(context.scene.frame_start, context.scene.frame_end):
         context.scene.frame_set(t)
         for bone in perf_bones:
             end_bone = enduser_obj.pose.bones[bone.bone.map]
@@ -826,24 +828,24 @@ def path_editing(context, stride_obj, path):
     eval_time_fcurve = eval_time_fcurve[0]
     totalLength = 0
     parameterization = {}
-    print("evaluating curve")
-    for t in range(s, e - 1):
+    print "evaluating curve"
+    for t in xrange(s, e - 1):
         if s == t:
             chordLength = 0
         else:
             chordLength = (y_fcurve.evaluate(t) - y_fcurve.evaluate(t + 1))
         totalLength += chordLength
         parameterization[t] = totalLength
-    for t in range(s + 1, e - 1):
+    for t in xrange(s + 1, e - 1):
         if totalLength == 0:
-            print("no forward motion")
+            print "no forward motion"
         parameterization[t] /= totalLength
         parameterization[t] *= e - s
     parameterization[e] = e - s
     for t in parameterization.keys():
         eval_time_fcurve.keyframe_points.insert(frame=t, value=parameterization[t])
     y_fcurve.mute = True
-    print("finished path editing")
+    print "finished path editing"
 
 
 #Animation Stitching
@@ -909,11 +911,11 @@ def anim_stitch(context, enduser_obj):
             desired_pos = (enduser_obj.matrix_world * selected_bone.matrix.to_translation())
             scene.frame_set(stitch_settings.blend_frame)
             actual_pos = (enduser_obj.matrix_world * selected_bone.matrix.to_translation())
-            print(desired_pos, actual_pos)
+            print desired_pos, actual_pos
             offset = Vector(actual_pos) - Vector(desired_pos)
 
             for i, fcurve in enumerate(bStrideCurves):
-                print(offset[i], i, fcurve.array_index)
+                print offset[i], i, fcurve.array_index
                 for pt in fcurve.keyframe_points:
                     pt.co.y -= offset[i]
                     pt.handle_left.y -= offset[i]
@@ -934,6 +936,6 @@ def guess_anim_stitch(context, enduser_obj):
     curvesA = mocapA.fcurves
     curvesB = mocapB.fcurves
     flm, s, data = crossCorrelationMatch(curvesA, curvesB, 10)
-    print("Guessed the following for start and offset: ", s, flm)
+    print "Guessed the following for start and offset: ", s, flm
     enduser_obj.data.stitch_settings.blend_frame = flm
     enduser_obj.data.stitch_settings.second_offset = s

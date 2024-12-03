@@ -21,6 +21,8 @@
 # Script copyright (C) Blender Foundation 2012
 
 
+from __future__ import division
+from __future__ import absolute_import
 def points_as_bmesh_cells(verts,
                           points,
                           points_scale=None,
@@ -62,14 +64,14 @@ def points_as_bmesh_cells(verts,
 
     for i, point_cell_current in enumerate(points):
         planes = [None] * len(convexPlanes)
-        for j in range(len(convexPlanes)):
+        for j in xrange(len(convexPlanes)):
             planes[j] = convexPlanes[j].copy()
             planes[j][3] += planes[j].xyz.dot(point_cell_current)
         distance_max = 10000000000.0  # a big value!
 
         points_sorted_current.sort(key=lambda p: (p - point_cell_current).length_squared)
 
-        for j in range(1, len(points)):
+        for j in xrange(1, len(points)):
             normal = points_sorted_current[j] - point_cell_current
             nlength = normal.length
 

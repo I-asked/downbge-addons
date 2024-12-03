@@ -2,7 +2,9 @@
 # Created: 01.05.2014
 # Copyright (C) 2014, Manfred Moitzi
 # License: MIT License
+from __future__ import absolute_import
 from __future__ import unicode_literals
+from itertools import imap
 __author__ = "mozman <mozman@gmx.at>"
 
 from . import PYTHON3
@@ -12,7 +14,7 @@ _replacement_table = {
     0x40: '_',
     0x5F: '@',
 }
-for c in range(0x41, 0x5F):
+for c in xrange(0x41, 0x5F):
     _replacement_table[c] = chr(0x41 + (0x5E - c))  # 0x5E -> 'A', 0x5D->'B', ...
 
 
@@ -21,9 +23,9 @@ def decode(text_lines):
         s = []
         skip = False
         if PYTHON3:
-            text = bytes(text, 'ascii')
+            text =str(text).encode('ascii')
         else:
-            text = map(ord, text)
+            text = imap(ord, text)
 
         for c in text:
             if skip:

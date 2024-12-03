@@ -29,6 +29,8 @@ Contributor(s): Patrick Boelens, CoDEmanX.
 All rights reserved.
 """
 
+from __future__ import division
+from __future__ import absolute_import
 bl_info = {
     "name": "Bake UV-Texture to Vertex Colors",
     "description": "Bakes the colors of the active UV Texture "
@@ -53,7 +55,7 @@ class UV_OT_bake_texture_to_vcols(bpy.types.Operator):
     bl_label = "Bake UV-Texture to Vertex Colors"
     bl_description = "Bake active UV-Texture to new Vertex Color layer "\
         "(requires image texture)"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     replace_active_layer = BoolProperty(
         name="Replace layer",
@@ -117,11 +119,11 @@ class UV_OT_bake_texture_to_vcols(bpy.types.Operator):
             if not vertex_colors:
 
                 # Can't add more than 17 VCol layers
-                self.report({'ERROR'},
+                self.report(set(['ERROR']),
                     "Couldn't add another Vertex Color layer,\n"
                     "Please remove an existing layer or replace active.")
 
-                return {'CANCELLED'}
+                return set(['CANCELLED'])
 
         obdata.vertex_colors.active = vertex_colors
 
@@ -324,13 +326,13 @@ class UV_OT_bake_texture_to_vcols(bpy.types.Operator):
 
                 vertex_colors.data[loop].color = col_result
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 class VIEW3D_PT_tools_uv_bake_texture_to_vcols(bpy.types.Panel):
     bl_label = "Bake"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = set(['DEFAULT_CLOSED'])
 
     @classmethod
     def poll(self, context):

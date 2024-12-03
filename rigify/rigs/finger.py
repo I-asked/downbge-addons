@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 import re
 
 import bpy
@@ -29,9 +31,10 @@ from ..utils import copy_bone
 from ..utils import connected_children_names
 from ..utils import strip_org, make_mechanism_name, make_deformer_name
 from ..utils import create_widget, create_limb_widget
+from itertools import izip
 
 
-class Rig:
+class Rig(object):
     """ A finger rig.  It takes a single chain of bones.
         This is a control and deformation rig.
     """
@@ -100,7 +103,7 @@ class Rig:
             eb[b1].use_connect = False
             eb[b1].parent = eb[self.org_bones[0]]
 
-        for (ba, bb) in zip(bones, self.org_bones[1:]):
+        for (ba, bb) in izip(bones, self.org_bones[1:]):
             eb[ba].use_connect = False
             eb[ba].parent = eb[bb]
 
@@ -155,7 +158,7 @@ class Rig:
 
         # Parent bones
         prev = eb[self.org_bones[0]].parent
-        for (b, h) in zip(bones, helpers):
+        for (b, h) in izip(bones, helpers):
             b_e = eb[b]
             h_e = eb[h]
             b_e.use_connect = False
@@ -239,7 +242,7 @@ class Rig:
         con.subtarget = ctrl
 
         # Constrain org bones to the control bones
-        for (bone, org) in zip(bones, self.org_bones):
+        for (bone, org) in izip(bones, self.org_bones):
             con = pb[org].constraints.new('COPY_TRANSFORMS')
             con.name = "copy_transforms"
             con.target = self.obj

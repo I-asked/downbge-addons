@@ -16,9 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import absolute_import
 import bpy
 
 from . import import_pdb
+from io import open
 
 class AtomPropExport(object):  
     __slots__ = ('element', 'location')
@@ -35,7 +37,7 @@ def export_pdb(obj_type, filepath_pdb):
         if "Stick" in obj.name:
             continue
             
-        if obj.type not in {'MESH', 'SURFACE', 'META'}:
+        if obj.type not in set(['MESH', 'SURFACE', 'META']):
             continue 
        
         name = ""

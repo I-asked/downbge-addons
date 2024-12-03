@@ -1,8 +1,11 @@
 # GPL # (c) 2009, 2010 Michel J. Anders (varkenvarken)
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from math import *
 from bpy.props import *
+from itertools import izip
 
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
@@ -72,7 +75,7 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
             faces.append(face)
 
     # Bridge the rest of the faces.
-    for num in range(total - 1):
+    for num in xrange(total - 1):
         if flipped:
             if fan:
                 face = [vertIdx2[num], vertIdx1[0], vertIdx2[num + 1]]
@@ -129,13 +132,13 @@ def add_tooth(a, t, d, radius, Ad, De, base, p_angle, rack=0, crown=0.0):
         p_angle = -p_angle
 
     if rack:
-        S = [sin(t / 4) * I for I in range(-2, 3)]
+        S = [sin(t / 4) * I for I in xrange(-2, 3)]
         Sp = [0, sin(-t / 4 + p_angle), 0, sin(t / 4 - p_angle)]
 
-        verts_inner_base = [(Rb, radius * S[I], d) for I in range(4)]
-        verts_outer_base = [(Rd, radius * S[I], d) for I in range(4)]
-        verts_middle_tooth = [(radius, radius * S[I], d) for I in range(1, 4)]
-        verts_tip_tooth = [(Ra, radius * Sp[I], d) for I in range(1, 4)]
+        verts_inner_base = [(Rb, radius * S[I], d) for I in xrange(4)]
+        verts_outer_base = [(Rd, radius * S[I], d) for I in xrange(4)]
+        verts_middle_tooth = [(radius, radius * S[I], d) for I in xrange(1, 4)]
+        verts_tip_tooth = [(Ra, radius * Sp[I], d) for I in xrange(1, 4)]
 
     else:
         Cp = [
@@ -149,13 +152,13 @@ def add_tooth(a, t, d, radius, Ad, De, base, p_angle, rack=0, crown=0.0):
             sin(a + 3 * t / 4 - p_angle)]
 
         verts_inner_base = [(Rb * C[I], Rb * S[I], d)
-            for I in range(4)]
+            for I in xrange(4)]
         verts_outer_base = [(Rd * C[I], Rd * S[I], d)
-            for I in range(4)]
+            for I in xrange(4)]
         verts_middle_tooth = [(radius * C[I], radius * S[I], d + crown / 3)
-            for I in range(1, 4)]
+            for I in xrange(1, 4)]
         verts_tip_tooth = [(Ra * Cp[I], Ra * Sp[I], d + crown)
-            for I in range(1, 4)]
+            for I in xrange(1, 4)]
 
     return (verts_inner_base, verts_outer_base,
         verts_middle_tooth, verts_tip_tooth)
@@ -189,28 +192,28 @@ def add_spoke(a, t, d, radius, De, base, s, w, l, gap=0, width=19):
     sf = []
 
     if not gap:
-        for N in range(width, 1, -2):
+        for N in xrange(width, 1, -2):
             edgefaces.append(len(verts))
             ts = t / 4
             tm = a + 2 * ts
             te = asin(w / Rb)
             td = te - ts
             t4 = ts + td * (width - N) / (width - 3.0)
-            A = [tm + (i - int(N / 2)) * t4 for i in range(N)]
+            A = [tm + (i - int(N / 2)) * t4 for i in xrange(N)]
             C = [cos(i) for i in A]
             S = [sin(i) for i in A]
 
-            verts.extend((Rb * I, Rb * J, d) for (I, J) in zip(C, S))
+            verts.extend((Rb * I, Rb * J, d) for (I, J) in izip(C, S))
             edgefaces2.append(len(verts) - 1)
 
             Rb = Rb - s
 
         n = 0
-        for N in range(width, 3, -2):
+        for N in xrange(width, 3, -2):
             sf.extend([(i + n, i + 1 + n, i + 2 + n, i + N + n)
-                for i in range(0, N - 1, 2)])
+                for i in xrange(0, N - 1, 2)])
             sf.extend([(i + 2 + n, i + N + n, i + N + 1 + n, i + N + 2 + n)
-                for i in range(0, N - 3, 2)])
+                for i in xrange(0, N - 3, 2)])
 
             n = n + N
 
@@ -248,7 +251,7 @@ def add_gear(teethNum, radius, Ad, De, base, p_angle,
     if rack:
         teethNum = 1
 
-    print(radius, width, conangle)
+    print radius, width, conangle
     scale = (radius - 2 * width * tan(conangle)) / radius
 
     verts = []
@@ -257,7 +260,7 @@ def add_gear(teethNum, radius, Ad, De, base, p_angle,
     vgroup_valley = []  # Vertex group of valley vertices
 
     verts_bridge_prev = []
-    for toothCnt in range(teethNum):
+    for toothCnt in xrange(teethNum):
         a = toothCnt * t
 
         verts_bridge_start = []
@@ -273,13 +276,13 @@ def add_gear(teethNum, radius, Ad, De, base, p_angle,
                 radius * c, Ad * c, De * c, base * c, p_angle,
                 rack, crown)
 
-            vertsIdx1 = list(range(len(verts), len(verts) + len(verts1)))
+            vertsIdx1 = range(len(verts), len(verts) + len(verts1))
             verts.extend(verts1)
-            vertsIdx2 = list(range(len(verts), len(verts) + len(verts2)))
+            vertsIdx2 = range(len(verts), len(verts) + len(verts2))
             verts.extend(verts2)
-            vertsIdx3 = list(range(len(verts), len(verts) + len(verts3)))
+            vertsIdx3 = range(len(verts), len(verts) + len(verts3))
             verts.extend(verts3)
-            vertsIdx4 = list(range(len(verts), len(verts) + len(verts4)))
+            vertsIdx4 = range(len(verts), len(verts) + len(verts4))
             verts.extend(verts4)
 
             verts_outside = []
@@ -393,7 +396,7 @@ def add_spokes(teethNum, radius, De, base, width=1, conangle=0, rack=0,
     c = scale   # debug
 
     fl = len(verts)
-    for toothCnt in range(teethNum):
+    for toothCnt in xrange(teethNum):
         a = toothCnt * t
         s = 0       # For test
 
@@ -410,9 +413,9 @@ def add_spokes(teethNum, radius, De, base, width=1, conangle=0, rack=0,
             d2 = fl - 2 * len(sv)
 
             faces.extend([(i + d2, j + d2, j + d1, i + d1)
-                for (i, j) in zip(edgefaces[:-1], edgefaces[1:])])
+                for (i, j) in izip(edgefaces[:-1], edgefaces[1:])])
             faces.extend([(i + d2, j + d2, j + d1, i + d1)
-                for (i, j) in zip(edgefaces2[:-1], edgefaces2[1:])])
+                for (i, j) in izip(edgefaces2[:-1], edgefaces2[1:])])
 
         else:
             for d in (-width, width):
@@ -427,9 +430,9 @@ def add_spokes(teethNum, radius, De, base, width=1, conangle=0, rack=0,
             d2 = fl - 2 * len(sv)
 
             faces.extend([[i + d2, i + 1 + d2, i + 1 + d1, i + d1]
-                for (i) in range(0, 3)])
+                for (i) in xrange(0, 3)])
             faces.extend([[i + d2, i + 1 + d2, i + 1 + d1, i + d1]
-                for (i) in range(5, 8)])
+                for (i) in xrange(5, 8)])
 
     return verts, faces
 
@@ -466,10 +469,10 @@ def add_worm(teethNum, rowNum, radius, Ad, De, p_angle,
     #width = width / 2.0
 
     edgeloop_prev = []
-    for Row in range(rowNum):
+    for Row in xrange(rowNum):
         edgeloop = []
 
-        for toothCnt in range(teethNum):
+        for toothCnt in xrange(teethNum):
             a = toothCnt * t
 
             s = Row * skew
@@ -495,11 +498,11 @@ def add_worm(teethNum, rowNum, radius, Ad, De, p_angle,
                 del(verts2[2])  # Central vertex in the base of the tooth.
                 del(verts3[1])  # Central vertex in the middle of the tooth.
 
-            vertsIdx2 = list(range(len(verts), len(verts) + len(verts2)))
+            vertsIdx2 = range(len(verts), len(verts) + len(verts2))
             verts.extend(verts2)
-            vertsIdx3 = list(range(len(verts), len(verts) + len(verts3)))
+            vertsIdx3 = range(len(verts), len(verts) + len(verts3))
             verts.extend(verts3)
-            vertsIdx4 = list(range(len(verts), len(verts) + len(verts4)))
+            vertsIdx4 = range(len(verts), len(verts) + len(verts4))
             verts.extend(verts4)
 
             if isTooth:
@@ -538,7 +541,7 @@ class AddGear(bpy.types.Operator):
     """Add a gear mesh"""
     bl_idname = "mesh.primitive_gear"
     bl_label = "Add Gear"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     number_of_teeth = IntProperty(name="Number of Teeth",
         description="Number of teeth on the gear",
@@ -648,13 +651,13 @@ class AddGear(bpy.types.Operator):
             valleyGroup = obj.vertex_groups.new('Valleys')
             valleyGroup.add(verts_valley, 1.0, 'ADD')
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 class AddWormGear(bpy.types.Operator):
     """Add a worm gear mesh"""
     bl_idname = "mesh.primitive_worm_gear"
     bl_label = "Add Worm Gear"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     number_of_teeth = IntProperty(name="Number of Teeth",
         description="Number of teeth on the gear",
@@ -750,4 +753,4 @@ class AddWormGear(bpy.types.Operator):
             valleyGroup = obj.vertex_groups.new('Valleys')
             valleyGroup.add(verts_valley, 1.0, 'ADD')
 
-        return {'FINISHED'}
+        return set(['FINISHED'])

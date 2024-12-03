@@ -16,12 +16,14 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import division
+from __future__ import absolute_import
 import time
 
 from netrender.utils import *
 import netrender.model
 
-class RatingRule:
+class RatingRule(object):
     def __init__(self):
         self.enabled = True
         self.editable = False
@@ -32,7 +34,7 @@ class RatingRule:
     def rate(self, job):
         return 0
 
-class ExclusionRule:
+class ExclusionRule(object):
     def __init__(self):
         self.enabled = True
         self.editable = True
@@ -42,7 +44,7 @@ class ExclusionRule:
     def test(self, job):
         return False
 
-class PriorityRule:
+class PriorityRule(object):
     def __init__(self):
         self.enabled = True
         self.editable = True
@@ -52,7 +54,7 @@ class PriorityRule:
     def test(self, job):
         return False
 
-class Balancer:
+class Balancer(object):
     def __init__(self):
         self.rules = []
         self.priorities = []
@@ -129,7 +131,7 @@ class RatingUsage(RatingRule):
 
 class RatingUsageByCategory(RatingRule):
     def __init__(self, get_jobs):
-        super().__init__()
+        super(RatingUsageByCategory, self).__init__()
         self.getJobs = get_jobs
 
     def __str__(self):
@@ -154,7 +156,7 @@ class RatingUsageByCategory(RatingRule):
 
 class NewJobPriority(PriorityRule):
     def __init__(self, limit = 1):
-        super().__init__()
+        super(NewJobPriority, self).__init__()
         self.limit = limit
 
     def setLimit(self, value):
@@ -180,7 +182,7 @@ class NewJobPriority(PriorityRule):
 
 class MinimumTimeBetweenDispatchPriority(PriorityRule):
     def __init__(self, limit = 10):
-        super().__init__()
+        super(MinimumTimeBetweenDispatchPriority, self).__init__()
         self.limit = limit
 
     def setLimit(self, value):
@@ -208,7 +210,7 @@ class MinimumTimeBetweenDispatchPriority(PriorityRule):
 
 class ExcludeQueuedEmptyJob(ExclusionRule):
     def __init__(self):
-        super().__init__()
+        super(ExcludeQueuedEmptyJob, self).__init__()
         self.editable= False
     def __str__(self):
         return "Exclude non queued or empty jobs"
@@ -228,7 +230,7 @@ class ExcludeQueuedEmptyJob(ExclusionRule):
 
 class ExcludeSlavesLimit(ExclusionRule):
     def __init__(self, count_jobs, count_slaves, limit = 0.75):
-        super().__init__()
+        super(ExcludeSlavesLimit, self).__init__()
         self.count_jobs = count_jobs
         self.count_slaves = count_slaves
         self.limit = limit

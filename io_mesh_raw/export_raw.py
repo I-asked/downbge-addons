@@ -33,7 +33,9 @@ whether modifiers should be applied and if the mesh is triangulated.
 
 """
 
+from __future__ import absolute_import
 import bpy
+from io import open
 
 
 def faceToTriangles(face):

@@ -65,6 +65,11 @@ ensured to be unique.
 """
 
 
+from __future__ import with_statement
+from __future__ import absolute_import
+from itertools import izip
+import sys
+from io import open
 def elem_empty(elem, name):
     import encode_bin
     sub_elem = encode_bin.FBXElem(name)
@@ -80,7 +85,7 @@ def parse_json_rec(fbx_root, json_node):
     assert(len(data_types) == len(data))
 
     e = elem_empty(fbx_root, name.encode())
-    for d, dt in zip(data, data_types):
+    for d, dt in izip(data, data_types):
         if dt == "C":
             e.add_bool(d)
         elif dt == "Y":
@@ -97,7 +102,7 @@ def parse_json_rec(fbx_root, json_node):
             d = eval('b"""' + d + '"""')
             e.add_bytes(d)
         elif dt == "S":
-            d = d.encode().replace(b"::", b"\x00\x01")
+            d = d.encode().replace("::", "\x00\x01")
             e.add_string(d)
         elif dt == "i":
             e.add_int32_array(d)
@@ -125,7 +130,7 @@ def parse_json_rec(fbx_root, json_node):
 
 
 def parse_json(json_root):
-    root = elem_empty(None, b"")
+    root = elem_empty(None, "")
     ver = 0
 
     for n in json_root:
@@ -143,12 +148,12 @@ def json2fbx(fn):
     import encode_bin
 
     fn_fbx = "%s.fbx" % os.path.splitext(fn)[0]
-    print("Writing: %r " % fn_fbx, end="")
+    print "Writing: %r " % fn_fbx,; sys.stdout.write("")
     json_root = []
     with open(fn) as f_json:
         json_root = json.load(f_json)
     fbx_root, fbx_version = parse_json(json_root)
-    print("(Version %d) ..." % fbx_version)
+    print "(Version %d) ..." % fbx_version
     encode_bin.write(fn_fbx, fbx_root, fbx_version)
 
 
@@ -159,14 +164,14 @@ def main():
     import sys
 
     if "--help" in sys.argv:
-        print(__doc__)
+        print __doc__
         return
 
     for arg in sys.argv[1:]:
         try:
             json2fbx(arg)
         except:
-            print("Failed to convert %r, error:" % arg)
+            print "Failed to convert %r, error:" % arg
 
             import traceback
             traceback.print_exc()

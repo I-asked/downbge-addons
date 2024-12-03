@@ -18,15 +18,17 @@
 
 # <pep8-80 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 
 
 def write(fw, mesh_source, image_width, image_height, opacity, face_iter_func):
-    filepath = fw.__self__.name
-    fw.__self__.close()
+    filepath = fw.im_self.name
+    fw.im_self.close()
 
     material_solids = [bpy.data.materials.new("uv_temp_solid")
-                       for i in range(max(1, len(mesh_source.materials)))]
+                       for i in xrange(max(1, len(mesh_source.materials)))]
 
     material_wire = bpy.data.materials.new("uv_temp_wire")
 
@@ -39,8 +41,8 @@ def write(fw, mesh_source, image_width, image_height, opacity, face_iter_func):
 
     # get unique UV's in case there are many overlapping
     # which slow down filling.
-    face_hash = {(uvs, polys_source[i].material_index)
-                 for i, uvs in face_iter_func()}
+    face_hash = set((uvs, polys_source[i].material_index)
+                 for i, uvs in face_iter_func())
 
     # now set the faces coords and locations
     # build mesh data
@@ -59,7 +61,7 @@ def write(fw, mesh_source, image_width, image_height, opacity, face_iter_func):
             mesh_new_vertices += (uv[0], uv[1], 0.0)
         mesh_new_polys_startloop.append(current_vert)
         mesh_new_polys_totloop.append(num_verts)
-        mesh_new_loops_vertices += range(current_vert,
+        mesh_new_loops_vertices += xrange(current_vert,
                                          current_vert + num_verts)
         mesh_new_materials.append(mat_idx)
         current_vert += num_verts

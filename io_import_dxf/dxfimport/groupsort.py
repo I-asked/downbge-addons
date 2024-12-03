@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import itertools
 from . import is_
 from mathutils import Vector
@@ -34,7 +35,7 @@ def map_dxf_to_blender_type(TYPE):
     if is_.nurbs(TYPE):
         return "object_surface"
     else:
-        print("groupsort: not mergeable type ", TYPE)
+        print "groupsort: not mergeable type ", TYPE
         return "not_mergeable"
 
 
@@ -76,7 +77,7 @@ def by_attributes(entities):
                 width = entity.width
         if hasattr(entity, "subdivision_levels"):
             subd = entity.subdivision_levels
-        if entity.dxftype in {"LINE", "POINT"}:
+        if entity.dxftype in set(["LINE", "POINT"]):
             extrusion = (0.0, 0.0, 1.0)
         return entity.thickness, subd, width, extrusion
 

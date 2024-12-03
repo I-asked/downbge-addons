@@ -18,6 +18,7 @@
 
 # <pep8-80 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "3D Print Toolbox",
     "author": "Campbell Barton",

@@ -24,8 +24,10 @@ colors, and texture coordinates per face or per vertex.
 Only one mesh can be exported at a time.
 """
 
+from __future__ import absolute_import
 import bpy
 import os
+from io import open
 
 
 def save_mesh(filepath,
@@ -83,8 +85,8 @@ def save_mesh(filepath,
     mesh_verts = mesh.vertices  # save a lookup
     ply_verts = []  # list of dictionaries
     # vdict = {} # (index, normal, uv) -> new index
-    vdict = [{} for i in range(len(mesh_verts))]
-    ply_faces = [[] for f in range(len(mesh.tessfaces))]
+    vdict = [{} for i in xrange(len(mesh_verts))]
+    ply_faces = [[] for f in xrange(len(mesh.tessfaces))]
     vert_count = 0
     for i, f in enumerate(mesh.tessfaces):
 
@@ -177,9 +179,9 @@ def save_mesh(filepath,
             fw("4 %d %d %d %d\n" % tuple(pf))
 
     file.close()
-    print("writing %r done" % filepath)
+    print "writing %r done" % filepath
 
-    return {'FINISHED'}
+    return set(['FINISHED'])
 
 
 def save(operator,

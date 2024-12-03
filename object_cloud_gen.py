@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Cloud Generator",
     "author": "Nick Keeline(nrk)",
@@ -303,7 +304,7 @@ class VIEW3D_PT_tools_cloud(Panel):
     bl_category = 'Create'
     bl_label = "Cloud Generator"
     bl_context = "objectmode"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = set(['DEFAULT_CLOSED'])
 
     def draw(self, context):
         if context.scene.render.engine == "BLENDER_RENDER":
@@ -363,8 +364,8 @@ class GenerateCloud(Operator):
         space_data = bpy.context.space_data
 
         if True in space_data.layers_local_view:
-            self.report({'INFO'}, 'Global Perspective mode only unable to continue.')
-            return {'FINISHED'}
+            self.report(set(['INFO']), 'Global Perspective mode only unable to continue.')
+            return set(['FINISHED'])
         blend_data = context.blend_data
 
         # Make variable that is the active object selected by user
@@ -553,7 +554,7 @@ class GenerateCloud(Operator):
             makeObjectIntoBoundBox(scene, bounds, 1.0, bounds)
 
             # Delete all material slots in bounds object.
-            for i in range(len(bounds.material_slots)):
+            for i in xrange(len(bounds.material_slots)):
                 bounds.active_material_index = i - 1
                 bpy.ops.object.material_slot_remove()
 
@@ -617,7 +618,7 @@ class GenerateCloud(Operator):
                 numParticles = maxNumOfPoints
             if numParticles < 10000:
                 numParticles = int(numParticles + 15 * volumeBoundBox)
-            print(numParticles)
+            print numParticles
 
             # Set the number of particles according to the volume
             # of bounds.
@@ -668,7 +669,7 @@ class GenerateCloud(Operator):
                 pDensity.point_density.particle_system = cloudParticles
 
             if scene.cloud_type == '1':  # Cumulous
-                print("Cumulous")
+                print "Cumulous"
                 mVolume.density_scale = 2.22
                 pDensity.point_density.turbulence_depth = 10
                 pDensity.point_density.turbulence_strength = 6.3
@@ -677,7 +678,7 @@ class GenerateCloud(Operator):
                 pDensity.point_density.radius = pDensity.point_density.radius + 0.1
 
             elif scene.cloud_type == '2':  # Cirrus
-                print("Cirrus")
+                print "Cirrus"
                 pDensity.point_density.turbulence_strength = 22
                 mVolume.transmission_color = 3.5, 3.5, 3.5
                 mVolume.scattering = 0.13
@@ -710,7 +711,7 @@ class GenerateCloud(Operator):
             else:
                 makeObjectIntoBoundBox(scene, bounds, how_much_bigger, cloud)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 def register():

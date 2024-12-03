@@ -24,6 +24,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 #
+from __future__ import absolute_import
 import time
 
 import bpy
@@ -38,8 +39,8 @@ def log(str, popup=False, module_name='EF'):
     be raised in the UI as a warning using the operator bpy.ops.ef.msg.
 
     """
-    print("[%s %s] %s" %
-        (module_name, time.strftime('%Y-%b-%d %H:%M:%S'), str))
+    print "[%s %s] %s" %
+        (module_name, time.strftime('%Y-%b-%d %H:%M:%S'), str)
     if popup:
         bpy.ops.ef.msg(
             msg_type='WARNING',
@@ -68,54 +69,54 @@ def init_properties(obj, props, cache=True):
 
             if prop['type'] == 'bool':
                 t = bpy.props.BoolProperty
-                a = {k: v for k,v in prop.items() if k in ["name",
-                    "description","default","options","subtype","update"]}
+                a = dict((k, v) for k,v in prop.items() if k in ["name",
+                    "description","default","options","subtype","update"])
             elif prop['type'] == 'bool_vector':
                 t = bpy.props.BoolVectorProperty
-                a = {k: v for k,v in prop.items() if k in ["name",
+                a = dict((k, v) for k,v in prop.items() if k in ["name",
                     "description","default","options","subtype","size",
-                    "update"]}
+                    "update"])
             elif prop['type'] == 'collection':
                 t = bpy.props.CollectionProperty
-                a = {k: v for k,v in prop.items() if k in ["ptype","name",
-                    "description","default","options"]}
+                a = dict((k, v) for k,v in prop.items() if k in ["ptype","name",
+                    "description","default","options"])
                 a['type'] = a['ptype']
                 del a['ptype']
             elif prop['type'] == 'enum':
                 t = bpy.props.EnumProperty
-                a = {k: v for k,v in prop.items() if k in ["items","name",
-                    "description","default","options","update"]}
+                a = dict((k, v) for k,v in prop.items() if k in ["items","name",
+                    "description","default","options","update"])
             elif prop['type'] == 'float':
                 t = bpy.props.FloatProperty
-                a = {k: v for k,v in prop.items() if k in ["name",
+                a = dict((k, v) for k,v in prop.items() if k in ["name",
                     "description","default","min","max","soft_min","soft_max",
-                    "step","precision","options","subtype","unit","update"]}
+                    "step","precision","options","subtype","unit","update"])
             elif prop['type'] == 'float_vector':
                 t = bpy.props.FloatVectorProperty
-                a = {k: v for k,v in prop.items() if k in ["name",
+                a = dict((k, v) for k,v in prop.items() if k in ["name",
                     "description","default","min","max","soft_min","soft_max",
-                    "step","precision","options","subtype","size","update"]}
+                    "step","precision","options","subtype","size","update"])
             elif prop['type'] == 'int':
                 t = bpy.props.IntProperty
-                a = {k: v for k,v in prop.items() if k in ["name",
+                a = dict((k, v) for k,v in prop.items() if k in ["name",
                     "description","default","min","max","soft_min","soft_max",
-                    "step","options","subtype","update"]}
+                    "step","options","subtype","update"])
             elif prop['type'] == 'int_vector':
                 t = bpy.props.IntVectorProperty
-                a = {k: v for k,v in prop.items() if k in ["name",
+                a = dict((k, v) for k,v in prop.items() if k in ["name",
                     "description","default","min","max","soft_min","soft_max",
-                    "options","subtype","size","update"]}
+                    "options","subtype","size","update"])
             elif prop['type'] == 'pointer':
                 t = bpy.props.PointerProperty
-                a = {k: v for k,v in prop.items() if k in ["ptype", "name",
-                    "description","options","update"]}
+                a = dict((k, v) for k,v in prop.items() if k in ["ptype", "name",
+                    "description","options","update"])
                 a['type'] = a['ptype']
                 del a['ptype']
             elif prop['type'] == 'string':
                 t = bpy.props.StringProperty
-                a = {k: v for k,v in prop.items() if k in ["name",
+                a = dict((k, v) for k,v in prop.items() if k in ["name",
                     "description","default","maxlen","options","subtype",
-                    "update"]}
+                    "update"])
             else:
                 continue
 

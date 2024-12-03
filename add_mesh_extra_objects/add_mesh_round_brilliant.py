@@ -1,5 +1,7 @@
 # GPL "author": "Dominic Kröper, (dommetysk)"
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from math import pi, sin, cos, tan
 from bpy.types import Operator
@@ -44,7 +46,7 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
         Faces.append(v)
         
     def va(vx, vz, iang, sang, n):          # shortcut Verts.append  
-        for i in range(n):
+        for i in xrange(n):
             v = Vector((vx, 0, vz))
             ai = sang + iang*i
             E_rot = Euler((0, 0, ai), 'XYZ')       
@@ -88,7 +90,7 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
     
     # make girdle faces
     l1 = len(Verts)             # 2*s / 8*s
-    for i in range(l1):
+    for i in xrange(l1):
         if girdle_real:
             if i < s:
                 fa(i, i + s, 2*i + 6*s, 2*i + 4*s)
@@ -111,7 +113,7 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
 
     # make upper girdle facet faces
     l2 = len(Verts)             # 2.5*s / 8.5*s
-    for i in range(l2):
+    for i in xrange(l2):
         if i > s and i < 2*s - 1 and i % 2 != 0:
             if girdle_real:
                 fa(i, 2 * (i + 2*s), i + 2*s, 2 * (i + 2*s) + 1, i + 1,
@@ -134,7 +136,7 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
 
     # make bezel facet faces and star facet faces
     l3 = len(Verts)             # 3*s / 9*s
-    for i in range(l3):
+    for i in xrange(l3):
         if i > l2 - 1 and i < l3 - 1:
             fa(i, i + 1, i - int(s/2))
             fa(i + 1, i - int(s/2), 2 * (i-l2) + 2 + s, i - int(s/2) + 1)
@@ -144,7 +146,7 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
     
     # make table facet face
     tf = []
-    for i in range(l3):
+    for i in xrange(l3):
         if i > l2 - 1:
             tf.append(i)
     fa(*tf)
@@ -158,7 +160,7 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
  
     # make lower girdle facet faces
     l4 = len(Verts)             # 3.5*s / 9.5*s
-    for i in range(l4):
+    for i in xrange(l4):
         if i > 0 and i < s - 1 and i % 2 == 0:
             if girdle_real:
                 fa(i, 2 * (i + 2*s), i + 2*s, 2 * (i + 2*s) + 1, i + 1, 
@@ -188,7 +190,7 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
     
     # make pavillion facet face
     l5 = len(Verts)             # 4*s / 10*s  //if !culet: 3.5*s+1 / 9.5*s+1
-    for i in range(l5):
+    for i in xrange(l5):
         if i > 0 and i < s - 1 and i % 2 == 0:
             if culet:
                 fa(i, l3 + int(i/2), l3 + int((s+i) / 2), 
@@ -204,7 +206,7 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
     # make culet facet face
     if culet:
         cf = []
-        for i in range(l5):
+        for i in xrange(l5):
             if i > l4 - 1:
                 cf.append(i)
         fa(*cf)
@@ -291,7 +293,7 @@ def addBrilliant(context, s, table_w, crown_h, girdle_t, pavi_d, bezel_f,
 class MESH_OT_primitive_brilliant_add(bpy.types.Operator):    
     bl_idname = "mesh.primitive_brilliant_add"
     bl_label = "Custom Brilliant"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
     
     # set user options
     s = IntProperty(name="Segments",
@@ -362,4 +364,4 @@ class MESH_OT_primitive_brilliant_add(bpy.types.Operator):
                           self.girdle_t, self.pavi_d, self.bezel_f, 
                           self.pavi_f, self.culet, self.girdle_real, 
                           self.keep_lga, self.g_real_smooth)
-        return {'FINISHED'}
+        return set(['FINISHED'])

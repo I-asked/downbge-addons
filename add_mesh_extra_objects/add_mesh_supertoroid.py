@@ -1,5 +1,7 @@
 # GPL # "author": "DreamPainter"
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from bpy.props import FloatProperty,BoolProperty,IntProperty
 from math import pi, cos, sin
@@ -63,7 +65,7 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
             faces.append(face)
 
     # Bridge the rest of the faces.
-    for num in range(total - 1):
+    for num in xrange(total - 1):
         if flipped:
             if fan:
                 face = [vertIdx2[num], vertIdx1[0], vertIdx2[num + 1]]
@@ -109,19 +111,19 @@ def supertoroid(R,r,u,v,n1,n2):
     # y = (sin(theta)**n1)*(R+r*(cos(phi)**n2))
     # z = (r*sin(phi)**n2) 
     # with theta and phi rangeing from 0 to 2pi
-    for i in range(u):
+    for i in xrange(u):
         s = power(sin(i*a),n1)
         c = power(cos(i*a),n1)
-        for j in range(v):
+        for j in xrange(v):
             c2 = R+r*power(cos(j*b),n2)
             s2 = r*power(sin(j*b),n2)
             verts.append(Vector((c*c2,s*c2,s2)))
         # bridge the last circle with the previous circle
         if i > 0:   # but not for the first circle, 'cus there's no previous before the first
-            f = createFaces(range((i-1)*v,i*v),range(i*v,(i+1)*v),closed = True)
+            f = createFaces(xrange((i-1)*v,i*v),xrange(i*v,(i+1)*v),closed = True)
             faces.extend(f)
     # bridge the last circle with the first
-    f = createFaces(range((u-1)*v,u*v),range(v),closed=True)
+    f = createFaces(xrange((u-1)*v,u*v),xrange(v),closed=True)
     faces.extend(f)
 
     return verts, faces
@@ -131,7 +133,7 @@ class add_supertoroid(bpy.types.Operator):
     bl_idname = "mesh.primitive_supertoroid_add"
     bl_label = "Add SuperToroid"
     bl_description = "Create a SuperToroid"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     R = FloatProperty(name = "big radius",
                       description = "The radius inside the tube",
@@ -157,7 +159,7 @@ class add_supertoroid(bpy.types.Operator):
     edit = BoolProperty(name="",
                         description="",
                         default=False,
-                        options={'HIDDEN'})
+                        options=set(['HIDDEN']))
 
     def execute(self,context):
         props = self.properties
@@ -190,4 +192,4 @@ class add_supertoroid(bpy.types.Operator):
         obj = create_mesh_object(context, verts, [], faces, "SuperToroid")
 
 
-        return {'FINISHED'}
+        return set(['FINISHED'])

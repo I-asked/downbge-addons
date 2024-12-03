@@ -25,15 +25,18 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 #
-import configparser
+import ConfigParser
 import datetime
 import os
 import tempfile
 import threading
 
 import bpy
+from io import open
 
 """List of possibly appropriate paths to load/save addon config from/to"""
+from __future__ import division
+from __future__ import absolute_import
 config_paths = []
 if bpy.utils.user_resource('CONFIG', '') != "": config_paths.append(bpy.utils.user_resource('CONFIG', '', create=True))
 if bpy.utils.user_resource('SCRIPTS', '') != "": config_paths.append(bpy.utils.user_resource('SCRIPTS', '', create=True))
@@ -90,10 +93,10 @@ def find_config_value(module, section, key, default):
             fc.append( '/'.join([p, '%s.cfg' % module]))
 
     if len(fc) < 1:
-        print('Cannot find %s config file path' % module)
+        print 'Cannot find %s config file path' % module
         return default
 
-    cp = configparser.SafeConfigParser()
+    cp = ConfigParser.SafeConfigParser()
 
     cfg_files = cp.read(fc)
     if len(cfg_files) > 0:
@@ -125,7 +128,7 @@ def write_config_value(module, section, key, value):
         raise Exception('Cannot find a writable path to store %s config file' %
             module)
 
-    cp = configparser.SafeConfigParser()
+    cp = ConfigParser.SafeConfigParser()
 
     cfg_files = cp.read(fc)
 
@@ -244,7 +247,7 @@ def getSequenceTexturePath(it, f):
     dn = os.path.dirname(it.image.filepath)
     rf = fb[::-1]
     nl = 0
-    for i in range (len(fb)):
+    for i in xrange (len(fb)):
         if rf[i] in string.digits:
             nl += 1
         else:

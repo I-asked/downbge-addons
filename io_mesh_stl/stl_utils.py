@@ -26,11 +26,15 @@ Used as a blender script, it load all the stl files in the scene:
 blender --python stl_utils.py -- file1.stl file2.stl file3.stl ...
 """
 
+from __future__ import with_statement
+from __future__ import absolute_import
 import os
 import struct
 import contextlib
 import itertools
 from mathutils.geometry import normal
+from itertools import imap
+from io import open
 
 # TODO: endien
 
@@ -98,7 +102,7 @@ def _is_ascii_file(data):
     data.seek(0)
 
     if size == 0:  # Odds to get that result from an ASCII file are null...
-        print("WARNING! Reported size (facet number) is 0, assuming invalid binary STL file.")
+        print "WARNING! Reported size (facet number) is 0, assuming invalid binary STL file."
         return False  # Assume binary in this case.
 
     return (file_size != BINARY_HEADER + 4 + BINARY_STRIDE * size)
@@ -118,7 +122,7 @@ def _binary_read(data):
 
         file_size -= BINARY_HEADER + 4
         size = file_size // BINARY_STRIDE
-        print("WARNING! Reported size (facet number) is 0, inferring %d facets from file size." % size)
+        print "WARNING! Reported size (facet number) is 0, inferring %d facets from file size." % size
 
     # We read 4096 elements at once, avoids too much calls to read()!
     CHUNK_LEN = 4096
@@ -130,7 +134,7 @@ def _binary_read(data):
         if chunk_len == 0:
             continue
         buf = data.read(BINARY_STRIDE * chunk_len)
-        for i in range(chunk_len):
+        for i in xrange(chunk_len):
             # read the normal and points coordinates of each triangle
             pt = unpack(buf, BINARY_STRIDE * i)
             yield pt[:3], (pt[3:6], pt[6:9], pt[9:])
@@ -156,11 +160,11 @@ def _ascii_read(data):
 
     for l in data:
         l = l.lstrip()
-        if l.startswith(b'facet'):
-            curr_nor = tuple(map(float, l.split()[2:]))
+        if l.startswith('facet'):
+            curr_nor = tuple(imap(float, l.split()[2:]))
         # if we encounter a vertex, read next 2
-        if l.startswith(b'vertex'):
-            yield curr_nor, [tuple(map(float, l_item.split()[1:])) for l_item in (l, data.readline(), data.readline())]
+        if l.startswith('vertex'):
+            yield curr_nor, [tuple(imap(float, l_item.split()[1:])) for l_item in (l, data.readline(), data.readline())]
 
 
 def _binary_write(filepath, faces):
@@ -169,7 +173,7 @@ def _binary_write(filepath, faces):
         # header
         # we write padding at header beginning to avoid to
         # call len(list(faces)) which may be expensive
-        fw(struct.calcsize('<80sI') * b'\0')
+        fw(struct.calcsize('<80sI') * '\0')
 
         # 3 vertex == 9f
         pack = struct.Struct('<9f').pack
@@ -182,7 +186,7 @@ def _binary_write(filepath, faces):
             # write normal + vertexes + pad as attributes
             fw(struct.pack('<3f', *normal(*face)) + pack(*itertools.chain.from_iterable(face)))
             # attribute byte count (unused)
-            fw(b'\0\0') 
+            fw('\0\0') 
             nb += 1
 
         # header, with correct value now
@@ -270,7 +274,7 @@ def read_stl(filepath):
             tris.append([pts.add(p) for p in pt])
             tri_nors.append(nor)
 
-    print('Import finished in %.4f sec.' % (time.process_time() - start_time))
+    print 'Import finished in %.4f sec.' % (time.process_time() - start_time)
 
     return tris, tri_nors, pts.list
 

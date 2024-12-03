@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 
 from ...utils import MetarigError
@@ -25,9 +26,10 @@ from ...utils import copy_bone
 from ...utils import connected_children_names
 from ...utils import strip_org, make_deformer_name
 from ...utils import create_bone_widget
+from itertools import izip
 
 
-class Rig:
+class Rig(object):
     """ A "copy_chain" rig.  All it does is duplicate the original bone chain
         and constrain it.
         This is a control and deformation rig.
@@ -57,7 +59,7 @@ class Rig:
         # Just copies of the original chain.
         def_chain = []
         ctrl_chain = []
-        for i in range(len(self.org_bones)):
+        for i in xrange(len(self.org_bones)):
             name = self.org_bones[i]
 
             # Control bone
@@ -104,7 +106,7 @@ class Rig:
         pb = self.obj.pose.bones
 
         # Constraints for org and def
-        for org, ctrl, defrm in zip(self.org_bones, ctrl_chain, def_chain):
+        for org, ctrl, defrm in izip(self.org_bones, ctrl_chain, def_chain):
             if self.make_controls:
                 con = pb[org].constraints.new('COPY_TRANSFORMS')
                 con.name = "copy_transforms"

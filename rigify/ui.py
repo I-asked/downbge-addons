@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 from bpy.props import StringProperty
 
@@ -50,13 +51,13 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
         obj = context.object
         id_store = C.window_manager
 
-        if obj.mode in {'POSE', 'OBJECT'}:
+        if obj.mode in set(['POSE', 'OBJECT']):
             layout.operator("pose.rigify_generate", text="Generate")
         elif obj.mode == 'EDIT':
             # Build types list
             collection_name = str(id_store.rigify_collection).replace(" ", "")
 
-            for i in range(0, len(id_store.rigify_types)):
+            for i in xrange(0, len(id_store.rigify_types)):
                 id_store.rigify_types.remove(0)
 
             for r in rig_lists.rig_list:
@@ -88,7 +89,7 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = set(['DEFAULT_CLOSED'])
 
     @classmethod
     def poll(cls, context):
@@ -103,7 +104,7 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
 
         # Ensure that the layers exist
         if 0:
-            for i in range(1 + len(arm.rigify_layers), 29):
+            for i in xrange(1 + len(arm.rigify_layers), 29):
                 arm.rigify_layers.add()
         else:
             # Can't add while drawing, just use button
@@ -157,7 +158,7 @@ class BONE_PT_rigify_buttons(bpy.types.Panel):
         layout = self.layout
 
         # Build types list
-        for i in range(0, len(id_store.rigify_types)):
+        for i in xrange(0, len(id_store.rigify_types)):
             id_store.rigify_types.remove(0)
 
         for r in rig_lists.rig_list:
@@ -251,7 +252,7 @@ def rigify_report_exception(operator, exception):
 
     message.reverse()  # XXX - stupid! menu's are upside down!
 
-    operator.report({'INFO'}, '\n'.join(message))
+    operator.report(set(['INFO']), '\n'.join(message))
 
 
 class LayerInit(bpy.types.Operator):
@@ -259,14 +260,14 @@ class LayerInit(bpy.types.Operator):
 
     bl_idname = "pose.rigify_layer_init"
     bl_label = "Add Rigify Layers"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     def execute(self, context):
         obj = context.object
         arm = obj.data
-        for i in range(1 + len(arm.rigify_layers), 29):
+        for i in xrange(1 + len(arm.rigify_layers), 29):
             arm.rigify_layers.add()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class Generate(bpy.types.Operator):
@@ -274,7 +275,7 @@ class Generate(bpy.types.Operator):
 
     bl_idname = "pose.rigify_generate"
     bl_label = "Rigify Generate Rig"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     def execute(self, context):
         import importlib
@@ -284,12 +285,12 @@ class Generate(bpy.types.Operator):
         context.user_preferences.edit.use_global_undo = False
         try:
             generate.generate_rig(context, context.object)
-        except MetarigError as rig_exception:
+        except MetarigError, rig_exception:
             rigify_report_exception(self, rig_exception)
         finally:
             context.user_preferences.edit.use_global_undo = use_global_undo
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class Sample(bpy.types.Operator):
@@ -298,7 +299,7 @@ class Sample(bpy.types.Operator):
 
     bl_idname = "armature.metarig_sample_add"
     bl_label = "Add a sample metarig for a rig type"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     metarig_type = StringProperty(
             name="Type",
@@ -321,7 +322,7 @@ class Sample(bpy.types.Operator):
                 context.user_preferences.edit.use_global_undo = use_global_undo
                 bpy.ops.object.mode_set(mode='EDIT')
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class EncodeMetarig(bpy.types.Operator):
@@ -329,7 +330,7 @@ class EncodeMetarig(bpy.types.Operator):
     """
     bl_idname = "armature.rigify_encode_metarig"
     bl_label = "Rigify Encode Metarig"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     @classmethod
     def poll(self, context):
@@ -348,7 +349,7 @@ class EncodeMetarig(bpy.types.Operator):
         text_block.write(text)
         bpy.ops.object.mode_set(mode='EDIT')
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class EncodeMetarigSample(bpy.types.Operator):
@@ -357,7 +358,7 @@ class EncodeMetarigSample(bpy.types.Operator):
     """
     bl_idname = "armature.rigify_encode_metarig_sample"
     bl_label = "Rigify Encode Metarig Sample"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     @classmethod
     def poll(self, context):
@@ -376,7 +377,7 @@ class EncodeMetarigSample(bpy.types.Operator):
         text_block.write(text)
         bpy.ops.object.mode_set(mode='EDIT')
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class EncodeWidget(bpy.types.Operator):
@@ -384,7 +385,7 @@ class EncodeWidget(bpy.types.Operator):
     """
     bl_idname = "mesh.rigify_encode_mesh_widget"
     bl_label = "Rigify Encode Widget"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     @classmethod
     def poll(self, context):
@@ -403,7 +404,7 @@ class EncodeWidget(bpy.types.Operator):
         text_block.write(text)
         bpy.ops.object.mode_set(mode='EDIT')
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 #menu_func = (lambda self, context: self.layout.menu("INFO_MT_armature_metarig_add", icon='OUTLINER_OB_ARMATURE'))

@@ -79,6 +79,10 @@ Credit to:
 
 
 #===========================================================================
+from __future__ import division
+from __future__ import absolute_import
+from itertools import imap
+from io import open
 """
 NOTES for Jan 2012 refactor (Spoof)
 
@@ -191,10 +195,10 @@ def verbose( msg, iteration=-1, max_iterations=4, msg_truncated="..." ):
         if iteration > max_iterations:
             return
         elif iteration == max_iterations:
-            print(msg_truncated)
+            print msg_truncated
             return
 
-        print(msg)
+        print msg
 
 #===========================================================================
 # Log header/separator
@@ -216,7 +220,7 @@ def header( msg, justify='LEFT', spacer='_', cols=78 ):
 # Generic Object->Integer mapping
 # the object must be usable as a dictionary key
 #===========================================================================
-class ObjMap:
+class ObjMap(object):
 
     def __init__(self):
         self.dict = {}
@@ -234,14 +238,14 @@ class ObjMap:
     def items(self):
         getval = operator.itemgetter(0)
         getkey = operator.itemgetter(1)
-        return map(getval, sorted(self.dict.items(), key=getkey))
+        return imap(getval, sorted(self.dict.items(), key=getkey))
 
 #===========================================================================
 # RG - UNREAL DATA STRUCTS - CONVERTED FROM C STRUCTS GIVEN ON UDN SITE
 # provided here: http://udn.epicgames.com/Two/BinaryFormatSpecifications.html
 # updated UDK (Unreal Engine 3): http://udn.epicgames.com/Three/BinaryFormatSpecifications.html
 #===========================================================================
-class FQuat:
+class FQuat(object):
 
     def __init__(self):
         self.X = 0.0
@@ -303,7 +307,7 @@ class FVector(object):
             self.Y - other.Y,
             self.Z - other.Z)
 
-class VJointPos:
+class VJointPos(object):
 
     def __init__(self):
         self.Orientation    = FQuat()
@@ -316,7 +320,7 @@ class VJointPos:
     def dump(self):
         return self.Orientation.dump() + self.Position.dump() + pack('4f', self.Length, self.XSize, self.YSize, self.ZSize)
 
-class AnimInfoBinary:
+class AnimInfoBinary(object):
 
     def __init__(self):
         self.Name           = ""    # length=64
@@ -335,7 +339,7 @@ class AnimInfoBinary:
     def dump(self):
         return pack('64s64siiiifffiii', str.encode(self.Name), str.encode(self.Group), self.TotalBones, self.RootInclude, self.KeyCompressionStyle, self.KeyQuotum, self.KeyPrediction, self.TrackTime, self.AnimRate, self.StartBone, self.FirstRawFrame, self.NumRawFrames)
 
-class VChunkHeader:
+class VChunkHeader(object):
 
     def __init__(self, name, type_size):
         self.ChunkID        = str.encode(name)  # length=20
@@ -346,7 +350,7 @@ class VChunkHeader:
     def dump(self):
         return pack('20siii', self.ChunkID, self.TypeFlag, self.DataSize, self.DataCount)
 
-class VMaterial:
+class VMaterial(object):
 
     def __init__(self):
         self.MaterialName   = ""    # length=64
@@ -361,7 +365,7 @@ class VMaterial:
         #print("DATA MATERIAL:",self.MaterialName)
         return pack('64siLiLii', str.encode(self.MaterialName), self.TextureIndex, self.PolyFlags, self.AuxMaterial, self.AuxFlags, self.LodBias, self.LodStyle)
 
-class VBone:
+class VBone(object):
 
     def __init__(self):
         self.Name           = ""    # length = 64
@@ -374,7 +378,7 @@ class VBone:
         return pack('64sLii', str.encode(self.Name), self.Flags, self.NumChildren, self.ParentIndex) + self.BonePos.dump()
 
 #same as above - whatever - this is how Epic does it...
-class FNamedBoneBinary:
+class FNamedBoneBinary(object):
 
     def __init__(self):
         self.Name           = ""    # length = 64
@@ -387,7 +391,7 @@ class FNamedBoneBinary:
     def dump(self):
         return pack('64sLii', str.encode(self.Name), self.Flags, self.NumChildren, self.ParentIndex) + self.BonePos.dump()
 
-class VRawBoneInfluence:
+class VRawBoneInfluence(object):
 
     def __init__(self):
         self.Weight         = 0.0
@@ -397,7 +401,7 @@ class VRawBoneInfluence:
     def dump(self):
         return pack('fii', self.Weight, self.PointIndex, self.BoneIndex)
 
-class VQuatAnimKey:
+class VQuatAnimKey(object):
 
     def __init__(self):
         self.Position       = FVector()
@@ -439,7 +443,7 @@ class VVertex(object):
             return False
         return self._key() == other._key()
 
-class VPointSimple:
+class VPointSimple(object):
 
     def __init__(self):
         self.Point = FVector()
@@ -483,7 +487,7 @@ class VPoint(object):
             return False
         return self._key() == other._key()
 
-class VTriangle:
+class VTriangle(object):
 
     def __init__(self):
         self.WedgeIndex0    = 0     # WORD
@@ -505,7 +509,7 @@ class VTriangle:
 # RG - helper class to handle the normal way the UT files are stored
 # as sections consisting of a header and then a list of data structures
 #===========================================================================
-class FileSection:
+class FileSection(object):
 
     def __init__(self, name, type_size):
         self.Header = VChunkHeader(name, type_size)
@@ -513,7 +517,7 @@ class FileSection:
 
     def dump(self):
         data = self.Header.dump()
-        for i in range(len(self.Data)):
+        for i in xrange(len(self.Data)):
             data = data + self.Data[i].dump()
         return data
 
@@ -523,7 +527,7 @@ class FileSection:
 #===========================================================================
 # PSK
 #===========================================================================
-class PSKFile:
+class PSKFile(object):
 
     def __init__(self):
         self.GeneralHeader  = VChunkHeader("ACTRHEAD", 0)
@@ -591,12 +595,12 @@ class PSKFile:
             return m
 
     def PrintOut(self):
-        print( "{:>16} {:}".format( "Points", len(self.Points.Data) ) )
-        print( "{:>16} {:}".format( "Wedges", len(self.Wedges.Data) ) )
-        print( "{:>16} {:}".format( "Faces", len(self.Faces.Data) ) )
-        print( "{:>16} {:}".format( "Materials", len(self.Materials.Data) ) )
-        print( "{:>16} {:}".format( "Bones", len(self.Bones.Data) ) )
-        print( "{:>16} {:}".format( "Influences", len(self.Influences.Data) ) )
+        print "{:>16} {:}".format( "Points", len(self.Points.Data) )
+        print "{:>16} {:}".format( "Wedges", len(self.Wedges.Data) )
+        print "{:>16} {:}".format( "Faces", len(self.Faces.Data) )
+        print "{:>16} {:}".format( "Materials", len(self.Materials.Data) )
+        print "{:>16} {:}".format( "Bones", len(self.Bones.Data) )
+        print "{:>16} {:}".format( "Influences", len(self.Influences.Data) )
 
 #===========================================================================
 # PSA
@@ -614,7 +618,7 @@ class PSKFile:
 #   the animation sequence (from the PSA) will assume its reference pose stance ( as defined in
 #   the offsets & rotations that are in the VBones making up the reference skeleton from the PSK)
 #===========================================================================
-class PSAFile:
+class PSAFile(object):
 
     def __init__(self):
         self.GeneralHeader  = VChunkHeader("ANIMHEAD", 0)
@@ -675,9 +679,9 @@ class PSAFile:
         return self.GeneralHeader.dump() + self.Bones.dump() + self.Animations.dump() + self.RawKeys.dump()
 
     def PrintOut(self):
-        print( "{:>16} {:}".format( "Bones", len(self.Bones.Data) ) )
-        print( "{:>16} {:}".format( "Animations", len(self.Animations.Data) ) )
-        print( "{:>16} {:}".format( "Raw keys", len(self.RawKeys.Data) ) )
+        print "{:>16} {:}".format( "Bones", len(self.Bones.Data) )
+        print "{:>16} {:}".format( "Animations", len(self.Animations.Data) )
+        print "{:>16} {:}".format( "Raw keys", len(self.RawKeys.Data) )
 
 #===========================================================================
 # Helpers to create bone structs
@@ -746,7 +750,7 @@ def is_1d_face( face, mesh ):
 # Smoothing group
 # (renamed to seperate it from VVertex.SmoothGroup)
 #===========================================================================
-class SmoothingGroup:
+class SmoothingGroup(object):
 
     static_id = 1
 
@@ -869,7 +873,7 @@ def build_neighbors_tree( smoothgroup_list ):
 #===========================================================================
 def parse_smooth_groups( mesh ):
 
-    print("Parsing smooth groups...")
+    print "Parsing smooth groups..."
 
     t                   = time.clock()
     smoothgroup_list    = []
@@ -884,9 +888,9 @@ def parse_smooth_groups( mesh ):
         determine_smoothgroup_for_face(mesh, face, edge_sharing_list, smoothgroup_list)
         # progress indicator, writes to console without scrolling
         if face.index > 0 and (face.index % interval) == 0:
-            print("Processing... {}%\r".format( int(face.index / len(mesh.tessfaces) * 100) ), end='')
+            print "Processing... {}%\r".format( int(face.index / len(mesh.tessfaces) * 100) ),; sys.stdout.write('')
             sys.stdout.flush()
-    print("Completed" , ' '*20)
+    print "Completed", ' '*20
 
     verbose("len(smoothgroup_list)={}".format(len(smoothgroup_list)))
 
@@ -895,7 +899,7 @@ def parse_smooth_groups( mesh ):
     for group in smoothgroup_list:
         group.get_valid_smoothgroup_id()
 
-    print("Smooth group parsing completed in {:.2f}s".format(time.clock() - t))
+    print "Smooth group parsing completed in {:.2f}s".format(time.clock() - t)
     return smoothgroup_list
 
 #===========================================================================
@@ -919,7 +923,7 @@ def triangulate_mesh( object ):
     me_ob.select            = True
     scene.objects.active    = me_ob
 
-    print("Copy and Convert mesh just incase any way...")
+    print "Copy and Convert mesh just incase any way..."
 
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='SELECT')# select all the face/vertex/edge
@@ -942,9 +946,9 @@ def meshmerge(selectedobjects):
     bpy.ops.object.mode_set(mode='OBJECT') #object mode and not edit mode
     cloneobjects = [] #object holder for copying object data
     if len(selectedobjects) > 1:
-        print("selectedobjects:",len(selectedobjects)) #print select object
+        print "selectedobjects:",len(selectedobjects) #print select object
         count = 0 #reset count
-        for count in range(len( selectedobjects)):
+        for count in xrange(len( selectedobjects)):
             #print("Index:",count)
             if selectedobjects[count] != None:
                 me_da = selectedobjects[count].data.copy() #copy data
@@ -952,15 +956,15 @@ def meshmerge(selectedobjects):
                 #note two copy two types else it will use the current data or mesh
                 me_ob.data = me_da #assign the data
                 bpy.context.scene.objects.link(me_ob)#link the object to the scene #current object location
-                print("Index:",count,"clone object",me_ob.name) #print clone object
+                print "Index:",count,"clone object",me_ob.name #print clone object
                 cloneobjects.append(me_ob) #add object to the array
         for i in bpy.data.objects: i.select = False #deselect all objects
         count = 0 #reset count
         #begin merging the mesh together as one
-        for count in range(len( cloneobjects)):
+        for count in xrange(len( cloneobjects)):
             if count == 0:
                 bpy.context.scene.objects.active = cloneobjects[count]
-                print("Set Active Object:",cloneobjects[count].name)
+                print "Set Active Object:",cloneobjects[count].name
             cloneobjects[count].select = True
         bpy.ops.object.join() #join object together
         if len(cloneobjects) > 1:
@@ -969,10 +973,10 @@ def meshmerge(selectedobjects):
 
 #sort the mesh center top list and not center at the last array. Base on order while select to merge mesh to make them center.
 def sortmesh(selectmesh):
-    print("MESH SORTING...")
+    print "MESH SORTING..."
     centermesh = []
     notcentermesh = []
-    for countm in range(len(selectmesh)):
+    for countm in xrange(len(selectmesh)):
         #if object are center add here
         if selectmesh[countm].location.x == 0 and selectmesh[countm].location.y == 0 and selectmesh[countm].location.z == 0:
             centermesh.append(selectmesh[countm])
@@ -980,9 +984,9 @@ def sortmesh(selectmesh):
             notcentermesh.append(selectmesh[countm])
     selectmesh = []
     #add mesh object in order for merge object
-    for countm in range(len(centermesh)):
+    for countm in xrange(len(centermesh)):
         selectmesh.append(centermesh[countm])
-    for countm in range(len(notcentermesh)):
+    for countm in xrange(len(notcentermesh)):
         selectmesh.append(notcentermesh[countm])
     if len(selectmesh) == 1: #if there one mesh just do some here
         return selectmesh[0] #return object mesh
@@ -995,8 +999,8 @@ import binascii
 def parse_mesh( mesh, psk ):
     #bpy.ops.object.mode_set(mode='OBJECT')
     #error ? on commands for select object?
-    print(header("MESH", 'RIGHT'))
-    print("Mesh object:", mesh.name)
+    print header("MESH", 'RIGHT')
+    print "Mesh object:", mesh.name
     scene = bpy.context.scene
     for i in scene.objects: i.select = False # deselect all objects
     scene.objects.active    = mesh
@@ -1008,13 +1012,13 @@ def parse_mesh( mesh, psk ):
     verbose("Working mesh object: {}".format(mesh.name))
 
     #collect a list of the material names
-    print("Materials...")
+    print "Materials..."
 
     mat_slot_index = 0
 
     for slot in mesh.material_slots:
 
-        print("  Material {} '{}'".format(mat_slot_index, slot.name))
+        print "  Material {} '{}'".format(mat_slot_index, slot.name)
         MaterialName.append(slot.name)
         #if slot.material.texture_slots[0] != None:
             #if slot.material.texture_slots[0].texture.image.filepath != None:
@@ -1041,9 +1045,9 @@ def parse_mesh( mesh, psk ):
     sys.setrecursionlimit(1000000)
     smoothgroup_list = parse_smooth_groups(mesh.data)
 
-    print("{} faces".format(len(mesh.data.tessfaces)))
+    print "{} faces".format(len(mesh.data.tessfaces))
 
-    print("Smooth groups active:", bpy.context.scene.udk_option_smoothing_groups)
+    print "Smooth groups active:", bpy.context.scene.udk_option_smoothing_groups
 
     for face in mesh.data.tessfaces:
 
@@ -1090,14 +1094,14 @@ def parse_mesh( mesh, psk ):
                 #size(data) is number of texture faces. Each face has UVs
                 #print("DATA face uv: ",len(faceUV.uv), " >> ",(faceUV.uv[0][0]))
 
-            for i in range(3):
+            for i in xrange(3):
                 vert_index  = face.vertices[i]
                 vert        = mesh.data.vertices[vert_index]
                 uv          = []
                 #assumes 3 UVs Per face (for now)
                 if (has_uv):
                     if len(face_uv.uv) != 3:
-                        print("WARNING: face has more or less than 3 UV coordinates - writing 0,0...")
+                        print "WARNING: face has more or less than 3 UV coordinates - writing 0,0..."
                         uv = [0.0, 0.0]
                     else:
                         uv = [face_uv.uv[i][0],face_uv.uv[i][1]] #OR bottom works better # 24 for cube
@@ -1219,7 +1223,7 @@ def parse_mesh( mesh, psk ):
 
             if bpy.context.scene.udk_option_smoothing_groups:
                 tri.SmoothingGroups = smoothgroup_id
-                print("Bool Smooth")
+                print "Bool Smooth"
 
             psk.AddFace(tri)
 
@@ -1230,7 +1234,7 @@ def parse_mesh( mesh, psk ):
 
     #END face in mesh.data.faces
 
-    print("{} points".format(len(points.dict)))
+    print "{} points".format(len(points.dict))
 
     for point in points.items():
         psk.AddPoint(point)
@@ -1238,15 +1242,15 @@ def parse_mesh( mesh, psk ):
     if len(points.dict) > 32767:
        raise Error("Mesh vertex limit exceeded! {} > 32767".format(len(points.dict)))
 
-    print("{} wedges".format(len(wedges.dict)))
+    print "{} wedges".format(len(wedges.dict))
 
     for wedge in wedges.items():
         psk.AddWedge(wedge)
 
     # alert the user to degenerate face issues
     if discarded_face_count > 0:
-        print("WARNING: Mesh contained degenerate faces (non-planar)")
-        print("      Discarded {} faces".format(discarded_face_count))
+        print "WARNING: Mesh contained degenerate faces (non-planar)"
+        print "      Discarded {} faces".format(discarded_face_count)
 
     #RG - walk through the vertex groups and find the indexes into the PSK points array
     #for them, then store that index and the weight as a tuple in a new list of
@@ -1291,7 +1295,7 @@ def parse_mesh( mesh, psk ):
                             v_item      = (point_index, vertex_weight)
                             vertex_list.append(v_item)
                     except Exception:#if get error ignore them #not safe I think
-                        print("Error link points!")
+                        print "Error link points!"
                         pass
 
         #bone name, [point id and wieght]
@@ -1310,7 +1314,7 @@ def parse_mesh( mesh, psk ):
 #===========================================================================
 def parse_armature( armature, psk, psa ):
 
-    print(header("ARMATURE", 'RIGHT'))
+    print header("ARMATURE", 'RIGHT')
     verbose("Armature object: {} Armature data: {}".format(armature.name, armature.data.name))
 
     # generate a list of root bone candidates
@@ -1329,8 +1333,8 @@ def parse_armature( armature, psk, psa ):
     BoneUtil.static_bone_id = 0 # replaces global
 
     # traverse bone chain
-    print("{: <3} {: <48} {: <20}".format("ID", "Bone", "Status"))
-    print()
+    print "{: <3} {: <48} {: <20}".format("ID", "Bone", "Status")
+    print
     recurse_bone(udk_root_bone, udk_bones, psk, psa, 0, armature.matrix_local)
 
     # final validation
@@ -1402,7 +1406,7 @@ def recurse_bone( bone, bones, psk, psa, parent_id, parent_matrix, indent="" ):
         status = "No vertex group"
         #FIXME overwriting previous status error?
 
-    print("{:<3} {:<48} {:<20}".format(bone_id, indent+bone.name, status))
+    print "{:<3} {:<48} {:<20}".format(bone_id, indent+bone.name, status)
 
     #bone.matrix_local
     #recursively dump child bones
@@ -1411,7 +1415,7 @@ def recurse_bone( bone, bones, psk, psa, parent_id, parent_matrix, indent="" ):
         recurse_bone(child_bone, bones, psk, psa, bone_id, parent_matrix, " "+indent)
 
 # FIXME rename? remove?
-class BoneUtil:
+class BoneUtil(object):
     static_bone_id = 0 # static property to replace global
 
 #===========================================================================
@@ -1422,17 +1426,17 @@ class BoneUtil:
 #===========================================================================
 def parse_animation( armature, udk_bones, actions_to_export, psa ):
 
-    print(header("ANIMATION", 'RIGHT'))
+    print header("ANIMATION", 'RIGHT')
 
     context     = bpy.context
     anim_rate   = context.scene.render.fps
 
     verbose("Armature object: {}".format(armature.name))
-    print("Scene: {} FPS: {} Frames: {} to {}".format(context.scene.name, anim_rate, context.scene.frame_start, context.scene.frame_end))
-    print("Processing {} action(s)".format(len(actions_to_export)))
-    print()
+    print "Scene: {} FPS: {} Frames: {} to {}".format(context.scene.name, anim_rate, context.scene.frame_start, context.scene.frame_end)
+    print "Processing {} action(s)".format(len(actions_to_export))
+    print
     if armature.animation_data == None: #if animation data was not create for the armature it will skip the exporting action set(s)
-        print("None Actions Set! skipping...")
+        print "None Actions Set! skipping..."
         return
     restoreAction   = armature.animation_data.action    # Q: is animation_data always valid?
 
@@ -1445,7 +1449,7 @@ def parse_animation( armature, udk_bones, actions_to_export, psa ):
         # removed: check for armature with no animation; all it did was force you to add one
 
         if not len(action.fcurves):
-            print("{} has no keys, skipping".format(action.name))
+            print "{} has no keys, skipping".format(action.name)
             continue
 
         # apply action to armature and update scene
@@ -1457,7 +1461,7 @@ def parse_animation( armature, udk_bones, actions_to_export, psa ):
         framemin, framemax  = action.frame_range
         start_frame         = int(framemin)
         end_frame           = int(framemax)
-        scene_range         = range(start_frame, end_frame + 1)
+        scene_range         = xrange(start_frame, end_frame + 1)
         frame_count         = len(scene_range)
 
         # create the AnimInfoBinary
@@ -1468,7 +1472,7 @@ def parse_animation( armature, udk_bones, actions_to_export, psa ):
         anim.AnimRate       = anim_rate
         anim.FirstRawFrame  = raw_frame_index
 
-        print("{}, frames {} to {} ({} frames)".format(action.name, start_frame, end_frame, frame_count))
+        print "{}, frames {} to {} ({} frames)".format(action.name, start_frame, end_frame, frame_count)
 
         # removed: bone lookup table
 
@@ -1489,7 +1493,7 @@ def parse_animation( armature, udk_bones, actions_to_export, psa ):
         # REMOVED: unique_bone_indexes is redundant?
 
         # frame loop...
-        for i in range(frame_count):
+        for i in xrange(frame_count):
 
             frame = scene_range[i]
 
@@ -1564,15 +1568,15 @@ def collate_actions():
 
     for action in bpy.data.actions:
         if bpy.context.scene.udk_option_selectanimations: # check if needed to select actions set for exporting it
-            print("Action Set is selected!")
+            print "Action Set is selected!"
             bready = False
             for actionlist in bpy.context.scene.udkas_list: #list the action set from the list
                 if actionlist.name == action.name and actionlist.bmatch == True and actionlist.bexport == True:
                     bready = True
-                    print("Added Action Set:",action.name)
+                    print "Added Action Set:",action.name
                     break
             if bready == False:#don't export it
-                print("Skipping Action Set:",action.name)
+                print "Skipping Action Set:",action.name
                 continue
         verbose(" + {}".format(action.name)) #action set name
         actions_to_export.append(action) #add to the action array
@@ -1596,9 +1600,9 @@ def find_armature_and_mesh():
     #bpy.ops.object.mode_set(mode='OBJECT')
 
     if bpy.context.scene.udk_option_selectobjects: #if checked select object true do list object on export
-        print("select mode:")
+        print "select mode:"
         if len(bpy.context.scene.udkArm_list) > 0:
-            print("Armature Name:",bpy.context.scene.udkArm_list[bpy.context.scene.udkArm_list_idx].name)
+            print "Armature Name:",bpy.context.scene.udkArm_list[bpy.context.scene.udkArm_list_idx].name
             for obj in bpy.context.scene.objects:
                 if obj.name == bpy.context.scene.udkArm_list[bpy.context.scene.udkArm_list_idx].name:
                     armature = obj
@@ -1618,9 +1622,9 @@ def find_armature_and_mesh():
                         bexportmesh = True
                         break
                 if bexportmesh == True:
-                    print("Mesh Name:",obj.name," < SELECT TO EXPORT!")
+                    print "Mesh Name:",obj.name," < SELECT TO EXPORT!"
                     meshselected.append(obj)
-        print("MESH COUNT:",len(meshselected))
+        print "MESH COUNT:",len(meshselected)
         # try the active object
         if active_object and active_object.type == 'MESH' and len(meshselected) == 0:
             if active_object.parent == armature:
@@ -1630,8 +1634,8 @@ def find_armature_and_mesh():
 
         # otherwise, expect a single mesh parented to the armature (other object types are ignored)
         else:
-            print("Number of meshes:",len(meshes))
-            print("Number of meshes (selected):",len(meshes))
+            print "Number of meshes:",len(meshes)
+            print "Number of meshes (selected):",len(meshes)
             if len(meshes) == 1:
                 mesh = meshes[0]
 
@@ -1643,7 +1647,7 @@ def find_armature_and_mesh():
             else:
                 raise Error("No mesh parented to armature")
     else: #if not check for select function from the list work the code here
-        print("normal mode:")
+        print "normal mode:"
         # try the active object
         if active_object and active_object.type == 'ARMATURE':
             armature = active_object
@@ -1688,8 +1692,8 @@ def find_armature_and_mesh():
 
         # otherwise, expect a single mesh parented to the armature (other object types are ignored)
         else:
-            print("Number of meshes:",len(parented_meshes))
-            print("Number of meshes (selected):",len(meshselected))
+            print "Number of meshes:",len(parented_meshes)
+            print "Number of meshes (selected):",len(meshselected)
             if len(parented_meshes) == 1:
                 mesh = parented_meshes[0]
 
@@ -1712,10 +1716,10 @@ def find_armature_and_mesh():
     #this will check if object need to be rebuild.
     if bpy.context.scene.udk_option_rebuildobjects:
         #print("INIT... REBUILDING...")
-        print("REBUILDING ARMATURE...")
+        print "REBUILDING ARMATURE..."
         #if deform mesh
         armature =  rebuildarmature(armature) #rebuild the armature to raw . If there IK constraint it will ignore it.
-        print("REBUILDING MESH...")
+        print "REBUILDING MESH..."
         mesh = rebuildmesh(mesh) #rebuild the mesh to raw data format.
 
     return armature, mesh
@@ -1740,13 +1744,13 @@ def collate_vertex_groups( mesh ):
 # Main
 #===========================================================================
 def export(filepath):
-    print(header("Export", 'RIGHT'))
+    print header("Export", 'RIGHT')
     bpy.types.Scene.udk_copy_merge = False #in case fail to export set this to default
     t       = time.clock()
     context = bpy.context
 
-    print("Blender Version {}.{}.{}".format(bpy.app.version[0], bpy.app.version[1], bpy.app.version[2]))
-    print("Filepath: {}".format(filepath))
+    print "Blender Version {}.{}.{}".format(bpy.app.version[0], bpy.app.version[1], bpy.app.version[2])
+    print "Filepath: {}".format(filepath)
 
     verbose("PSK={}, PSA={}".format(context.scene.udk_option_export_psk, context.scene.udk_option_export_psa))
 
@@ -1783,42 +1787,42 @@ def export(filepath):
         parse_animation(udk_armature, udk_bones, actions, psa)
 
     # write files
-    print(header("Exporting", 'CENTER'))
+    print header("Exporting", 'CENTER')
 
     psk_filename = filepath + '.psk'
     psa_filename = filepath + '.psa'
 
     if context.scene.udk_option_export_psk == True:
-        print("Skeletal mesh data...")
+        print "Skeletal mesh data..."
         psk.PrintOut()
         file = open(psk_filename, "wb")
         file.write(psk.dump())
         file.close()
-        print("Exported: " + psk_filename)
-        print()
+        print "Exported: " + psk_filename
+        print
 
     if context.scene.udk_option_export_psa == True:
-        print("Animation data...")
+        print "Animation data..."
         if not psa.IsEmpty():
             psa.PrintOut()
             file = open(psa_filename, "wb")
             file.write(psa.dump())
             file.close()
-            print("Exported: " + psa_filename)
+            print "Exported: " + psa_filename
         else:
-            print("No Animation (.psa file) to export")
+            print "No Animation (.psa file) to export"
 
-        print()
+        print
 
     #if objects are rebuild do the unlink
     if bpy.context.scene.udk_option_rebuildobjects:
-        print("Unlinking Objects")
-        print("Armature Object Name:",udk_armature.name) #display object name
+        print "Unlinking Objects"
+        print "Armature Object Name:",udk_armature.name #display object name
         bpy.context.scene.objects.unlink(udk_armature) #remove armature from the scene
-        print("Mesh Object Name:",udk_mesh.name) #display object name
+        print "Mesh Object Name:",udk_mesh.name #display object name
         bpy.context.scene.objects.unlink(udk_mesh) #remove mesh from the scene
 
-    print("Export completed in {:.2f} seconds".format((time.clock() - t)))
+    print "Export completed in {:.2f} seconds".format((time.clock() - t))
 
 #===========================================================================
 # Operator
@@ -1829,7 +1833,7 @@ class Operator_UDKExport( bpy.types.Operator ):
     bl_label    = "Export now"
 
     def execute(self, context):
-        print( "\n"*8 )
+        print "\n"*8
 
         scene = bpy.context.scene
 
@@ -1845,19 +1849,19 @@ class Operator_UDKExport( bpy.types.Operator ):
         try:
             export(filepath)
 
-        except Error as err:
-            print(err.message)
+        except Error, err:
+            print err.message
             message = err.message
 
         # restore settings
         scene.frame_set(restore_frame)
 
-        self.report({'ERROR'}, message)
+        self.report(set(['ERROR']), message)
 
         # restore settings
         scene.frame_set(restore_frame)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 #===========================================================================
 # Operator
@@ -1872,7 +1876,7 @@ class Operator_ToggleConsole( bpy.types.Operator ):
     #   return{'FINISHED'}
     def execute(self, context):
         bpy.ops.wm.console_toggle()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 #===========================================================================
 # Get filepath for export
@@ -1973,8 +1977,8 @@ class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
     bl_label = "Select Smooth Faces"#"Select Smooth faces"
 
     def invoke(self, context, event):
-        print("----------------------------------------")
-        print("Init Select Face(s):")
+        print "----------------------------------------"
+        print "Init Select Face(s):"
         bselected = False
         for obj in bpy.data.objects:
             if obj.type == 'MESH' and obj.select == True:
@@ -1998,17 +2002,17 @@ class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
                 mesh.to_mesh(obj.data)
                 bpy.context.scene.update()
                 bpy.ops.object.mode_set(mode='EDIT')
-                print("Select Smooth Count(s):",smoothcount," Flat Count(s):",flatcount)
+                print "Select Smooth Count(s):",smoothcount," Flat Count(s):",flatcount
                 bselected = True
                 break
         if bselected:
-            print("Selected Face(s) Exectue!")
-            self.report({'INFO'}, "Selected Face(s) Exectue!")
+            print "Selected Face(s) Exectue!"
+            self.report(set(['INFO']), "Selected Face(s) Exectue!")
         else:
-            print("Didn't select Mesh Object!")
-            self.report({'INFO'}, "Didn't Select Mesh Object!")
-        print("----------------------------------------")
-        return{'FINISHED'}
+            print "Didn't select Mesh Object!"
+            self.report(set(['INFO']), "Didn't Select Mesh Object!")
+        print "----------------------------------------"
+        returnset(['FINISHED'])
 
 class OBJECT_OT_MeshClearWeights(bpy.types.Operator):
     """Remove all mesh vertex groups weights for the bones"""
@@ -2020,9 +2024,9 @@ class OBJECT_OT_MeshClearWeights(bpy.types.Operator):
             if obj.type == 'MESH' and obj.select == True:
                 for vg in obj.vertex_groups:
                     obj.vertex_groups.remove(vg)
-                self.report({'INFO'}, "Mesh Vertex Groups Remove!")
+                self.report(set(['INFO']), "Mesh Vertex Groups Remove!")
                 break
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 def unpack_list(list_of_tuples):
     l = []
@@ -2032,7 +2036,7 @@ def unpack_list(list_of_tuples):
 
 def rebuildmesh(obj):
     #make sure it in object mode
-    print("Mesh Object Name:",obj.name)
+    print "Mesh Object Name:",obj.name
     bpy.ops.object.mode_set(mode='OBJECT')
     for i in bpy.context.scene.objects: i.select = False #deselect all objects
     obj.select = True
@@ -2121,7 +2125,7 @@ def rebuildmesh(obj):
     for mat in me_ob.materials:
         #print("-Material:",mat.name,"INDEX:",matcount)
         matcount += 1
-    print("Mesh Object Name:",obmesh.name)
+    print "Mesh Object Name:",obmesh.name
     bpy.context.scene.update()
     return obmesh
 
@@ -2132,21 +2136,21 @@ class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
     bl_label = "Rebuild Mesh"#"Rebuild Mesh"
 
     def invoke(self, context, event):
-        print("----------------------------------------")
-        print("Init Mesh Bebuild...")
+        print "----------------------------------------"
+        print "Init Mesh Bebuild..."
         bselected = False
         bpy.ops.object.mode_set(mode='OBJECT')
         for obj in bpy.data.objects:
             if obj.type == 'MESH' and obj.select == True:
                 rebuildmesh(obj)
-        self.report({'INFO'}, "Rebuild Mesh Finish!")
-        print("Finish Mesh Build...")
-        print("----------------------------------------")
-        return{'FINISHED'}
+        self.report(set(['INFO']), "Rebuild Mesh Finish!")
+        print "Finish Mesh Build..."
+        print "----------------------------------------"
+        returnset(['FINISHED'])
 
 def rebuildarmature(obj):
     currentbone = [] #select armature for roll copy
-    print("Armature Name:",obj.name)
+    print "Armature Name:",obj.name
     objectname = "ArmatureDataPSK"
     meshname ="ArmatureObjectPSK"
     armdata = bpy.data.armatures.new(objectname)
@@ -2184,7 +2188,7 @@ def rebuildarmature(obj):
     ob_new.animation_data_create()#create animation data
     if obj.animation_data != None:#check for animation
         ob_new.animation_data.action  = obj.animation_data.action  #just make sure it here to do the animations if exist
-    print("Armature Object Name:",ob_new.name)
+    print "Armature Object Name:",ob_new.name
     return ob_new
 
 class OBJECT_OT_UTRebuildArmature(bpy.types.Operator):
@@ -2195,22 +2199,22 @@ class OBJECT_OT_UTRebuildArmature(bpy.types.Operator):
     bl_label = "Rebuild Armature" #Rebuild Armature
 
     def invoke(self, context, event):
-        print("----------------------------------------")
-        print("Init Rebuild Armature...")
+        print "----------------------------------------"
+        print "Init Rebuild Armature..."
         bselected = False
         for obj in bpy.data.objects:
             if obj.type == 'ARMATURE' and obj.select == True:
                 rebuildarmature(obj)
-        self.report({'INFO'}, "Rebuild Armature Finish!")
-        print("End of Rebuild Armature.")
-        print("----------------------------------------")
-        return{'FINISHED'}
+        self.report(set(['INFO']), "Rebuild Armature Finish!")
+        print "End of Rebuild Armature."
+        print "----------------------------------------"
+        returnset(['FINISHED'])
 
 class UDKActionSetListPG(bpy.types.PropertyGroup):
     bool    = BoolProperty(default=False)
     string  = StringProperty()
     actionname  = StringProperty()
-    bmatch    = BoolProperty(default=False,name="Match", options={"HIDDEN"},description = "This check against bone names and action group names matches and override boolean if true")
+    bmatch    = BoolProperty(default=False,name="Match", options=set(["HIDDEN"]),description = "This check against bone names and action group names matches and override boolean if true")
     bexport    = BoolProperty(default=False,name="Export",description = "Check this to export the animation")
 
 bpy.utils.register_class(UDKActionSetListPG)
@@ -2226,8 +2230,8 @@ class UL_UDKActionSetList(bpy.types.UIList):
 class UDKObjListPG(bpy.types.PropertyGroup):
     bool    = BoolProperty(default=False)
     string  = StringProperty()
-    bexport    = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This will be ignore when exported")
-    bselect    = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "This will be ignore when exported")
+    bexport    = BoolProperty(default=False,name="Export", options=set(["HIDDEN"]),description = "This will be ignore when exported")
+    bselect    = BoolProperty(default=False,name="Select", options=set(["HIDDEN"]),description = "This will be ignore when exported")
     otype  = StringProperty(name="Type",description = "This will be ignore when exported")
 
 bpy.utils.register_class(UDKObjListPG)
@@ -2243,8 +2247,8 @@ class UL_UDKObjList(bpy.types.UIList):
 class UDKMeshListPG(bpy.types.PropertyGroup):
     bool    = BoolProperty(default=False)
     string  = StringProperty()
-    bexport    = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This object will be export when true")
-    bselect    = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "Make sure you have Mesh is parent to Armature")
+    bexport    = BoolProperty(default=False,name="Export", options=set(["HIDDEN"]),description = "This object will be export when true")
+    bselect    = BoolProperty(default=False,name="Select", options=set(["HIDDEN"]),description = "Make sure you have Mesh is parent to Armature")
     otype  = StringProperty(name="Type",description = "This will be ignore when exported")
 
 bpy.utils.register_class(UDKMeshListPG)
@@ -2260,8 +2264,8 @@ class UL_UDKMeshList(bpy.types.UIList):
 class UDKArmListPG(bpy.types.PropertyGroup):
     bool    = BoolProperty(default=False)
     string  = StringProperty()
-    bexport    = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This will be ignore when exported")
-    bselect    = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "This will be ignore when exported")
+    bexport    = BoolProperty(default=False,name="Export", options=set(["HIDDEN"]),description = "This will be ignore when exported")
+    bselect    = BoolProperty(default=False,name="Select", options=set(["HIDDEN"]),description = "This will be ignore when exported")
     otype  = StringProperty(name="Type",description = "This will be ignore when exported")
 
 bpy.utils.register_class(UDKArmListPG)
@@ -2423,7 +2427,7 @@ class OBJECT_OT_UDKObjUpdate(bpy.types.Operator):
 
     def execute(self, context):
         udkupdateobjects()
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 def udkcheckmeshline():
     objmesh = None
@@ -2442,14 +2446,14 @@ def udkcheckmeshline():
     bpy.context.tool_settings.mesh_select_mode = (True, False, False) #select vertices
 
     if objmesh != None:
-        print("found mesh")
-        print(objmesh)
-        print(objmesh.data.tessfaces)
+        print "found mesh"
+        print objmesh
+        print objmesh.data.tessfaces
         vertex_list = []
         for face in objmesh.data.tessfaces:
             wedge_list  = []
             vect_list   = []
-            for i in range(3):
+            for i in xrange(3):
                 vert_index  = face.vertices[i]
                 vert        = objmesh.data.vertices[vert_index]
                 vect_list.append( FVector(vert.co.x, vert.co.y, vert.co.z) )
@@ -2502,8 +2506,8 @@ class OBJECT_OT_UDKCheckMeshLines(bpy.types.Operator):
 
     def execute(self, context):
         message = udkcheckmeshline()
-        self.report({'ERROR'}, message)
-        return{'FINISHED'}
+        self.report(set(['ERROR']), message)
+        returnset(['FINISHED'])
 
 class OBJECT_OT_ActionSetAnimUpdate(bpy.types.Operator):
     """Select Armture to match the action set groups. """ \
@@ -2590,7 +2594,7 @@ class OBJECT_OT_ActionSetAnimUpdate(bpy.types.Operator):
                     my_sett.remove(actioncount);
                     break
                 actioncount += 1
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 class ExportUDKAnimData(bpy.types.Operator):
     """Export Skeleton Mesh / Animation Data file(s). """ \
@@ -2606,7 +2610,7 @@ class ExportUDKAnimData(bpy.types.Operator):
             )
     filter_glob = StringProperty(
             default="*.psk;*.psa",
-            options={'HIDDEN'},
+            options=set(['HIDDEN']),
             )
     udk_option_smoothing_groups = bpy.types.Scene.udk_option_smoothing_groups
     udk_option_clamp_uv = bpy.types.Scene.udk_option_clamp_uv
@@ -2636,20 +2640,20 @@ class ExportUDKAnimData(bpy.types.Operator):
         try:
             export(filepath)
 
-        except Error as err:
-            print(err.message)
+        except Error, err:
+            print err.message
             message = err.message
 
         # restore settings
         scene.frame_set(restore_frame)
 
-        self.report({'WARNING', 'INFO'}, message)
-        return {'FINISHED'}
+        self.report(set(['WARNING', 'INFO']), message)
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         wm = context.window_manager
         wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 def menu_func(self, context):
     default_path = os.path.splitext(bpy.data.filepath)[0] + ".psk"
@@ -2670,7 +2674,7 @@ def unregister():
 
 if __name__ == "__main__":
     #print("\n"*4)
-    print(header("UDK Export PSK/PSA 2.6", 'CENTER'))
+    print header("UDK Export PSK/PSA 2.6", 'CENTER')
     register()
 
 #loader

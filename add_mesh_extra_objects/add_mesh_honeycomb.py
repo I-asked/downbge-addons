@@ -1,8 +1,10 @@
 # GPL # "author": "Kayo Phoenix"
 
+from __future__ import division
+from __future__ import absolute_import
 from math import pi, sin, cos
 
-class honeycomb_geometry():
+class honeycomb_geometry(object):
     def __init__(self, rows, cols, D, E):
         self.rows = rows
         self.cols = cols
@@ -94,9 +96,9 @@ class honeycomb_geometry():
         verts = []
         faces = []
 
-        for row in range(-ar, self.rows + ar):
+        for row in xrange(-ar, self.rows + ar):
             level = []
-            for col in range(-ac, self.cols + ac):
+            for col in xrange(-ac, self.cols + ac):
                 co, ap = self.cell(row, col, len(verts))
                 verts += co
                 level.append(ap)
@@ -104,7 +106,7 @@ class honeycomb_geometry():
 
         # bottom row
         row = 0
-        for col in range(1, len(cells[row]) - 1):
+        for col in xrange(1, len(cells[row]) - 1):
             s = cells[row][col]
             l = cells[row][col - 1]
             u = cells[row + 1][col]
@@ -116,7 +118,7 @@ class honeycomb_geometry():
         row = len(cells) - 1
         cs = 0
         if row % 2: cs += 1
-        for col in range(1 + cs, len(cells[row]) - 1):
+        for col in xrange(1 + cs, len(cells[row]) - 1):
             s = cells[row][col]
             l = cells[row][col - 1]
             d = cells[row - 1][col - cs]
@@ -124,10 +126,10 @@ class honeycomb_geometry():
             faces.append([s[3], d[1], d[0], s[4]])
 
         # middle rows
-        for row in range(1, len(cells) - 1):
+        for row in xrange(1, len(cells) - 1):
             cs = 0
             if row % 2: cs += 1
-            for col in range(1, len(cells[row]) - 1):
+            for col in xrange(1, len(cells[row]) - 1):
                 s = cells[row][col]
                 l = cells[row][col - 1]
                 u = cells[row + 1][col - cs]
@@ -142,7 +144,7 @@ class honeycomb_geometry():
         # right column
         row = 0
         col = len(cells[row]) - 1
-        for row in range(1, len(cells) - 1):
+        for row in xrange(1, len(cells) - 1):
             cs = 0
             if row % 2: cs += 1
 
@@ -181,7 +183,7 @@ class add_mesh_honeycomb(bpy.types.Operator):
     """Simple honeycomb mesh generator"""
     bl_idname = 'mesh.honeycomb_add'
     bl_label = 'Add HoneyComb'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     rows = IntProperty(
         name = 'Num of rows', default = 2,
@@ -235,4 +237,4 @@ class add_mesh_honeycomb(bpy.types.Operator):
 
         object_utils.object_data_add(context, mesh, operator=self)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])

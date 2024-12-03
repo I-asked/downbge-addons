@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 
 # Use some of the existing buttons.
@@ -95,7 +96,7 @@ for member in dir(properties_particle):  # add all "particle" panels from blende
 del properties_particle
 
 
-class RenderButtonsPanel():
+class RenderButtonsPanel(object):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
@@ -107,7 +108,7 @@ class RenderButtonsPanel():
         return (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
 
-class MaterialButtonsPanel():
+class MaterialButtonsPanel(object):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "material"
@@ -120,7 +121,7 @@ class MaterialButtonsPanel():
         return mat and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
 
-class TextureButtonsPanel():
+class TextureButtonsPanel(object):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "texture"
@@ -141,7 +142,7 @@ class TextureButtonsPanel():
         # return tex and ((tex.type == cls.tex_type and not tex.use_nodes) and (engine in cls.COMPAT_ENGINES))
 
 
-class ObjectButtonsPanel():
+class ObjectButtonsPanel(object):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"
@@ -154,7 +155,7 @@ class ObjectButtonsPanel():
         return obj and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
 
-class CameraDataButtonsPanel():
+class CameraDataButtonsPanel(object):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
@@ -166,7 +167,7 @@ class CameraDataButtonsPanel():
         rd = context.scene.render
         return cam and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
-class WorldButtonsPanel():
+class WorldButtonsPanel(object):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "world"
@@ -178,7 +179,7 @@ class WorldButtonsPanel():
         rd = context.scene.render
         return wld and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
         
-class TextButtonsPanel():
+class TextButtonsPanel(object):
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
     bl_label = "POV-Ray"
@@ -193,7 +194,7 @@ class TextButtonsPanel():
 
 class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Export Settings"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw_header(self, context):
         self.layout.label(icon='CONSOLE')
@@ -234,7 +235,7 @@ class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
 class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Render Settings"
     bl_icon = 'SETTINGS'
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw_header(self, context):
         self.layout.label(icon='SETTINGS')
@@ -265,7 +266,7 @@ class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Anti-Aliasing"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw_header(self, context):
         scene = context.scene
@@ -322,7 +323,7 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Radiosity"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
     def draw_header(self, context):
         scene = context.scene
         if scene.pov.radio_enable:
@@ -374,7 +375,7 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_povray_media(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Atmosphere Media"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw_header(self, context):
         scene = context.scene
@@ -412,7 +413,7 @@ class RENDER_PT_povray_media(WorldButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_povray_mirrorIOR(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "IOR Mirror"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw_header(self, context):
         scene = context.material
@@ -434,7 +435,7 @@ class MATERIAL_PT_povray_mirrorIOR(MaterialButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_povray_metallic(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "metallic Mirror"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw_header(self, context):
         scene = context.material
@@ -450,7 +451,7 @@ class MATERIAL_PT_povray_metallic(MaterialButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_povray_fade_color(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Interior Fade Color"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw_header(self, context):
         mat = context.material
@@ -466,7 +467,7 @@ class MATERIAL_PT_povray_fade_color(MaterialButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_povray_conserve_energy(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "conserve energy"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw_header(self, context):
         mat = context.material
@@ -482,7 +483,7 @@ class MATERIAL_PT_povray_conserve_energy(MaterialButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_povray_iridescence(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "iridescence"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw_header(self, context):
         mat = context.material
@@ -504,7 +505,7 @@ class MATERIAL_PT_povray_iridescence(MaterialButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Caustics"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw_header(self, context):
         mat = context.material
@@ -538,7 +539,7 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_povray_replacement_text(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Custom POV Code"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw(self, context):
         layout = self.layout
@@ -551,8 +552,8 @@ class MATERIAL_PT_povray_replacement_text(MaterialButtonsPanel, bpy.types.Panel)
 
 class TEXTURE_PT_povray_type(TextureButtonsPanel, bpy.types.Panel):
     bl_label = "POV-ray Textures"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
-    bl_options = {'HIDE_HEADER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
+    bl_options = set(['HIDE_HEADER'])
 
     def draw(self, context):
         layout = self.layout
@@ -565,8 +566,8 @@ class TEXTURE_PT_povray_type(TextureButtonsPanel, bpy.types.Panel):
 
 class TEXTURE_PT_povray_preview(TextureButtonsPanel, bpy.types.Panel):
     bl_label = "Preview"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
-    bl_options = {'HIDE_HEADER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
+    bl_options = set(['HIDE_HEADER'])
     
     @classmethod
     def poll(cls, context):
@@ -592,7 +593,7 @@ class TEXTURE_PT_povray_preview(TextureButtonsPanel, bpy.types.Panel):
 
 class TEXTURE_PT_povray_parameters(TextureButtonsPanel, bpy.types.Panel):
     bl_label = "POV-ray Pattern Options"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
     def draw(self, context):
         mat = context.material
         layout = self.layout
@@ -601,7 +602,7 @@ class TEXTURE_PT_povray_parameters(TextureButtonsPanel, bpy.types.Panel):
         if tex is not None and tex.pov.tex_pattern_type != 'emulator':
             if tex.pov.tex_pattern_type == 'agate':
                 layout.prop(tex.pov, "modifier_turbulence", text="Agate Turbulence")
-            if tex.pov.tex_pattern_type in {'spiral1', 'spiral2'}:
+            if tex.pov.tex_pattern_type in set(['spiral1', 'spiral2']):
                 layout.prop(tex.pov, "modifier_numbers", text="Number of arms")
             if tex.pov.tex_pattern_type == 'tiling':
                 layout.prop(tex.pov, "modifier_numbers", text="Pattern number")
@@ -619,7 +620,7 @@ class TEXTURE_PT_povray_parameters(TextureButtonsPanel, bpy.types.Panel):
                 row=col.row()
                 row.prop(tex.pov, "brick_size_z", text="Brick size Z")
                 row.prop(tex.pov, "brick_mortar", text="Brick mortar")
-            if tex.pov.tex_pattern_type in {'julia','mandel','magnet'}:
+            if tex.pov.tex_pattern_type in set(['julia','mandel','magnet']):
                 col = layout.column(align=align)
                 if tex.pov.tex_pattern_type == 'julia':
                     row = col.row()
@@ -630,7 +631,7 @@ class TEXTURE_PT_povray_parameters(TextureButtonsPanel, bpy.types.Panel):
                     row.prop(tex.pov, "julia_complex_1", text="Complex 1")
                     row.prop(tex.pov, "julia_complex_2", text="Complex 2")
                 row=col.row()
-                if tex.pov.tex_pattern_type in {'julia','mandel'}:            
+                if tex.pov.tex_pattern_type in set(['julia','mandel']):            
                     row.prop(tex.pov, "f_exponent", text="Exponent")
                 if tex.pov.tex_pattern_type == 'magnet':            
                     row.prop(tex.pov, "magnet_type", text="Type")
@@ -679,9 +680,9 @@ class TEXTURE_PT_povray_parameters(TextureButtonsPanel, bpy.types.Panel):
                 layout.prop(tex.pov, "func_list", text="Functions") 
             if tex.pov.tex_pattern_type == 'function' and tex.pov.func_list != "NONE":
                 func = None
-                if tex.pov.func_list in {"f_noise3d", "f_ph", "f_r", "f_th"}:
+                if tex.pov.func_list in set(["f_noise3d", "f_ph", "f_r", "f_th"]):
                     func = 0
-                if tex.pov.func_list in {"f_comma","f_crossed_trough","f_cubic_saddle",
+                if tex.pov.func_list in set(["f_comma","f_crossed_trough","f_cubic_saddle",
                                          "f_cushion","f_devils_curve","f_enneper","f_glob",
                                          "f_heart","f_hex_x","f_hex_y","f_hunt_surface",
                                          "f_klein_bottle","f_kummer_surface_v1",
@@ -689,26 +690,26 @@ class TEXTURE_PT_povray_parameters(TextureButtonsPanel, bpy.types.Panel):
                                          "f_noise_generator","f_odd","f_paraboloid","f_pillow",
                                          "f_piriform","f_quantum","f_quartic_paraboloid",
                                          "f_quartic_saddle","f_sphere","f_steiners_roman",
-                                         "f_torus_gumdrop","f_umbrella"}:
+                                         "f_torus_gumdrop","f_umbrella"]):
                     func = 1
-                if tex.pov.func_list in {"f_bicorn","f_bifolia","f_boy_surface","f_superellipsoid","f_torus"}:
+                if tex.pov.func_list in set(["f_bicorn","f_bifolia","f_boy_surface","f_superellipsoid","f_torus"]):
                     func = 2
-                if tex.pov.func_list in {"f_ellipsoid","f_folium_surface","f_hyperbolic_torus",
+                if tex.pov.func_list in set(["f_ellipsoid","f_folium_surface","f_hyperbolic_torus",
                                          "f_kampyle_of_eudoxus","f_parabolic_torus",
-                                         "f_quartic_cylinder","f_torus2"}:
+                                         "f_quartic_cylinder","f_torus2"]):
                     func = 3
-                if tex.pov.func_list in {"f_blob2","f_cross_ellipsoids","f_flange_cover",
+                if tex.pov.func_list in set(["f_blob2","f_cross_ellipsoids","f_flange_cover",
                                          "f_isect_ellipsoids","f_kummer_surface_v2","f_ovals_of_cassini",
-                                         "f_rounded_box","f_spikes_2d","f_strophoid"}:
+                                         "f_rounded_box","f_spikes_2d","f_strophoid"]):
                     func = 4
-                if tex.pov.func_list in {"f_algbr_cyl1","f_algbr_cyl2","f_algbr_cyl3","f_algbr_cyl4",
-                                         "f_blob","f_mesh1","f_poly4","f_spikes"}:
+                if tex.pov.func_list in set(["f_algbr_cyl1","f_algbr_cyl2","f_algbr_cyl3","f_algbr_cyl4",
+                                         "f_blob","f_mesh1","f_poly4","f_spikes"]):
                     func = 5
-                if tex.pov.func_list in {"f_devils_curve_2d","f_dupin_cyclid","f_folium_surface_2d",
+                if tex.pov.func_list in set(["f_devils_curve_2d","f_dupin_cyclid","f_folium_surface_2d",
                                          "f_hetero_mf","f_kampyle_of_eudoxus_2d","f_lemniscate_of_gerono_2d",
-                                         "f_polytubes","f_ridge","f_ridged_mf","f_spiral","f_witch_of_agnesi"}:
+                                         "f_polytubes","f_ridge","f_ridged_mf","f_spiral","f_witch_of_agnesi"]):
                     func = 6
-                if tex.pov.func_list in {"f_helix1","f_helix2","f_piriform_2d","f_strophoid_2d"}:
+                if tex.pov.func_list in set(["f_helix1","f_helix2","f_piriform_2d","f_strophoid_2d"]):
                     func = 7
                 if tex.pov.func_list == "f_helical_torus":
                     func = 8
@@ -753,7 +754,7 @@ class TEXTURE_PT_povray_parameters(TextureButtonsPanel, bpy.types.Panel):
             layout.prop(tex.pov, "warp_types", text="Warp types") #warp
             if tex.pov.warp_types == "TOROIDAL":
                 layout.prop(tex.pov, "warp_tor_major_radius", text="Major radius")
-            if tex.pov.warp_types not in {"CUBIC","NONE"}:
+            if tex.pov.warp_types not in set(["CUBIC","NONE"]):
                 layout.prop(tex.pov, "warp_orientation", text="Warp orientation")
             col = layout.column(align=align)
             row = col.row()         
@@ -796,7 +797,7 @@ class TEXTURE_PT_povray_parameters(TextureButtonsPanel, bpy.types.Panel):
         
 class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
     bl_label = "Image Gamma"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw_header(self, context):
         tex = context.texture
@@ -828,7 +829,7 @@ class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
 
 class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw(self, context):
         layout = self.layout
@@ -846,7 +847,7 @@ class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
 
 class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Custom POV Code"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw(self, context):
         layout = self.layout
@@ -860,7 +861,7 @@ class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, bpy.types.Panel):
 
 class CAMERA_PT_povray_cam_dof(CameraDataButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray Depth Of Field"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw_header(self, context):
         cam = context.camera
@@ -889,7 +890,7 @@ class CAMERA_PT_povray_cam_dof(CameraDataButtonsPanel, bpy.types.Panel):
 
 class CAMERA_PT_povray_replacement_text(CameraDataButtonsPanel, bpy.types.Panel):
     bl_label = "Custom POV Code"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw(self, context):
         layout = self.layout
@@ -903,7 +904,7 @@ class CAMERA_PT_povray_replacement_text(CameraDataButtonsPanel, bpy.types.Panel)
 
 class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
     bl_label = "P.O.V-Ray"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    COMPAT_ENGINES = set(['POVRAY_RENDER'])
 
     def draw(self, context):
         layout = self.layout

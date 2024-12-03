@@ -1,11 +1,14 @@
 # GPL # "author": "Phil Cote, cotejrp1, (http://www.blenderaddons.com)"
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 import bmesh
 from bpy.props import FloatProperty, IntProperty
 from math import pi
 from mathutils import Quaternion, Vector
 from bpy_extras.object_utils import AddObjectHelper, object_data_add
+from itertools import izip
 
 
 def create_step(width, base_level, step_height, num_sides):
@@ -15,14 +18,14 @@ def create_step(width, base_level, step_height, num_sides):
         rad = width / 2
         
         quat_angles = [(cur_side/num_sides) * PI2 
-                            for cur_side in range(num_sides)]
+                            for cur_side in xrange(num_sides)]
                             
         quaternions = [Quaternion(axis, quat_angle) 
                             for quat_angle in quat_angles]
                             
         init_vectors = [Vector([rad, 0, base_level])] * len(quaternions)
         
-        quat_vector_pairs = list(zip(quaternions, init_vectors))
+        quat_vector_pairs = list(izip(quaternions, init_vectors))
         vectors = [quaternion * vec for quaternion, vec in quat_vector_pairs]
         bottom_list = [(vec.x, vec.y, vec.z) for vec in vectors]
         top_list = [(vec.x, vec.y, vec.z+step_height) for vec in vectors]
@@ -36,7 +39,7 @@ def split_list(l, n):
     http://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks-in-python
     """
     n *= 2
-    returned_list = [l[i:i+n] for i in range(0, len(l), n)]
+    returned_list = [l[i:i+n] for i in xrange(0, len(l), n)]
     return returned_list
     
 
@@ -54,7 +57,7 @@ def add_pyramid_object(self, context):
         height_offset = 0
         cur_width = self.width
         
-        for i in range(self.num_steps):
+        for i in xrange(self.num_steps):
             verts_loc = create_step(cur_width, height_offset, self.height,
                                     self.num_sides)
             height_offset += self.height
@@ -73,7 +76,7 @@ def add_pyramid_object(self, context):
         
         def add_faces(n, block_vert_sets):
             for bvs in block_vert_sets:
-                for i in range(self.num_sides-1):
+                for i in xrange(self.num_sides-1):
                     bm.faces.new([bvs[i], bvs[i+n], bvs[i+n+1], bvs[i+1]])
                 bm.faces.new([bvs[n-1], bvs[(n*2)-1], bvs[n], bvs[0]])
                 
@@ -99,7 +102,7 @@ class AddPyramid(bpy.types.Operator, AddObjectHelper):
     '''Add a mesh pyramid'''
     bl_idname = "mesh.primitive_steppyramid_add"
     bl_label = "Pyramid"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     
     num_sides = IntProperty(
@@ -131,4 +134,4 @@ class AddPyramid(bpy.types.Operator, AddObjectHelper):
 
     def execute(self, context):
         add_pyramid_object(self, context)
-        return {'FINISHED'}
+        return set(['FINISHED'])

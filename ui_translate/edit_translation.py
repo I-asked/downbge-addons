@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 if "bpy" in locals():
     import importlib
     importlib.reload(settings)
@@ -60,13 +61,13 @@ class UI_OT_i18n_edittranslation_update_mo(bpy.types.Operator):
 
     # "Parameters"
     lang = StringProperty(description="Current (translated) language",
-                          options={'SKIP_SAVE'})
+                          options=set(['SKIP_SAVE']))
     po_file = StringProperty(description="Path to the matching po file",
-                             subtype='FILE_PATH', options={'SKIP_SAVE'})
+                             subtype='FILE_PATH', options=set(['SKIP_SAVE']))
     clean_mo = BoolProperty(description="Clean up (remove) all local "
                                         "translation files, to be able to use "
                                         "all system's ones again",
-                            default=False, options={'SKIP_SAVE'})
+                            default=False, options=set(['SKIP_SAVE']))
 
     def execute(self, context):
         if self.clean_mo:
@@ -74,7 +75,7 @@ class UI_OT_i18n_edittranslation_update_mo(bpy.types.Operator):
             if root:
                 shutil.rmtree(root)
         elif not (self.lang and self.po_file):
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
         else:
             mo_dir = bpy.utils.user_resource('DATAFILES', settings.settings.MO_PATH_TEMPLATE_RELATIVE.format(self.lang),
                                              create=True)
@@ -82,7 +83,7 @@ class UI_OT_i18n_edittranslation_update_mo(bpy.types.Operator):
             _get_messages(self.lang, self.po_file).write(kind='MO', dest=mo_file)
 
         bpy.ops.ui.reloadtranslation()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class UI_OT_i18n_edittranslation(bpy.types.Operator):
@@ -91,60 +92,60 @@ class UI_OT_i18n_edittranslation(bpy.types.Operator):
     bl_label = "Edit Translation"
 
     # "Parameters"
-    but_label = StringProperty(description="Label of the control", options={'SKIP_SAVE'})
-    rna_label = StringProperty(description="RNA-defined label of the control, if any", options={'SKIP_SAVE'})
-    enum_label = StringProperty(description="Label of the enum item of the control, if any", options={'SKIP_SAVE'})
-    but_tip = StringProperty(description="Tip of the control", options={'SKIP_SAVE'})
-    rna_tip = StringProperty(description="RNA-defined tip of the control, if any", options={'SKIP_SAVE'})
-    enum_tip = StringProperty(description="Tip of the enum item of the control, if any", options={'SKIP_SAVE'})
-    rna_struct = StringProperty(description="Identifier of the RNA struct, if any", options={'SKIP_SAVE'})
-    rna_prop = StringProperty(description="Identifier of the RNA property, if any", options={'SKIP_SAVE'})
-    rna_enum = StringProperty(description="Identifier of the RNA enum item, if any", options={'SKIP_SAVE'})
-    rna_ctxt = StringProperty(description="RNA context for label", options={'SKIP_SAVE'})
+    but_label = StringProperty(description="Label of the control", options=set(['SKIP_SAVE']))
+    rna_label = StringProperty(description="RNA-defined label of the control, if any", options=set(['SKIP_SAVE']))
+    enum_label = StringProperty(description="Label of the enum item of the control, if any", options=set(['SKIP_SAVE']))
+    but_tip = StringProperty(description="Tip of the control", options=set(['SKIP_SAVE']))
+    rna_tip = StringProperty(description="RNA-defined tip of the control, if any", options=set(['SKIP_SAVE']))
+    enum_tip = StringProperty(description="Tip of the enum item of the control, if any", options=set(['SKIP_SAVE']))
+    rna_struct = StringProperty(description="Identifier of the RNA struct, if any", options=set(['SKIP_SAVE']))
+    rna_prop = StringProperty(description="Identifier of the RNA property, if any", options=set(['SKIP_SAVE']))
+    rna_enum = StringProperty(description="Identifier of the RNA enum item, if any", options=set(['SKIP_SAVE']))
+    rna_ctxt = StringProperty(description="RNA context for label", options=set(['SKIP_SAVE']))
 
-    lang = StringProperty(description="Current (translated) language", options={'SKIP_SAVE'})
-    po_file = StringProperty(description="Path to the matching po file", subtype='FILE_PATH', options={'SKIP_SAVE'})
+    lang = StringProperty(description="Current (translated) language", options=set(['SKIP_SAVE']))
+    po_file = StringProperty(description="Path to the matching po file", subtype='FILE_PATH', options=set(['SKIP_SAVE']))
 
     # Found in po file.
-    org_but_label = StringProperty(description="Original label of the control", options={'SKIP_SAVE'})
+    org_but_label = StringProperty(description="Original label of the control", options=set(['SKIP_SAVE']))
     org_rna_label = StringProperty(description="Original RNA-defined label of the control, if any",
-                                   options={'SKIP_SAVE'})
+                                   options=set(['SKIP_SAVE']))
     org_enum_label = StringProperty(description="Original label of the enum item of the control, if any",
-                                    options={'SKIP_SAVE'})
-    org_but_tip = StringProperty(description="Original tip of the control", options={'SKIP_SAVE'})
-    org_rna_tip = StringProperty(description="Original RNA-defined tip of the control, if any", options={'SKIP_SAVE'})
+                                    options=set(['SKIP_SAVE']))
+    org_but_tip = StringProperty(description="Original tip of the control", options=set(['SKIP_SAVE']))
+    org_rna_tip = StringProperty(description="Original RNA-defined tip of the control, if any", options=set(['SKIP_SAVE']))
     org_enum_tip = StringProperty(description="Original tip of the enum item of the control, if any",
-                                  options={'SKIP_SAVE'})
+                                  options=set(['SKIP_SAVE']))
 
     flag_items = (('FUZZY', "Fuzzy", "Message is marked as fuzzy in po file"),
                   ('ERROR', "Error", "Some error occurred with this message"),
                  )
     but_label_flags = EnumProperty(items=flag_items, description="Flags about the label of the button",
-                                   options={'SKIP_SAVE', 'ENUM_FLAG'})
+                                   options=set(['SKIP_SAVE', 'ENUM_FLAG']))
     rna_label_flags = EnumProperty(items=flag_items, description="Flags about the RNA-defined label of the button",
-                                   options={'SKIP_SAVE', 'ENUM_FLAG'})
+                                   options=set(['SKIP_SAVE', 'ENUM_FLAG']))
     enum_label_flags = EnumProperty(items=flag_items, description="Flags about the RNA enum item label of the button",
-                                    options={'SKIP_SAVE', 'ENUM_FLAG'})
+                                    options=set(['SKIP_SAVE', 'ENUM_FLAG']))
     but_tip_flags = EnumProperty(items=flag_items, description="Flags about the tip of the button",
-                                 options={'SKIP_SAVE', 'ENUM_FLAG'})
+                                 options=set(['SKIP_SAVE', 'ENUM_FLAG']))
     rna_tip_flags = EnumProperty(items=flag_items, description="Flags about the RNA-defined tip of the button",
-                                 options={'SKIP_SAVE', 'ENUM_FLAG'})
+                                 options=set(['SKIP_SAVE', 'ENUM_FLAG']))
     enum_tip_flags = EnumProperty(items=flag_items, description="Flags about the RNA enum item tip of the button",
-                                  options={'SKIP_SAVE', 'ENUM_FLAG'})
+                                  options=set(['SKIP_SAVE', 'ENUM_FLAG']))
 
-    stats_str = StringProperty(description="Stats from opened po", options={'SKIP_SAVE'})
+    stats_str = StringProperty(description="Stats from opened po", options=set(['SKIP_SAVE']))
     update_po = BoolProperty(description="Update po file, try to rebuild mo file, and refresh Blender UI",
-                             default=False, options={'SKIP_SAVE'})
+                             default=False, options=set(['SKIP_SAVE']))
     update_mo = BoolProperty(description="Try to rebuild mo file, and refresh Blender UI",
-                             default=False, options={'SKIP_SAVE'})
+                             default=False, options=set(['SKIP_SAVE']))
     clean_mo = BoolProperty(description="Clean up (remove) all local translation files, to be able to use "
                                         "all system's ones again",
-                            default=False, options={'SKIP_SAVE'})
+                            default=False, options=set(['SKIP_SAVE']))
 
     def execute(self, context):
         if not hasattr(self, "msgmap"):
             self.report('ERROR', "Looks like you did not invoke this operator first!")
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         msgs = _get_messages(self.lang, self.po_file)
         done_keys = set()
@@ -163,7 +164,7 @@ class UI_OT_i18n_edittranslation(bpy.types.Operator):
             # Try to overwrite po file, may fail if we have no good rights...
             try:
                 msgs.write(kind='PO', dest=self.po_file)
-            except Exception as e:
+            except Exception, e:
                 self.report('ERROR', "Could not write to po file ({})".format(str(e)))
             # Always invalidate reverse messages cache afterward!
             msgs.invalidate_reverse_cache()
@@ -172,7 +173,7 @@ class UI_OT_i18n_edittranslation(bpy.types.Operator):
             bpy.ops.ui.i18n_edittranslation_update_mo(po_file=self.po_file, lang=lang)
         elif self.clean_mo:
             bpy.ops.ui.i18n_edittranslation_update_mo(clean_mo=True)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         self.msgmap = {"but_label": {"msgstr": "but_label", "msgid": "org_but_label",
@@ -204,12 +205,12 @@ class UI_OT_i18n_edittranslation(bpy.types.Operator):
                     setattr(self, mmap["msgstr"], msgs.msgs[k].msgstr)
                     setattr(self, mmap["msgid"], msgid)
                     if msgs.msgs[k].is_fuzzy:
-                        setattr(self, mmap["msg_flags"], {'FUZZY'})
+                        setattr(self, mmap["msg_flags"], set(['FUZZY']))
                 else:
                     setattr(self, mmap["msgid"],
                             "ERROR: Button label “{}” matches several messages in po file ({})!"
                             "".format(self.but_label, k))
-                    setattr(self, mmap["msg_flags"], {'ERROR'})
+                    setattr(self, mmap["msg_flags"], set(['ERROR']))
             else:
                 setattr(self, mmap["msgstr"], "")
                 setattr(self, mmap["msgid"], "")

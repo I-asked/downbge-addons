@@ -18,6 +18,7 @@
 
 # <pep8-80 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Stanford PLY format",
     "author": "Bruce Merry, Campbell Barton",
@@ -67,7 +68,7 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
     """Load a PLY geometry file"""
     bl_idname = "import_mesh.ply"
     bl_label = "Import PLY"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     files = CollectionProperty(name="File Path",
                           description="File path used for importing "
@@ -77,7 +78,7 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
     directory = StringProperty()
 
     filename_ext = ".ply"
-    filter_glob = StringProperty(default="*.ply", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.ply", options=set(['HIDDEN']))
 
     def execute(self, context):
         paths = [os.path.join(self.directory, name.name)
@@ -90,7 +91,7 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
         for path in paths:
             import_ply.load(self, context, path)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class ExportPLY(bpy.types.Operator, ExportHelper, IOPLYOrientationHelper):
@@ -100,7 +101,7 @@ class ExportPLY(bpy.types.Operator, ExportHelper, IOPLYOrientationHelper):
     bl_label = "Export PLY"
 
     filename_ext = ".ply"
-    filter_glob = StringProperty(default="*.ply", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.ply", options=set(['HIDDEN']))
 
     use_mesh_modifiers = BoolProperty(
             name="Apply Modifiers",

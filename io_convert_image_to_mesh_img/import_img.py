@@ -20,14 +20,19 @@
 This script can import a HiRISE DTM .IMG file.
 """
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from bpy.props import *
 
 from struct import pack, unpack
 import os
-import queue, threading
+import Queue, threading
+from itertools import imap
+from itertools import ifilter
+from io import open
 
-class image_properties:
+class image_properties(object):
     """ keeps track of image attributes throughout the hirise_dtm_importer class """
     def __init__(self, name, dimensions, pixel_scale):
       self.name( name )
@@ -98,7 +103,7 @@ class hirise_dtm_importer(object):
       line = ""
 
       while not line.rstrip() == endStr:
-        line = next(labelIter)
+        line = labelIter.next()
 
         # Get rid of comments
         comment = line.find("/*")
@@ -196,7 +201,7 @@ class hirise_dtm_importer(object):
 
       ignore_value = self.__ignore_value
 
-      img_props = next(image_iter)
+      img_props = image_iter.next()
       # dimensions shrink as we remove pixels
       processed_dims = img_props.processed_dims()
       processed_dims = ( processed_dims[0]//2, processed_dims[1]//2 )
@@ -216,7 +221,7 @@ class hirise_dtm_importer(object):
       for line in image_iter:
         if line_count == 1:
           line_count = 0
-          tmp_list = list(map(combine_fun, line, last_line))
+          tmp_list = list(imap(combine_fun, line, last_line))
           while len(tmp_list) > 1:
             ret_list.append( combine_fun( tmp_list[0], tmp_list[1] ) )
             del tmp_list[0:2]
@@ -229,7 +234,7 @@ class hirise_dtm_importer(object):
     def bin6(self, image_iter, bin6_method_type="SLOW"):
       """ this is an iterator that: Given an image iterator will yield binned lines """
 
-      img_props = next(image_iter)
+      img_props = image_iter.next()
       # dimensions shrink as we remove pixels
       processed_dims = img_props.processed_dims()
       processed_dims = ( processed_dims[0]//6, processed_dims[1]//6 )
@@ -265,7 +270,7 @@ class hirise_dtm_importer(object):
       IGNORE_VALUE = self.__ignore_value
 
       base = 0
-      for i in range(0, len(raw_data[0])//6):
+      for i in xrange(0, len(raw_data[0])//6):
 
         ints = (raw_data[0][base:base+6] +
           raw_data[1][base:base+6] +
@@ -293,7 +298,7 @@ class hirise_dtm_importer(object):
       binned_data = []
 
       base = 0
-      for i in range(0, len(raw_data[0])//6):
+      for i in xrange(0, len(raw_data[0])//6):
         binned_data.append( raw_data[0][base] )
         base += 6
 
@@ -302,7 +307,7 @@ class hirise_dtm_importer(object):
     def bin12(self, image_iter, bin12_method_type="SLOW"):
       """ this is an iterator that: Given an image iterator will yield binned lines """
 
-      img_props = next(image_iter)
+      img_props = image_iter.next()
       # dimensions shrink as we remove pixels
       processed_dims = img_props.processed_dims()
       processed_dims = ( processed_dims[0]//12, processed_dims[1]//12 )
@@ -337,9 +342,9 @@ class hirise_dtm_importer(object):
       filter_fun = lambda a: self.__ignore_value.__ne__(a)
 
       base = 0
-      for i in range(0, len(raw_data[0])//12):
+      for i in xrange(0, len(raw_data[0])//12):
 
-        ints = list(filter( filter_fun, raw_data[0][base:base+12] +
+        ints = list(ifilter( filter_fun, raw_data[0][base:base+12] +
           raw_data[1][base:base+12] +
           raw_data[2][base:base+12] +
           raw_data[3][base:base+12] +
@@ -369,7 +374,7 @@ class hirise_dtm_importer(object):
     def cropXY(self, image_iter, XSize=None, YSize=None, XOffset=0, YOffset=0):
       """ return a cropped portion of the image """
 
-      img_props = next(image_iter)
+      img_props = image_iter.next()
       # dimensions shrink as we remove pixels
       processed_dims = img_props.processed_dims()
 
@@ -410,7 +415,7 @@ class hirise_dtm_importer(object):
       pack_bytes_str = "="
       # 32 bits/sample * samples/line = y_bytes (per line)
       x_bytes = 4*x_len
-      for x in range(0, x_len):
+      for x in xrange(0, x_len):
         # 32-bit float is "d"
         unpack_str += "f"
         unpack_bytes_str += "I"
@@ -419,9 +424,9 @@ class hirise_dtm_importer(object):
       # Each iterator yields this first ... it is for reference of the next iterator:
       yield img_props
 
-      for y in range(0, dims[1]):
+      for y in xrange(0, dims[1]):
         # pixels is a byte array
-        pixels = b''
+        pixels = ''
         while len(pixels) < x_bytes:
           new_pixels = img.read( x_bytes - len(pixels) )
           pixels += new_pixels
@@ -430,7 +435,7 @@ class hirise_dtm_importer(object):
             pixels = []
         if len(pixels) == x_bytes:
           if 0 == 1:
-            repacked_pixels = b''
+            repacked_pixels = ''
             for integer in unpack(unpack_bytes_str, pixels):
               repacked_pixels += pack("=I", integer)
             yield unpack( unpack_str, repacked_pixels )
@@ -446,7 +451,7 @@ class hirise_dtm_importer(object):
       valid_min = image_min_max[0]
 
       # pass on dimensions/pixel_scale since we don't modify them here
-      yield next(image_iter)
+      yield image_iter.next()
 
 
       # closures rock!
@@ -456,12 +461,12 @@ class hirise_dtm_importer(object):
         return point - valid_min
 
       for line in image_iter:
-        yield list(map(normalize_fun, line))
+        yield list(imap(normalize_fun, line))
 
     def scaleZ(self, image_iter, scale_factor):
       """ scales the mesh values by a factor """
       # pass on dimensions since we don't modify them here
-      yield next(image_iter)
+      yield image_iter.next()
 
       scale_factor = self.scale()
 
@@ -472,7 +477,7 @@ class hirise_dtm_importer(object):
           return None
 
       for line in image_iter:
-        yield list(map(scale_fun, line))
+        yield list(imap(scale_fun, line))
 
     def genMesh(self, image_iter):
       """Returns a mesh object from an image iterator this has the
@@ -480,7 +485,7 @@ class hirise_dtm_importer(object):
       """
 
       # Get the output image size given the above transforms
-      img_props = next(image_iter)
+      img_props = image_iter.next()
 
       # Let's interpolate the binned DTM with blender -- yay meshes!
       coords = []
@@ -495,7 +500,7 @@ class hirise_dtm_importer(object):
 
       line_count = 0
       # seed the last line (or previous line) with a line
-      last_line = next(image_iter)
+      last_line = image_iter.next()
       point_offset = 0
       previous_point_offset = 0
 
@@ -541,7 +546,7 @@ class hirise_dtm_importer(object):
           x += 1
 
         # Calculate faces
-        for x in range(0, max_x - 1):
+        for x in xrange(0, max_x - 1):
           vals = [
             last_line[ x + 1 ],
             last_line[ x ],
@@ -700,8 +705,8 @@ class hirise_dtm_importer(object):
       return ('FINISHED',)
 
 def load(operator, context, filepath, scale, bin_mode, cropVars):
-    print("Bin Mode: %s" % bin_mode)
-    print("Scale: %f" % scale)
+    print "Bin Mode: %s" % bin_mode
+    print "Scale: %f" % scale
     importer = hirise_dtm_importer(context,filepath)
     importer.bin_mode( bin_mode )
     importer.scale( scale )
@@ -709,5 +714,5 @@ def load(operator, context, filepath, scale, bin_mode, cropVars):
         importer.crop( cropVars[0], cropVars[1], cropVars[2], cropVars[3] )
     importer.execute()
 
-    print("Loading %s" % filepath)
-    return {'FINISHED'}
+    print "Loading %s" % filepath
+    return set(['FINISHED'])

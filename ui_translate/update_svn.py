@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 if "bpy" in locals():
     import importlib
     importlib.reload(settings)
@@ -80,9 +82,9 @@ class UI_OT_i18n_updatetranslation_svn_branches(bpy.types.Operator):
             #self.report({'INFO'}, "Extracting messages, this will take some time...")
             context.window_manager.progress_update(1)
             if subprocess.call(cmmd):
-                self.report({'ERROR'}, "Message extraction process failed!")
+                self.report(set(['ERROR']), "Message extraction process failed!")
                 context.window_manager.progress_end()
-                return {'CANCELLED'}
+                return set(['CANCELLED'])
 
         # Now we should have a valid POT file, we have to merge it in all languages po's...
         pot = utils_i18n.I18nMessages(kind='PO', src=self.settings.FILE_NAME_POT, settings=self.settings)
@@ -96,9 +98,9 @@ class UI_OT_i18n_updatetranslation_svn_branches(bpy.types.Operator):
             else:
                 po = pot
             po.write(kind="PO", dest=lng.po_path)
-            print("{} PO written!".format(lng.uid))
+            print "{} PO written!".format(lng.uid)
         context.window_manager.progress_end()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -122,18 +124,18 @@ class UI_OT_i18n_updatetranslation_svn_trunk(bpy.types.Operator):
         for progress, lng in enumerate(i18n_sett.langs):
             context.window_manager.progress_update(progress + 1)
             if lng.uid in self.settings.IMPORT_LANGUAGES_SKIP:
-                print("Skipping {} language ({}), edit settings if you want to enable it.".format(lng.name, lng.uid))
+                print "Skipping {} language ({}), edit settings if you want to enable it.".format(lng.name, lng.uid)
                 continue
             if not lng.use:
-                print("Skipping {} language ({}).".format(lng.name, lng.uid))
+                print "Skipping {} language ({}).".format(lng.name, lng.uid)
                 continue
-            print("Processing {} language ({}).".format(lng.name, lng.uid))
+            print "Processing {} language ({}).".format(lng.name, lng.uid)
             po = utils_i18n.I18nMessages(uid=lng.uid, kind='PO', src=lng.po_path, settings=self.settings)
-            print("Cleaned up {} commented messages.".format(po.clean_commented()))
+            print "Cleaned up {} commented messages.".format(po.clean_commented())
             errs = po.check(fix=True)
             if errs:
-                print("Errors in this po, solved as best as possible!")
-                print("\t" + "\n\t".join(errs))
+                print "Errors in this po, solved as best as possible!"
+                print "\t" + "\n\t".join(errs)
             if lng.uid in self.settings.IMPORT_LANGUAGES_RTL:
                 po.write(kind="PO", dest=lng.po_path_trunk[:-3] + "_raw.po")
                 po.rtl_process()
@@ -142,15 +144,15 @@ class UI_OT_i18n_updatetranslation_svn_trunk(bpy.types.Operator):
             po.write(kind="MO", dest=lng.mo_path_trunk)
             po.update_info()
             stats[lng.uid] = po.nbr_trans_msgs / po.nbr_msgs
-            print("\n")
+            print "\n"
 
         # Copy pot file from branches to trunk.
         shutil.copy2(self.settings.FILE_NAME_POT, self.settings.TRUNK_PO_DIR)
 
-        print("Generating languages' menu...")
+        print "Generating languages' menu..."
         context.window_manager.progress_update(progress + 2)
         # First complete our statistics by checking po files we did not touch this time!
-        po_to_uid = {os.path.basename(lng.po_path): lng.uid for lng in i18n_sett.langs}
+        po_to_uid = dict((os.path.basename(lng.po_path), lng.uid) for lng in i18n_sett.langs)
         for po_path in os.listdir(self.settings.TRUNK_PO_DIR):
             uid = po_to_uid.get(po_path, None)
             po_path = os.path.join(self.settings.TRUNK_PO_DIR, po_path)
@@ -160,7 +162,7 @@ class UI_OT_i18n_updatetranslation_svn_trunk(bpy.types.Operator):
         utils_languages_menu.gen_menu_file(stats, self.settings)
         context.window_manager.progress_end()
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class UI_OT_i18n_updatetranslation_svn_statistics(bpy.types.Operator):
@@ -192,7 +194,7 @@ class UI_OT_i18n_updatetranslation_svn_statistics(bpy.types.Operator):
         for progress, (lng, path) in enumerate(lst):
             context.window_manager.progress_update(progress + 1)
             if not lng.use:
-                print("Skipping {} language ({}).".format(lng.name, lng.uid))
+                print "Skipping {} language ({}).".format(lng.name, lng.uid)
                 continue
             buff.write("Processing {} language ({}, {}).\n".format(lng.name, lng.uid, path))
             po = utils_i18n.I18nMessages(uid=lng.uid, kind='PO', src=path, settings=self.settings)
@@ -212,10 +214,10 @@ class UI_OT_i18n_updatetranslation_svn_statistics(bpy.types.Operator):
         data = text.as_string()
         data = data + "\n" + buff.getvalue()
         text.from_string(data)
-        self.report({'INFO'}, "Info written to {} text datablock!".format(self.report_name))
+        self.report(set(['INFO']), "Info written to {} text datablock!".format(self.report_name))
         context.window_manager.progress_end()
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
     def invoke(self, context, event):

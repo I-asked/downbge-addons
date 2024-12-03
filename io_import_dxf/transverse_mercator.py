@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 from math import sin, cos, atan, atanh, radians, tan, sinh, asin, cosh, degrees
 
 # see conversion formulas at
@@ -25,7 +27,7 @@ from math import sin, cos, atan, atanh, radians, tan, sinh, asin, cosh, degrees
 # http://mathworld.wolfram.com/MercatorProjection.html
 
 
-class TransverseMercator:
+class TransverseMercator(object):
     radius = 6378137
 
     def __init__(self, lat=0, lon=0):

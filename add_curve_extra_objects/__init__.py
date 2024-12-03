@@ -18,6 +18,7 @@
 # Contributed to by
 # testscreenings, Alejandro Omar Chocano Vasquez, Jimmy Hazevoet, meta-androcto #
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Extra Objects",
     "author": "Multiple Authors",

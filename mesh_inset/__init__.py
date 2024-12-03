@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 bl_info = {
     "name": "Inset Polygon",
     "author": "Howard Trickey",
@@ -56,7 +58,7 @@ class Inset(bpy.types.Operator):
     bl_idname = "mesh.insetpoly"
     bl_label = "Inset Polygon"
     bl_description = "Make an inset polygon inside selection"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     inset_amount = FloatProperty(name="Amount",
         description="Amount to move inset edges",
@@ -103,11 +105,11 @@ class Inset(bpy.types.Operator):
 
     def invoke(self, context, event):
         self.action(context)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def execute(self, context):
         self.action(context)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def action(self, context):
         save_global_undo = bpy.context.user_preferences.edit.use_global_undo
@@ -148,7 +150,7 @@ def do_inset(mesh, amount, height, region, as_percent):
         return
     blender_faces = m.faces[orig_numf:len(m.faces)]
     blender_old_face_index = m.face_data[orig_numf:len(m.faces)]
-    for i in range(orig_numv, len(m.points.pos)):
+    for i in xrange(orig_numv, len(m.points.pos)):
         bvertnew = bm.verts.new(m.points.pos[i])
     bm.verts.index_update()
     new_faces = []

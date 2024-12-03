@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import division
+from __future__ import absolute_import
 bl_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr), mont29, matali",
@@ -72,7 +74,7 @@ EXT_FILTER = getattr(collections, "OrderedDict", dict)((
 ))
 
 # XXX Hack to avoid allowing videos with Cycles, crashes currently!
-VID_EXT_FILTER = {e for ext_k, ext_v in EXT_FILTER.items() if ext_k in {"avi", "mov", "mp4", "ogg"} for e in ext_v[0]}
+VID_EXT_FILTER = set([e for ext_k, ext_v in EXT_FILTER.items() if ext_k in set(["avi", "mov", "mp4", "ogg"]) for e in ext_v[0]])
 
 CYCLES_SHADERS = (
     ('BSDF_DIFFUSE', "Diffuse", "Diffuse Shader"),
@@ -99,7 +101,7 @@ def is_image_fn(fn, ext_key):
 # Cycles utils.
 def get_input_nodes(node, nodes, links):
     # Get all links going to node.
-    input_links = {lnk for lnk in links if lnk.to_node == node}
+    input_links = set(lnk for lnk in links if lnk.to_node == node)
     # Sort those links, get their input nodes (and avoid doubles!).
     sorted_nodes = []
     done_nodes = set()
@@ -119,7 +121,7 @@ def get_input_nodes(node, nodes, links):
 
 
 def auto_align_nodes(node_tree):
-    print('\nAligning Nodes')
+    print '\nAligning Nodes'
     x_gap = 200
     y_gap = 100
     nodes = node_tree.nodes
@@ -159,19 +161,19 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
     """Create mesh plane(s) from image files with the appropiate aspect ratio"""
     bl_idname = "import_image.to_plane"
     bl_label = "Import Images as Planes"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     # -----------
     # File props.
-    files = CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
+    files = CollectionProperty(type=bpy.types.OperatorFileListElement, options=set(['HIDDEN', 'SKIP_SAVE']))
 
-    directory = StringProperty(maxlen=1024, subtype='FILE_PATH', options={'HIDDEN', 'SKIP_SAVE'})
+    directory = StringProperty(maxlen=1024, subtype='FILE_PATH', options=set(['HIDDEN', 'SKIP_SAVE']))
 
     # Show only images/videos, and directories!
-    filter_image = BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
-    filter_movie = BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
-    filter_folder = BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
-    filter_glob = StringProperty(default="", options={'HIDDEN', 'SKIP_SAVE'})
+    filter_image = BoolProperty(default=True, options=set(['HIDDEN', 'SKIP_SAVE']))
+    filter_movie = BoolProperty(default=True, options=set(['HIDDEN', 'SKIP_SAVE']))
+    filter_folder = BoolProperty(default=True, options=set(['HIDDEN', 'SKIP_SAVE']))
+    filter_glob = StringProperty(default="", options=set(['HIDDEN', 'SKIP_SAVE']))
 
     # --------
     # Options.
@@ -305,7 +307,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
     def invoke(self, context, event):
         self.update_extensions(context)
         context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
     def execute(self, context):
         if not bpy.data.is_saved:
@@ -320,7 +322,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         self.import_images(context)
 
         context.user_preferences.edit.use_enter_edit_mode = editmode
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     # Main...
     def import_images(self, context):
@@ -332,7 +334,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         for img in images:
             self.set_image_options(img)
 
-        if engine in {'BLENDER_RENDER', 'BLENDER_GAME'}:
+        if engine in set(['BLENDER_RENDER', 'BLENDER_GAME']):
             textures = (self.create_image_textures(context, img) for img in images)
             materials = (self.create_material_for_texture(tex) for tex in textures)
         elif engine == 'CYCLES':
@@ -349,15 +351,15 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         for plane in planes:
             plane.select = True
 
-        self.report({'INFO'}, "Added {} Image Plane(s)".format(len(planes)))
+        self.report(set(['INFO']), "Added {} Image Plane(s)".format(len(planes)))
 
     def create_image_plane(self, context, material):
         engine = context.scene.render.engine
-        if engine in {'BLENDER_RENDER', 'BLENDER_GAME'}:
+        if engine in set(['BLENDER_RENDER', 'BLENDER_GAME']):
             img = material.texture_slots[0].texture.image
         elif engine == 'CYCLES':
             nodes = material.node_tree.nodes
-            img = next((node.image for node in nodes if node.type == 'TEX_IMAGE'))
+            img = (node.image for node in nodes if node.type == 'TEX_IMAGE').next()
         px, py = img.size
 
         # can't load data

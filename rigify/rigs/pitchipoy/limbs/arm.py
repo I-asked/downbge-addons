@@ -17,6 +17,7 @@
 #======================= END GPL LICENSE BLOCK ========================
 
 # <pep8 compliant>
+from __future__ import absolute_import
 import bpy
 from ....utils       import MetarigError
 from ....utils       import create_widget, copy_bone

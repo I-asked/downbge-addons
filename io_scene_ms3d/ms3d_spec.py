@@ -30,6 +30,7 @@
 # ##### END COPYRIGHT BLOCK #####
 
 
+from __future__ import absolute_import
 from struct import (
         pack,
         unpack,
@@ -40,6 +41,7 @@ from sys import (
 from codecs import (
         register_error,
         )
+import sys
 
 ###############################################################################
 #
@@ -57,7 +59,7 @@ from codecs import (
 # sizes
 #
 
-class Ms3dSpec:
+class Ms3dSpec(object):
     ###########################################################################
     #
     # max values
@@ -112,7 +114,7 @@ class Ms3dSpec:
     ##STRING_ERROR = 'replace'
     ##STRING_ERROR = 'ignore'
     ##STRING_ERROR = 'surrogateescape'
-    STRING_TERMINATION = b'\x00'
+    STRING_TERMINATION = '\x00'
     STRING_REPLACE = u'_'
 
 
@@ -153,7 +155,7 @@ class Ms3dSpec:
 #
 # helper class for basic raw io
 #
-class Ms3dIo:
+class Ms3dIo(object):
     # sizes for IO
     SIZE_BYTE = 1
     SIZE_SBYTE = 1
@@ -240,7 +242,7 @@ class Ms3dIo:
     def read_array(raw_io, itemReader, count):
         """ read an array[count] of objects from raw_io, by using a itemReader """
         value = []
-        for i in range(count):
+        for i in xrange(count):
             itemValue = itemReader(raw_io)
             value.append(itemValue)
         return tuple(value)
@@ -248,7 +250,7 @@ class Ms3dIo:
     @staticmethod
     def write_array(raw_io, itemWriter, count, value):
         """ write an array[count] of objects to raw_io, by using a itemWriter """
-        for i in range(count):
+        for i in xrange(count):
             itemValue = value[i]
             itemWriter(raw_io, itemValue)
 
@@ -257,7 +259,7 @@ class Ms3dIo:
         """ read an array[count][count2] of objects from raw_io,
             by using a itemReader """
         value = []
-        for i in range(count):
+        for i in xrange(count):
             itemValue = Ms3dIo.read_array(raw_io, itemReader, count2)
             value.append(tuple(itemValue))
         return value
@@ -266,7 +268,7 @@ class Ms3dIo:
     def write_array2(raw_io, itemWriter, count, count2, value):
         """ write an array[count][count2] of objects to raw_io,
             by using a itemWriter """
-        for i in range(count):
+        for i in xrange(count):
             itemValue = value[i]
             Ms3dIo.write_array(raw_io, itemWriter, count2, itemValue)
 
@@ -302,7 +304,7 @@ class Ms3dIo:
         register_error(Ms3dSpec.STRING_MS3D_REPLACE, Ms3dIo.ms3d_replace)
         buffer = value.encode(encoding=Ms3dSpec.STRING_ENCODING, errors=Ms3dSpec.STRING_ERROR)
         if not buffer:
-            buffer = bytes()
+            buffer = str()
         raw_io.write(pack('<{}s'.format(length), buffer))
         return
 
@@ -313,7 +315,7 @@ class Ms3dIo:
 #
 
 ###############################################################################
-class Ms3dHeader:
+class Ms3dHeader(object):
     """ Ms3dHeader """
     __slots__ = (
             'id',
@@ -357,7 +359,7 @@ class Ms3dHeader:
 
 
 ###############################################################################
-class Ms3dVertex:
+class Ms3dVertex(object):
     """ Ms3dVertex """
     """
     __slots__ was taking out,
@@ -441,7 +443,7 @@ class Ms3dVertex:
 
 
 ###############################################################################
-class Ms3dTriangle:
+class Ms3dTriangle(object):
     """ Ms3dTriangle """
     """
     __slots__ was taking out,
@@ -545,7 +547,7 @@ class Ms3dTriangle:
 
 
 ###############################################################################
-class Ms3dGroup:
+class Ms3dGroup(object):
     """ Ms3dGroup """
     """
     __slots__ was taking out,
@@ -628,7 +630,7 @@ class Ms3dGroup:
 
 
 ###############################################################################
-class Ms3dMaterial:
+class Ms3dMaterial(object):
     """ Ms3dMaterial """
     """
     __slots__ was taking out,
@@ -798,7 +800,7 @@ class Ms3dMaterial:
 
 
 ###############################################################################
-class Ms3dRotationKeyframe:
+class Ms3dRotationKeyframe(object):
     """ Ms3dRotationKeyframe """
     __slots__ = (
             'time',
@@ -839,7 +841,7 @@ class Ms3dRotationKeyframe:
 
 
 ###############################################################################
-class Ms3dTranslationKeyframe:
+class Ms3dTranslationKeyframe(object):
     """ Ms3dTranslationKeyframe """
     __slots__ = (
             'time',
@@ -880,7 +882,7 @@ class Ms3dTranslationKeyframe:
 
 
 ###############################################################################
-class Ms3dJoint:
+class Ms3dJoint(object):
     """ Ms3dJoint """
     """
     __slots__ was taking out,
@@ -1008,10 +1010,10 @@ class Ms3dJoint:
         _number_rotation_keyframes = Ms3dIo.read_word(raw_io)
         _number_translation_keyframes = Ms3dIo.read_word(raw_io)
         self._rotation_keyframes = []
-        for i in range(_number_rotation_keyframes):
+        for i in xrange(_number_rotation_keyframes):
             self.rotation_key_frames.append(Ms3dRotationKeyframe().read(raw_io))
         self._translation_keyframes = []
-        for i in range(_number_translation_keyframes):
+        for i in xrange(_number_translation_keyframes):
             self.translation_key_frames.append(
                     Ms3dTranslationKeyframe().read(raw_io))
         return self
@@ -1024,14 +1026,14 @@ class Ms3dJoint:
         Ms3dIo.write_array(raw_io, Ms3dIo.write_float, 3, self.position)
         Ms3dIo.write_word(raw_io, self.number_rotation_keyframes)
         Ms3dIo.write_word(raw_io, self.number_translation_keyframes)
-        for i in range(self.number_rotation_keyframes):
+        for i in xrange(self.number_rotation_keyframes):
             self.rotation_key_frames[i].write(raw_io)
-        for i in range(self.number_translation_keyframes):
+        for i in xrange(self.number_translation_keyframes):
             self.translation_key_frames[i].write(raw_io)
 
 
 ###############################################################################
-class Ms3dCommentEx:
+class Ms3dCommentEx(object):
     """ Ms3dCommentEx """
     __slots__ = (
             'index',
@@ -1077,7 +1079,7 @@ class Ms3dCommentEx:
 
 
 ###############################################################################
-class Ms3dComment:
+class Ms3dComment(object):
     """ Ms3dComment """
     __slots__ = (
             'comment',
@@ -1117,7 +1119,7 @@ class Ms3dComment:
 
 
 ###############################################################################
-class Ms3dVertexEx1:
+class Ms3dVertexEx1(object):
     """ Ms3dVertexEx1 """
     __slots__ = (
             '_bone_ids',
@@ -1188,7 +1190,7 @@ class Ms3dVertexEx1:
 
 
 ###############################################################################
-class Ms3dVertexEx2:
+class Ms3dVertexEx2(object):
     """ Ms3dVertexEx2 """
     __slots__ = (
             'extra',
@@ -1265,7 +1267,7 @@ class Ms3dVertexEx2:
 
 
 ###############################################################################
-class Ms3dVertexEx3:
+class Ms3dVertexEx3(object):
     """ Ms3dVertexEx3 """
     #char bone_ids[3]; // index of joint or -1, if -1, then that weight is
     #    ignored, since subVersion 1
@@ -1352,7 +1354,7 @@ class Ms3dVertexEx3:
 
 
 ###############################################################################
-class Ms3dJointEx:
+class Ms3dJointEx(object):
     """ Ms3dJointEx """
     __slots__ = (
             '_color',
@@ -1387,7 +1389,7 @@ class Ms3dJointEx:
 
 
 ###############################################################################
-class Ms3dModelEx:
+class Ms3dModelEx(object):
     """ Ms3dModelEx """
     __slots__ = (
             'joint_size',
@@ -1431,7 +1433,7 @@ class Ms3dModelEx:
 # file format
 #
 ###############################################################################
-class Ms3dModel:
+class Ms3dModel(object):
     """ Ms3dModel """
     __slot__ = (
             'header',
@@ -1634,103 +1636,103 @@ class Ms3dModel:
 
 
     def print_internal(self):
-        print()
-        print("##############################################################")
-        print("## the internal data of Ms3dModel object...")
-        print("##")
+        print
+        print "##############################################################"
+        print "## the internal data of Ms3dModel object..."
+        print "##"
 
-        print("header={}".format(self.header))
+        print "header={}".format(self.header)
 
-        print("number_vertices={}".format(self.number_vertices))
-        print("vertices=[", end="")
+        print "number_vertices={}".format(self.number_vertices)
+        print "vertices=[",; sys.stdout.write("")
         if self.vertices:
             for obj in self.vertices:
-                print("{}".format(obj), end="")
-        print("]")
+                print "{}".format(obj),; sys.stdout.write("")
+        print "]"
 
-        print("number_triangles={}".format(self.number_triangles))
-        print("triangles=[", end="")
+        print "number_triangles={}".format(self.number_triangles)
+        print "triangles=[",; sys.stdout.write("")
         if self.triangles:
             for obj in self.triangles:
-                print("{}".format(obj), end="")
-        print("]")
+                print "{}".format(obj),; sys.stdout.write("")
+        print "]"
 
-        print("number_groups={}".format(self.number_groups))
-        print("groups=[", end="")
+        print "number_groups={}".format(self.number_groups)
+        print "groups=[",; sys.stdout.write("")
         if self.groups:
             for obj in self.groups:
-                print("{}".format(obj), end="")
-        print("]")
+                print "{}".format(obj),; sys.stdout.write("")
+        print "]"
 
-        print("number_materials={}".format(self.number_materials))
-        print("materials=[", end="")
+        print "number_materials={}".format(self.number_materials)
+        print "materials=[",; sys.stdout.write("")
         if self.materials:
             for obj in self.materials:
-                print("{}".format(obj), end="")
-        print("]")
+                print "{}".format(obj),; sys.stdout.write("")
+        print "]"
 
-        print("animation_fps={}".format(self.animation_fps))
-        print("current_time={}".format(self.current_time))
-        print("number_total_frames={}".format(self.number_total_frames))
+        print "animation_fps={}".format(self.animation_fps)
+        print "current_time={}".format(self.current_time)
+        print "number_total_frames={}".format(self.number_total_frames)
 
-        print("number_joints={}".format(self.number_joints))
-        print("joints=[", end="")
+        print "number_joints={}".format(self.number_joints)
+        print "joints=[",; sys.stdout.write("")
         if self.joints:
             for obj in self.joints:
-                print("{}".format(obj), end="")
-        print("]")
+                print "{}".format(obj),; sys.stdout.write("")
+        print "]"
 
-        print("sub_version_comments={}".format(self.sub_version_comments))
+        print "sub_version_comments={}".format(self.sub_version_comments)
 
-        print("number_group_comments={}".format(self.number_group_comments))
-        print("group_comments=[", end="")
+        print "number_group_comments={}".format(self.number_group_comments)
+        print "group_comments=[",; sys.stdout.write("")
         if self.group_comments:
             for obj in self.group_comments:
-                print("{}".format(obj.comment_object), end="")
-        print("]")
+                print "{}".format(obj.comment_object),; sys.stdout.write("")
+        print "]"
 
-        print("number_material_comments={}".format(
-                self.number_material_comments))
-        print("material_comments=[", end="")
+        print "number_material_comments={}".format(
+                self.number_material_comments)
+        print "material_comments=[",; sys.stdout.write("")
         if self.material_comments:
             for obj in self.material_comments:
-                print("{}".format(obj.comment_object), end="")
-        print("]")
+                print "{}".format(obj.comment_object),; sys.stdout.write("")
+        print "]"
 
-        print("number_joint_comments={}".format(self.number_joint_comments))
-        print("joint_comments=[", end="")
+        print "number_joint_comments={}".format(self.number_joint_comments)
+        print "joint_comments=[",; sys.stdout.write("")
         if self.joint_comments:
             for obj in self.joint_comments:
-                print("{}".format(obj.comment_object), end="")
-        print("]")
+                print "{}".format(obj.comment_object),; sys.stdout.write("")
+        print "]"
 
-        print("has_model_comment={}".format(self.has_model_comment))
-        print("model_comment={}".format(self.comment_object))
+        print "has_model_comment={}".format(self.has_model_comment)
+        print "model_comment={}".format(self.comment_object)
 
-        print("sub_version_vertex_extra={}".format(
-                self.sub_version_vertex_extra))
-        print("vertex_ex=[", end="")
+        print "sub_version_vertex_extra={}".format(
+                self.sub_version_vertex_extra)
+        print "vertex_ex=[",; sys.stdout.write("")
         if self.vertex_ex:
             for obj in self.vertex_ex:
-                print("{}".format(obj), end="")
-        print("]")
+                print "{}".format(obj),; sys.stdout.write("")
+        print "]"
 
-        print("sub_version_joint_extra={}".format(
-                self.sub_version_joint_extra))
-        print("joint_ex=[", end="")
+        print "sub_version_joint_extra={}".format(
+                self.sub_version_joint_extra)
+        print "joint_ex=[",; sys.stdout.write("")
         if self.joint_ex:
             for obj in self.joint_ex:
-                print("{}".format(obj), end="")
-        print("]")
+                print "{}".format(obj),; sys.stdout.write("")
+        print "]"
 
-        print("sub_version_model_extra={}".format(
-                self.sub_version_model_extra))
-        print("model_ex={}".format(self.model_ex_object))
+        print "sub_version_model_extra={}".format(
+                self.sub_version_model_extra)
+        print "model_ex={}".format(self.model_ex_object)
 
-        print("##")
-        print("## ...end")
-        print("##############################################################")
-        print()
+        print "##"
+        print "## ...end"
+        print "##############################################################"
+        print
 
 
     def read(self, raw_io):
@@ -1751,7 +1753,7 @@ class Ms3dModel:
             debug_out.append("\nwarning, invalid count: number_vertices: {}\n".format(
                     _number_vertices))
         self._vertices = []
-        for i in range(_number_vertices):
+        for i in xrange(_number_vertices):
             self.vertices.append(Ms3dVertex().read(raw_io))
 
         _number_triangles = Ms3dIo.read_word(raw_io)
@@ -1759,7 +1761,7 @@ class Ms3dModel:
             debug_out.append("\nwarning, invalid count: number_triangles: {}\n".format(
                     _number_triangles))
         self._triangles = []
-        for i in range(_number_triangles):
+        for i in xrange(_number_triangles):
             self.triangles.append(Ms3dTriangle().read(raw_io))
 
         _number_groups = Ms3dIo.read_word(raw_io)
@@ -1767,7 +1769,7 @@ class Ms3dModel:
             debug_out.append("\nwarning, invalid count: number_groups: {}\n".format(
                     _number_groups))
         self._groups = []
-        for i in range(_number_groups):
+        for i in xrange(_number_groups):
             self.groups.append(Ms3dGroup().read(raw_io))
 
         _number_materials = Ms3dIo.read_word(raw_io)
@@ -1775,7 +1777,7 @@ class Ms3dModel:
             debug_out.append("\nwarning, invalid count: number_materials: {}\n".format(
                     _number_materials))
         self._materials = []
-        for i in range(_number_materials):
+        for i in xrange(_number_materials):
             self.materials.append(Ms3dMaterial().read(raw_io))
 
         self.animation_fps = Ms3dIo.read_float(raw_io)
@@ -1794,7 +1796,7 @@ class Ms3dModel:
                 debug_out.append("\nwarning, invalid count: number_joints: {}\n".format(
                         _number_joints))
             self._joints = []
-            for i in range(_number_joints):
+            for i in xrange(_number_joints):
                 self.joints.append(Ms3dJoint().read(raw_io))
             _progress.add('JOINTS')
 
@@ -1810,7 +1812,7 @@ class Ms3dModel:
                 debug_out.append("\nwarning, invalid count:"\
                         " number_group_comments: {}, number_groups: {}\n".format(
                         _number_group_comments, _number_groups))
-            for i in range(_number_group_comments):
+            for i in xrange(_number_group_comments):
                 item = Ms3dCommentEx().read(raw_io)
                 if item.index >= 0 and item.index < _number_groups:
                     self.groups[item.index]._comment_object = item
@@ -1831,7 +1833,7 @@ class Ms3dModel:
                         " number_material_comments:"\
                         " {}, number_materials: {}\n".format(
                         _number_material_comments, _number_materials))
-            for i in range(_number_material_comments):
+            for i in xrange(_number_material_comments):
                 item = Ms3dCommentEx().read(raw_io)
                 if item.index >= 0 and item.index < _number_materials:
                     self.materials[item.index]._comment_object = item
@@ -1851,7 +1853,7 @@ class Ms3dModel:
                 debug_out.append("\nwarning, invalid count:"\
                         " number_joint_comments: {}, number_joints: {}\n".format(
                         _number_joint_comments, _number_joints))
-            for i in range(_number_joint_comments):
+            for i in xrange(_number_joint_comments):
                 item = Ms3dCommentEx().read(raw_io)
                 if item.index >= 0 and item.index < _number_joints:
                     self.joints[item.index]._comment_object = item
@@ -1873,7 +1875,7 @@ class Ms3dModel:
             _progress.add('SUB_VERSION_VERTEX_EXTRA')
             if self.sub_version_vertex_extra > 0:
                 length = len(self.joints)
-                for i in range(_number_vertices):
+                for i in xrange(_number_vertices):
                     if self.sub_version_vertex_extra == 1:
                         item = Ms3dVertexEx1()
                     elif self.sub_version_vertex_extra == 2:
@@ -1891,7 +1893,7 @@ class Ms3dModel:
             self.sub_version_joint_extra = Ms3dIo.read_dword(raw_io)
             _progress.add('SUB_VERSION_JOINT_EXTRA')
             if self.sub_version_joint_extra > 0:
-                for i in range(_number_joints):
+                for i in xrange(_number_joints):
                     self.joints[i]._joint_ex_object = Ms3dJointEx().read(raw_io)
             _progress.add('JOINT_EXTRA')
 
@@ -1958,19 +1960,19 @@ class Ms3dModel:
         self.header.write(raw_io)
 
         Ms3dIo.write_word(raw_io, self.number_vertices)
-        for i in range(self.number_vertices):
+        for i in xrange(self.number_vertices):
             self.vertices[i].write(raw_io)
 
         Ms3dIo.write_word(raw_io, self.number_triangles)
-        for i in range(self.number_triangles):
+        for i in xrange(self.number_triangles):
             self.triangles[i].write(raw_io)
 
         Ms3dIo.write_word(raw_io, self.number_groups)
-        for i in range(self.number_groups):
+        for i in xrange(self.number_groups):
             self.groups[i].write(raw_io)
 
         Ms3dIo.write_word(raw_io, self.number_materials)
-        for i in range(self.number_materials):
+        for i in xrange(self.number_materials):
             self.materials[i].write(raw_io)
 
         Ms3dIo.write_float(raw_io, self.animation_fps)
@@ -1981,21 +1983,21 @@ class Ms3dModel:
             # optional part
             # doesn't matter if it doesn't complete.
             Ms3dIo.write_word(raw_io, self.number_joints)
-            for i in range(self.number_joints):
+            for i in xrange(self.number_joints):
                 self.joints[i].write(raw_io)
 
             Ms3dIo.write_dword(raw_io, self.sub_version_comments)
 
             Ms3dIo.write_dword(raw_io, self.number_group_comments)
-            for i in range(self.number_group_comments):
+            for i in xrange(self.number_group_comments):
                 self.group_comments[i].comment_object.write(raw_io)
 
             Ms3dIo.write_dword(raw_io, self.number_material_comments)
-            for i in range(self.number_material_comments):
+            for i in xrange(self.number_material_comments):
                 self.material_comments[i].comment_object.write(raw_io)
 
             Ms3dIo.write_dword(raw_io, self.number_joint_comments)
-            for i in range(self.number_joint_comments):
+            for i in xrange(self.number_joint_comments):
                 self.joint_comments[i].comment_object.write(raw_io)
 
             Ms3dIo.write_dword(raw_io, self.has_model_comment)
@@ -2003,12 +2005,12 @@ class Ms3dModel:
                 self.comment_object.write(raw_io)
 
             Ms3dIo.write_dword(raw_io, self.sub_version_vertex_extra)
-            if (self.sub_version_vertex_extra in {1, 2, 3}):
-                for i in range(self.number_vertices):
+            if (self.sub_version_vertex_extra in set([1, 2, 3])):
+                for i in xrange(self.number_vertices):
                     self.vertex_ex[i].write(raw_io)
 
             Ms3dIo.write_dword(raw_io, self.sub_version_joint_extra)
-            for i in range(self.number_joints):
+            for i in xrange(self.number_joints):
                 self.joint_ex[i].write(raw_io)
 
             Ms3dIo.write_dword(raw_io, self.sub_version_model_extra)

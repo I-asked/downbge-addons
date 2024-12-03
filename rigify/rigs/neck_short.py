@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from rna_prop_ui import rna_idprop_ui_prop_get
 
@@ -26,6 +28,7 @@ from ..utils import copy_bone, new_bone, put_bone
 from ..utils import connected_children_names
 from ..utils import strip_org, make_mechanism_name, make_deformer_name
 from ..utils import create_circle_widget
+from itertools import izip
 
 
 script1 = """
@@ -43,7 +46,7 @@ if is_selected(head_neck):
 """
 
 
-class Rig:
+class Rig(object):
     """ A "neck" rig.  It turns a chain of bones into a rig with two controls:
         One for the head, and one for the neck.
 
@@ -143,7 +146,7 @@ class Rig:
 
             head_ctrl_e.parent = head_socket2_e
 
-        for (name1, name2) in zip(neck, helpers):
+        for (name1, name2) in izip(neck, helpers):
             eb[name1].use_connect = False
             eb[name1].parent = eb[name2]
             eb[name2].use_connect = False
@@ -170,7 +173,7 @@ class Rig:
             put_bone(self.obj, head_socket2, neck_ctrl_e.head)
             head_mch_e.length /= 3
 
-        for (name1, name2) in zip(neck, helpers):
+        for (name1, name2) in izip(neck, helpers):
             put_bone(self.obj, name2, eb[name1].head)
             eb[name2].length = eb[name1].length / 2
 
@@ -257,7 +260,7 @@ class Rig:
         prev = None
         i = 0
         l = len(neck)
-        for (name1, name2, org_name) in zip(neck, helpers, self.org_bones):
+        for (name1, name2, org_name) in izip(neck, helpers, self.org_bones):
             con = pb[org_name].constraints.new('COPY_TRANSFORMS')
             con.name = "copy_transforms"
             con.target = self.obj

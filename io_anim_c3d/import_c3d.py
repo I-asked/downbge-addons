@@ -29,19 +29,22 @@
 # and Jaap Harlaar, Amsterdam, april 2002
 
 
+from __future__ import with_statement
+from __future__ import absolute_import
 import struct
+from io import open
 try:
     from numpy import array as vec  # would be nice to have NumPy in Blender
 except:
     from mathutils import Vector as vec
 
 
-class Marker:
+class Marker(object):
     position = (0., 0., 0.)
     confidence = -1.
 
 
-class Parameter:
+class Parameter(object):
     def __init__(self, infile):
         (nameLength, self.paramIdx) = struct.unpack('bb', infile.read(2))
         if not nameLength:
@@ -72,10 +75,10 @@ class Parameter:
         # for now only decode labels
         l, c = struct.unpack('BB', self.data[1:3])
         return [self.data[3 + i:3 + i + l].strip().decode('ascii')
-                for i in range(0, l * c, l)]
+                for i in xrange(0, l * c, l)]
 
 
-class MarkerSet:
+class MarkerSet(object):
     def __init__(self, fileName, scale=1., stripPrefix=True, onlyHeader=False):
         self.fileName = fileName
         if fileName.endswith('.csv'):
@@ -97,14 +100,14 @@ class MarkerSet:
     def readCSV(self, infile):
         import csv
         csvr = csv.reader(infile)
-        header = next(csvr)
+        header = csvr.next()
         if 0 != len(header) % 3:
             raise Exception('Incorrect data format in CSV file')
         self.markerLabels = [label[:-2] for label in header[::3]]
         self.frames = []
         for framerow in csvr:
             newFrame = []
-            for c in range(0, len(framerow), 3):
+            for c in xrange(0, len(framerow), 3):
                 m = Marker()
                 try:
                     m.position = vec([float(v) for v in framerow[c:c + 3]])
@@ -146,7 +149,7 @@ class MarkerSet:
                 prefix = prefix[:len(ml)]
             if not prefix:
                 break
-            for i in range(len(prefix)):
+            for i in xrange(len(prefix)):
                 if prefix[i] != ml[i]:
                     prefix = prefix[:i]
                     break
@@ -183,11 +186,11 @@ class MarkerSet:
         (ig, ig, pointIdx,
          self.procType) = struct.unpack('BBBB', infile.read(4))
         self.procType -= 83
-        if self.procType not in {1, 2}:
+        if self.procType not in set([1, 2]):
             # 1(INTEL-PC); 2(DEC-VAX); 3(MIPS-SUN/SGI)
-            print('Warning: importer was not tested for files from '
-                  'architectures other than Intel-PC and DEC-VAX')
-            print('Type: {0}'.format(self.procType))
+            print 'Warning: importer was not tested for files from '
+                  'architectures other than Intel-PC and DEC-VAX'
+            print 'Type: {0}'.format(self.procType)
         self.paramGroups = {}
         g = Parameter(infile)
         self.paramGroups[g.name] = g
@@ -210,7 +213,7 @@ class MarkerSet:
         # as long as the LABELS parameter has the same number of markers
         if cand_mlabel is None:
             self.markerLabels = ["m{}".format(idx)
-                                 for idx in range(self.markerCount)]
+                                 for idx in xrange(self.markerCount)]
         else:
             self.markerLabels = cand_mlabel
         repeats = {}
@@ -247,14 +250,14 @@ class MarkerSet:
     def readFrameData(self, infile):
         infile.seek(512 * (self.dataBlock - 1))
         self.frames = []
-        for f in range(self.startFrame, self.endFrame + 1):
-            frame = [self.readMarker(infile) for m in range(self.markerCount)]
+        for f in xrange(self.startFrame, self.endFrame + 1):
+            frame = [self.readMarker(infile) for m in xrange(self.markerCount)]
             self.frames.append(frame)
 
     def readNextFrameData(self):
         if len(self.frames) < (self.endFrame - self.startFrame + 1):
             frame = [self.readMarker(self.infile)
-                for m in range(self.markerCount)]
+                for m in xrange(self.markerCount)]
             self.frames.append(frame)
         return self.frames[-1]
 
@@ -264,7 +267,7 @@ class MarkerSet:
         else:
             idx = self.markerLabels.index(marker)
         fcnt = self.endFrame - self.startFrame + 1
-        return [self.frames[f][idx] for f in range(fcnt)]
+        return [self.frames[f][idx] for f in xrange(fcnt)]
 
     def getMarker(self, marker, frame):
         idx = self.markerLabels.index(marker)
@@ -283,15 +286,15 @@ if __name__ == '__main__':
 
     sys.argv.pop(0)
     if not sys.argv:
-        print("Convert C3D to CSV.\n"
-              "Please specify at least one C3D input file.")
+        print "Convert C3D to CSV.\n"
+              "Please specify at least one C3D input file."
         raise SystemExit
     while sys.argv:
         fname = sys.argv.pop(0)
         markerset = read(fname)
-        print("frameRate={0.frameRate}\t"
+        print "frameRate={0.frameRate}\t"
               "scale={0.scale:.2f}\t"
               "markers={0.markerCount}\t"
               "startFrame={0.startFrame}\t"
-              "endFrame={0.endFrame}".format(markerset))
+              "endFrame={0.endFrame}".format(markerset)
         markerset.writeCSV(fname.lower().replace(".c3d", ".csv"))

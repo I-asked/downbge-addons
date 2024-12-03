@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from . import parse_edl
 
@@ -123,7 +125,7 @@ def load_edl(scene, filename, reel_files, reel_offsets, global_offset):
 
     prev_edit = None
     for edit in edits:
-        print(edit)
+        print edit
         if edit.reel.lower() in parse_edl.BLACK_ID:
             frame_offset = 0
         else:
@@ -201,7 +203,7 @@ def load_edl(scene, filename, reel_files, reel_offsets, global_offset):
 
                 if edit.transition_duration:
                     if not prev_edit:
-                        print("Error no previous strip")
+                        print "Error no previous strip"
                     else:
                         new_end = rec_start + int(edit.transition_duration)
                         for other in prev_edit.custom_data:
@@ -310,12 +312,12 @@ def _test():
         assert(0)
     reels = elist.reels_as_dict()
 
-    print(list(reels.keys()))
+    print list(reels.keys())
 
     # import pdb; pdb.set_trace()
     msg = load_edl(bpy.context.scene,
                    _filename,
                    {'tapec': "/fe/edl/cinesoft/rush/rushes3.avi"},
                    {'tapec': 0})  # /tmp/test.edl
-    print(msg)
+    print msg
 # _test()

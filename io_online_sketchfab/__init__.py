@@ -16,6 +16,9 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import with_statement
+from __future__ import absolute_import
+from io import open
 bl_info = {
     "name": "Sketchfab Exporter",
     "author": "Bart Crouch",
@@ -55,7 +58,7 @@ del _presets
 
 
 # Singleton for storing global state
-class _SketchfabState:
+class _SketchfabState(object):
     __slots__ = (
         "uploading",
         "token_reload",
@@ -166,7 +169,7 @@ def upload(filepath, filename):
 
     try:
         r = requests.post(SKETCHFAB_API_MODELS_URL, data=data, files=files, verify=False)
-    except requests.exceptions.RequestException as e:
+    except requests.exceptions.RequestException, e:
         return upload_report("Upload failed. Error: %s" % str(e), 'WARNING')
 
     result = r.json()
@@ -198,28 +201,28 @@ class ExportSketchfab(bpy.types.Operator):
                 # forward message from upload thread
                 if not sf_state.report_type:
                     sf_state.report_type = 'ERROR'
-                self.report({sf_state.report_type}, sf_state.report_message)
+                self.report(set([sf_state.report_type]), sf_state.report_message)
 
                 wm.event_timer_remove(self._timer)
                 self._thread.join()
                 sf_state.uploading = False
-                return {'FINISHED'}
+                return set(['FINISHED'])
 
-        return {'PASS_THROUGH'}
+        return set(['PASS_THROUGH'])
 
     def execute(self, context):
         import json
 
         if sf_state.uploading:
-            self.report({'WARNING'}, "Please wait till current upload is finished")
-            return {'CANCELLED'}
+            self.report(set(['WARNING']), "Please wait till current upload is finished")
+            return set(['CANCELLED'])
 
         wm = context.window_manager
         sf_state.model_url = ""
         props = wm.sketchfab
         if not props.token:
-            self.report({'ERROR'}, "Token is missing")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "Token is missing")
+            return set(['CANCELLED'])
 
         # Prepare to save the file
         binary_path = bpy.app.binary_path
@@ -260,9 +263,9 @@ class ExportSketchfab(bpy.types.Operator):
                 props.filepath = r["filepath"]
                 filename = r["filename"]
 
-        except Exception as e:
-            self.report({'WARNING'}, "Error occured while preparing your file: %s" % str(e))
-            return {'FINISHED'}
+        except Exception, e:
+            self.report(set(['WARNING']), "Error occured while preparing your file: %s" % str(e))
+            return set(['FINISHED'])
 
         sf_state.uploading = True
         sf_state.size_label = format_size(size)
@@ -275,7 +278,7 @@ class ExportSketchfab(bpy.types.Operator):
         wm.modal_handler_add(self)
         self._timer = wm.event_timer_add(1.0, context.window)
 
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
     def cancel(self, context):
         wm = context.window_manager
@@ -401,19 +404,19 @@ class SketchfabEmailToken(bpy.types.Operator):
 
         EMAIL_RE = re.compile(r'[^@]+@[^@]+\.[^@]+')
         if not EMAIL_RE.match(self.email):
-            self.report({'ERROR'}, "Wrong email format")
+            self.report(set(['ERROR']), "Wrong email format")
         try:
             r = requests.get(SKETCHFAB_API_TOKEN_URL + "?source=blender-exporter&email=" + self.email, verify=False)
-        except requests.exceptions.RequestException as e:
-            self.report({'ERROR'}, str(e))
-            return {'FINISHED'}
+        except requests.exceptions.RequestException, e:
+            self.report(set(['ERROR']), str(e))
+            return set(['FINISHED'])
 
         if r.status_code != requests.codes.ok:
-            self.report({'ERROR'}, "An error occured. Check the format of your email")
+            self.report(set(['ERROR']), "An error occured. Check the format of your email")
         else:
-            self.report({'INFO'}, "Your email was sent at your email address")
+            self.report(set(['INFO']), "Your email was sent at your email address")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         wm = context.window_manager

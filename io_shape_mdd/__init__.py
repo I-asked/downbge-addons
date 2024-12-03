@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 bl_info = {
     "name": "NewTek MDD format",
     "author": "Bill L.Nieuwendorp",
@@ -47,13 +49,13 @@ class ImportMDD(bpy.types.Operator, ImportHelper):
     """Import MDD vertex keyframe file to shape keys"""
     bl_idname = "import_shape.mdd"
     bl_label = "Import MDD"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     filename_ext = ".mdd"
 
     filter_glob = StringProperty(
             default="*.mdd",
-            options={'HIDDEN'},
+            options=set(['HIDDEN']),
             )
     frame_start = IntProperty(
             name="Start Frame",
@@ -76,7 +78,7 @@ class ImportMDD(bpy.types.Operator, ImportHelper):
         scene = context.scene
         self.frame_start = scene.frame_start
 
-        return super().invoke(context, event)
+        return super(ImportMDD, self).invoke(context, event)
 
     def execute(self, context):
         keywords = self.as_keywords(ignore=("filter_glob",))
@@ -91,7 +93,7 @@ class ExportMDD(bpy.types.Operator, ExportHelper):
     bl_label = "Export MDD"
 
     filename_ext = ".mdd"
-    filter_glob = StringProperty(default="*.mdd", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.mdd", options=set(['HIDDEN']))
 
     # get first scene to get min and max properties for frames, fps
 
@@ -132,7 +134,7 @@ class ExportMDD(bpy.types.Operator, ExportHelper):
         self.frame_end = scene.frame_end
         self.fps = scene.render.fps / scene.render.fps_base
 
-        return super().invoke(context, event)
+        return super(ExportMDD, self).invoke(context, event)
 
     def execute(self, context):
         keywords = self.as_keywords(ignore=("check_existing", "filter_glob"))

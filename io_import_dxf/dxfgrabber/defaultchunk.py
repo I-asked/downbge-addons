@@ -2,6 +2,7 @@
 # Created: 21.07.2012, taken from my ezdxf project
 # Copyright (C) 2012, Manfred Moitzi
 # License: MIT License
+from __future__ import absolute_import
 from __future__ import unicode_literals
 __author__ = "mozman <mozman@gmx.at>"
 
@@ -25,7 +26,7 @@ class DefaultChunk(object):
 
 def iterchunks(tagreader, stoptag='EOF', endofchunk='ENDSEC'):
     while True:
-        tag = next(tagreader)
+        tag = tagreader.next()
         if tag == DXFTag(0, stoptag):
             return
 
@@ -33,6 +34,6 @@ def iterchunks(tagreader, stoptag='EOF', endofchunk='ENDSEC'):
         append = tags.append
         end_tag = DXFTag(0, endofchunk)
         while tag != end_tag:
-            tag = next(tagreader)
+            tag = tagreader.next()
             append(tag)
         yield tags

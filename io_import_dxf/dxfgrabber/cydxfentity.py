@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 def __bootstrap__():
    global __bootstrap__, __loader__, __file__
    import sys, pkg_resources, imp

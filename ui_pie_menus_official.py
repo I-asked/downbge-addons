@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Pie Menus Official",
     "author": "Antony Riakiotakis, Sebastian Koenig",
@@ -104,9 +105,9 @@ class VIEW3D_manipulator_set(Operator):
         # show manipulator if user selects an option
         context.space_data.show_manipulator = True
 
-        context.space_data.transform_manipulators = {self.type}
+        context.space_data.transform_manipulators = set([self.type])
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class VIEW3D_PIE_manipulator(Menu):

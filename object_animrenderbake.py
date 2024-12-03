@@ -16,6 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Animated Render Baker",
     "author": "Janne Karhu (jahka)",
@@ -57,27 +58,27 @@ class OBJECT_OT_animrenderbake(bpy.types.Operator):
 
         # Check for errors before starting
         if start >= end:
-            self.report({'ERROR'}, "Start frame must be smaller than end frame")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "Start frame must be smaller than end frame")
+            return set(['CANCELLED'])
             
         selected = context.selected_objects
 
         # Only single object baking for now
         if scene.render.use_bake_selected_to_active:
             if len(selected) > 2:
-                self.report({'ERROR'}, "Select only two objects for animated baking")
-                return {'CANCELLED'}
+                self.report(set(['ERROR']), "Select only two objects for animated baking")
+                return set(['CANCELLED'])
         elif len(selected) > 1:
-            self.report({'ERROR'}, "Select only one object for animated baking")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "Select only one object for animated baking")
+            return set(['CANCELLED'])
 
         if context.active_object.type != 'MESH':
-            self.report({'ERROR'}, "The baked object must be a mesh object")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "The baked object must be a mesh object")
+            return set(['CANCELLED'])
 
         if context.active_object.mode == 'EDIT':
-            self.report({'ERROR'}, "Can't bake in edit-mode")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "Can't bake in edit-mode")
+            return set(['CANCELLED'])
 
         img = None
 
@@ -96,11 +97,11 @@ class OBJECT_OT_animrenderbake(bpy.types.Operator):
                 while trees and not img:
                     tree = trees.pop()
                     node = tree.nodes.active
-                    if node.type in {'TEX_IMAGE', 'TEX_ENVIRONMENT'}:
+                    if node.type in set(['TEX_IMAGE', 'TEX_ENVIRONMENT']):
                         img = node.image
                         break
                     for node in tree.nodes:
-                        if node.type in {'TEX_IMAGE', 'TEX_ENVIRONMENT'} and node.image:
+                        if node.type in set(['TEX_IMAGE', 'TEX_ENVIRONMENT']) and node.image:
                             if node.select:
                                 if not selected:
                                     selected = node
@@ -125,24 +126,24 @@ class OBJECT_OT_animrenderbake(bpy.types.Operator):
                             break
 
         if img is None:
-            self.report({'ERROR'}, "No valid image found to bake to")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "No valid image found to bake to")
+            return set(['CANCELLED'])
 
         if img.is_dirty:
-            self.report({'ERROR'}, "Save the image that's used for baking before use")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "Save the image that's used for baking before use")
+            return set(['CANCELLED'])
 
         if img.packed_file is not None:
-            self.report({'ERROR'}, "Can't animation-bake packed file")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "Can't animation-bake packed file")
+            return set(['CANCELLED'])
 
         # make sure we have an absolute path so that copying works for sure
         img_filepath_abs = bpy.path.abspath(img.filepath, library=img.library)
 
-        print("Animated baking for frames (%d - %d)" % (start, end))
+        print "Animated baking for frames (%d - %d)" % (start, end)
 
-        for cfra in range(start, end + 1):
-            print("Baking frame %d" % cfra)
+        for cfra in xrange(start, end + 1):
+            print "Baking frame %d" % cfra
 
             # update scene to new frame and bake to template image
             scene.frame_set(cfra)
@@ -151,7 +152,7 @@ class OBJECT_OT_animrenderbake(bpy.types.Operator):
             else:
                 ret = bpy.ops.object.bake_image()
             if 'CANCELLED' in ret:
-                return {'CANCELLED'}
+                return set(['CANCELLED'])
 
             # Currently the api doesn't allow img.save_as()
             # so just save the template image as usual for
@@ -159,11 +160,11 @@ class OBJECT_OT_animrenderbake(bpy.types.Operator):
             img.save()
             img_filepath_new = self.framefile(img_filepath_abs, cfra)
             shutil.copyfile(img_filepath_abs, img_filepath_new)
-            print("Saved %r" % img_filepath_new)
+            print "Saved %r" % img_filepath_new
 
-        print("Baking done!")
+        print "Baking done!"
 
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 
 def draw(self, context):

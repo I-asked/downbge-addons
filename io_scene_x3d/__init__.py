@@ -18,6 +18,7 @@
 
 # <pep8-80 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Web3D X3D/VRML2 format",
     "author": "Campbell Barton, Bart, Bastien Montagne",
@@ -61,10 +62,10 @@ class ImportX3D(bpy.types.Operator, ImportHelper, IOX3DOrientationHelper):
     """Import an X3D or VRML2 file"""
     bl_idname = "import_scene.x3d"
     bl_label = "Import X3D/VRML2"
-    bl_options = {'PRESET', 'UNDO'}
+    bl_options = set(['PRESET', 'UNDO'])
 
     filename_ext = ".x3d"
-    filter_glob = StringProperty(default="*.x3d;*.wrl", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.x3d;*.wrl", options=set(['HIDDEN']))
 
     def execute(self, context):
         from . import import_x3d
@@ -85,10 +86,10 @@ class ExportX3D(bpy.types.Operator, ExportHelper, IOX3DOrientationHelper):
     """Export selection to Extensible 3D file (.x3d)"""
     bl_idname = "export_scene.x3d"
     bl_label = 'Export X3D'
-    bl_options = {'PRESET'}
+    bl_options = set(['PRESET'])
 
     filename_ext = ".x3d"
-    filter_glob = StringProperty(default="*.x3d", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.x3d", options=set(['HIDDEN']))
 
     use_selection = BoolProperty(
             name="Selection Only",

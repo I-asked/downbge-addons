@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from bpy.props import *
 
@@ -23,6 +25,7 @@ import os
 import math
 
 import mathutils
+from itertools import imap
 
 __bpydoc__ = """
 Light Field Tools
@@ -90,7 +93,7 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
     """Create a lightfield rig based on the active object/mesh"""
     bl_idname="object.create_lightfield_rig"
     bl_label="Create a light field rig based on the active object/mesh"
-    bl_options = {'REGISTER'}
+    bl_options = set(['REGISTER'])
 
     layer0 = [True] + [False]*19
 
@@ -122,7 +125,7 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
             return v[0][1]
         verts.sort(key=key_y)
         sorted_verts = []
-        for i in range(0, len(verts), row_length):
+        for i in xrange(0, len(verts), row_length):
             row = verts[i:i+row_length]
             row.sort(key=key_x)
             sorted_verts.extend(row)
@@ -209,7 +212,7 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
         if not len(files) == self.numSamples:
             return False
         files.sort()
-        self.imagePaths = list(map(lambda f : os.path.join(path, f), files))
+        self.imagePaths = list(imap(lambda f : os.path.join(path, f), files))
         return True
 
 
@@ -272,7 +275,7 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
 
         obj = self.baseObject = context.active_object
         if not obj or obj.type != 'MESH':
-            self.report({'ERROR'}, "No selected mesh object!")
+            self.report(set(['ERROR']), "No selected mesh object!")
             return 'CANCELLED'
 
         self.verts = self.arrangeVerts()
@@ -295,7 +298,7 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
             else:
                 self.createLightfieldEmitter(textured=False)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
    
 
 
@@ -304,7 +307,7 @@ class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator):
     """Creates a basemsh from the selected focal plane"""
     bl_idname="object.create_lightfield_basemesh"
     bl_label="Create a basemesh from the selected focal plane"
-    bl_options = {'REGISTER'}
+    bl_options = set(['REGISTER'])
     
     objName = "lf_basemesh"
 
@@ -345,12 +348,12 @@ class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator):
         obj = context.active_object
         # check if active object is a mesh object
         if not obj or obj.type != 'MESH':
-            self.report({'ERROR'}, "No selected mesh object!")
+            self.report(set(['ERROR']), "No selected mesh object!")
             return 'CANCELLED'
 
         # check if it has one single face
         if len(obj.data.polygons) != 1:
-            self.report({'ERROR'}, "The selected mesh object has to have exactly one quad!")
+            self.report(set(['ERROR']), "The selected mesh object has to have exactly one quad!")
             return 'CANCELLED'
 
         rl = scene.lightfield.row_length
@@ -374,8 +377,8 @@ class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator):
         z = obj.location[2]
         # position on the focal plane
         fplane_pos = mathutils.Vector()
-        for x in [sx + fplane_offset*i for i in range(rl)]:
-            for y in [sy + fplane_offset*i for i in range(rl)]:
+        for x in [sx + fplane_offset*i for i in xrange(rl)]:
+            for y in [sy + fplane_offset*i for i in xrange(rl)]:
                 fplane_pos.x = x
                 fplane_pos.y = y
                 fplane_pos.z = z
@@ -389,7 +392,7 @@ class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator):
         mesh.from_pydata(verts, [], [])
         self.addMeshObj(mesh)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
         
 
 

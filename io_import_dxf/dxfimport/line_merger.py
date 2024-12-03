@@ -28,7 +28,7 @@ def _round_point(point, precision):
     return tuple(round(c, precision) for c in point)
 
 
-class _LineMerger:
+class _LineMerger(object):
     def __init__(self, lines, precision):
         self.segments = set()  # single lines as tuples: ((sx, sy[, sz]), (ex, ey[, ez]))
         self.used_segments = set()

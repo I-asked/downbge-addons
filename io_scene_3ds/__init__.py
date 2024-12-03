@@ -18,6 +18,7 @@
 
 # <pep8-80 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Autodesk 3DS format",
     "author": "Bob Holcomb, Campbell Barton",
@@ -61,10 +62,10 @@ class Import3DS(bpy.types.Operator, ImportHelper, IO3DSOrientationHelper):
     """Import from 3DS file format (.3ds)"""
     bl_idname = "import_scene.autodesk_3ds"
     bl_label = 'Import 3DS'
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     filename_ext = ".3ds"
-    filter_glob = StringProperty(default="*.3ds", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.3ds", options=set(['HIDDEN']))
 
     constrain_size = FloatProperty(
             name="Size Constraint",
@@ -111,7 +112,7 @@ class Export3DS(bpy.types.Operator, ExportHelper, IO3DSOrientationHelper):
     filename_ext = ".3ds"
     filter_glob = StringProperty(
             default="*.3ds",
-            options={'HIDDEN'},
+            options=set(['HIDDEN']),
             )
 
     use_selection = BoolProperty(

@@ -34,6 +34,7 @@ bl_info = {
 
 """List properties of selected objects"""
 
+from __future__ import absolute_import
 import bpy
 from bl_operators.presets import AddPresetBase
 
@@ -150,7 +151,7 @@ def _property_chart_draw(self, context):
         for obj, prop_pairs in prop_all:
             col.prop(obj, "name", text="")
 
-        for i in range(len(strings)):
+        for i in xrange(len(strings)):
             col = row.column(align=True)
 
             # name and copy button
@@ -255,7 +256,7 @@ class CopyPropertyChart(bpy.types.Operator):
 
         _property_chart_copy(self, context)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 def register():

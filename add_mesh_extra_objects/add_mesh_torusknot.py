@@ -1,6 +1,9 @@
 # GPL #  Author, Anthony D'Agostino
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy, mathutils, math
+from itertools import imap
 
 def create_mesh_object(context, verts, edges, faces, name):
     # Create new mesh
@@ -35,19 +38,19 @@ def k3(t):
 
 def make_verts(ures, vres, r2, knotfunc):
 	verts = []
-	for i in range(ures):
+	for i in xrange(ures):
 		t1 = (i+0) * 2*math.pi/ures
 		t2 = (i+1) * 2*math.pi/ures
 		a = knotfunc(t1)		# curr point
 		b = knotfunc(t2)		# next point
-		a,b = map(mathutils.Vector, (a,b))
+		a,b = imap(mathutils.Vector, (a,b))
 		e = a-b
 		f = a+b
 		g = e.cross(f)
 		h = e.cross(g)
 		g.normalize()
 		h.normalize()
-		for j in range(vres):
+		for j in xrange(vres):
 			k = j * 2*math.pi/vres
 			l = (math.cos(k),0.0,math.sin(k))
 			l = mathutils.Vector(l)
@@ -62,8 +65,8 @@ def make_verts(ures, vres, r2, knotfunc):
 
 def make_faces(ures, vres):
 	faces = []
-	for u in range(0, ures):
-		for v in range(0, vres):
+	for u in xrange(0, ures):
+		for v in xrange(0, vres):
 			p1 = v + u*vres
 			p2 = v + ((u+1)%ures)*vres
 			p4 = (v+1)%vres + u*vres
@@ -84,7 +87,7 @@ class AddTorusKnot(bpy.types.Operator):
 	"""Add a torus-knot mesh"""
 	bl_idname = "mesh.primitive_torusknot_add"
 	bl_label = "Add Torus Knot"
-	bl_options = {"REGISTER", "UNDO"}
+	bl_options = set(["REGISTER", "UNDO"])
 
 	resolution = bpy.props.IntProperty(name="Resolution",
 		description="Resolution of the Torus Knot",
@@ -98,4 +101,4 @@ class AddTorusKnot(bpy.types.Operator):
 		verts, faces = make_knot(self.objecttype,
 								 self.resolution)
 		obj = create_mesh_object(context, verts, [], faces, "Torus Knot")
-		return {'FINISHED'}
+		return set(['FINISHED'])

@@ -1,10 +1,11 @@
 # GPL # "author": "DreamPainter"
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from bpy.props import FloatProperty,EnumProperty,BoolProperty
 from math import sqrt
 from mathutils import Vector
-from functools import reduce
 from bpy_extras.object_utils import object_data_add
 
 # this function creates a chain of quads and, when necessary, a remaining tri
@@ -28,7 +29,7 @@ def createPolys(poly):
             faces.append(i)
         # split all polygons in half and bridge the two halves
         else:
-            f = [[i[x],i[x+1],i[L-2-x],i[L-1-x]] for x in range(L//2-1)]
+            f = [[i[x],i[x+1],i[L-2-x],i[L-1-x]] for x in xrange(L//2-1)]
             faces.extend(f)
             if L&1 == 1:
                 faces.append([i[L//2-1+x] for x in [0,1,2]])
@@ -150,9 +151,9 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
     # generate connection database
     vDict = [{} for i in vInput]
     # for every face, store what vertex comes after and before the current vertex
-    for x in range(len(fInput)):
+    for x in xrange(len(fInput)):
         i = fInput[x]
-        for j in range(len(i)):
+        for j in xrange(len(i)):
             vDict[i[j-1]][i[j]] = [i[j-2],x]
             if len(vDict[i[j-1]]) == 1: vDict[i[j-1]][-1] = i[j]
 
@@ -162,7 +163,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
     fvOutput = [] # faces created from truncated vertices
     feOutput = [] # faces created from truncated edges
     vOutput = [] # newly created vertices
-    for x in range(len(vInput)):
+    for x in xrange(len(vInput)):
         i = vDict[x] # lookup the current vertex
         current = i[-1]
         while True: # follow the chain to get a ccw order of connected verts and faces
@@ -176,12 +177,12 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
         fOffset = x*(len(i)-1) # where to start off counting faceVerts
         # only create one vert where one is needed (v1 todo: done)
         if etrunc == 0.5:
-            for j in range(len(i)-1):
+            for j in xrange(len(i)-1):
                 vOutput.append((vData[x][0][j]+vData[x][0][j-1])*etrunc) # create vert
                 fvOutput[x].append(fOffset+j) # add to face
             fvOutput[x] = fvOutput[x][1:]+[fvOutput[x][0]] # rotate face for ease later on
             # create faces from truncated edges.
-            for j in range(len(i)-1):
+            for j in xrange(len(i)-1):
                 if x > vData[x][2][j]: #only create when other vertex has been added
                     index = vData[vData[x][2][j]][2].index(x)
                     feOutput.append([fvOutput[x][j],fvOutput[x][j-1],
@@ -189,7 +190,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
                                      fvOutput[vData[x][2][j]][index-1]])
         # edge truncation between none and full
         elif etrunc > 0:
-            for j in range(len(i)-1):
+            for j in xrange(len(i)-1):
                 # create snubs from selecting verts from rectified meshes
                 if rSnub:
                     vOutput.append(etrunc*vData[x][0][j]+(1-etrunc)*vData[x][0][j-1])
@@ -207,7 +208,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
             else: fvOutput[x] = fvOutput[x][1:]+[fvOutput[x][0]]
             # create single face for each edge
             if noSnub:
-                for j in range(len(i)-1):
+                for j in xrange(len(i)-1):
                     if x > vData[x][2][j]:
                         index = vData[vData[x][2][j]][2].index(x)
                         feOutput.append([fvOutput[x][j*2],fvOutput[x][2*j-1],
@@ -215,7 +216,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
                                          fvOutput[vData[x][2][j]][2*index-1]])
             # create 2 tri's for each edge for the snubs
             elif rSnub:
-                for j in range(len(i)-1):
+                for j in xrange(len(i)-1):
                     if x > vData[x][2][j]:
                         index = vData[vData[x][2][j]][2].index(x)
                         feOutput.append([fvOutput[x][j],fvOutput[x][j-1],
@@ -223,7 +224,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
                         feOutput.append([fvOutput[x][j],fvOutput[vData[x][2][j]][index],
                                          fvOutput[vData[x][2][j]][index-1]])
             elif lSnub:
-                for j in range(len(i)-1):
+                for j in xrange(len(i)-1):
                     if x > vData[x][2][j]:
                         index = vData[vData[x][2][j]][2].index(x)
                         feOutput.append([fvOutput[x][j],fvOutput[x][j-1],
@@ -232,7 +233,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
                                          fvOutput[vData[x][2][j]][index-1]])
         # special rules fro birectified mesh (v1 todo: done)
         elif vtrunc == 0.5:
-            for j in range(len(i)-1):
+            for j in xrange(len(i)-1):
                 if x < vData[x][2][j]: # use current vert, since other one has not passed yet
                     vOutput.append(vData[x][0][j])
                     fvOutput[x].append(len(vOutput)-1)
@@ -242,7 +243,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
                     fvOutput[x].append(fvOutput[connectee][vData[connectee][2].index(x)])
         else: # vert truncation only
             vOutput.extend(vData[x][0]) # use generated verts from way above
-            for j in range(len(i)-1):   # create face from them
+            for j in xrange(len(i)-1):   # create face from them
                 fvOutput[x].append(fOffset+j)
 
     # calculate supposed vertex length to ensure continuity
@@ -252,7 +253,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
 
     # create new faces by replacing old vert IDs by newly generated verts
     ffOutput = [[] for i in fInput]
-    for x in range(len(fInput)):
+    for x in xrange(len(fInput)):
         # only one generated vert per vertex, so choose accordingly
         if etrunc == 0.5 or (etrunc == 0 and vtrunc == 0.5) or lSnub or rSnub:
             ffOutput[x] = [fvOutput[i][vData[i][3].index(x)-1] for i in fInput[x]]
@@ -275,12 +276,12 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
         dvOutput = [0 for i in fvOutput + feOutput + ffOutput]
         dfOutput = []
 
-        for x in range(len(dvOutput)): # for every face
+        for x in xrange(len(dvOutput)): # for every face
             i = (fvOutput + feOutput + ffOutput)[x] # choose face to work with
             # find vertex from face
             normal = (vOutput[i[0]]-vOutput[i[1]]).cross(vOutput[i[2]]-vOutput[i[1]]).normalized()
             dvOutput[x] = normal/(normal.dot(vOutput[i[0]]))
-            for j in range(len(i)): # create vert chain
+            for j in xrange(len(i)): # create vert chain
                 vDict[i[j-1]][i[j]] = [i[j-2],x]
                 if len(vDict[i[j-1]]) == 1: vDict[i[j-1]][-1] = i[j]
 
@@ -290,7 +291,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
         dvOutput = [i*supposedSize for i in dvOutput]
 
         # use chains to create faces
-        for x in range(len(vOutput)):
+        for x in xrange(len(vOutput)):
             i = vDict[x]
             current = i[-1]
             face = []
@@ -307,7 +308,7 @@ class Solids(bpy.types.Operator):
     bl_idname = "mesh.primitive_solid_add"
     bl_label = "(Regular) solids"
     bl_description = "Add one of the Platonic, Archimedean or Catalan solids"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     source = EnumProperty(items = (("4","Tetrahedron",""),
                                    ("6","Hexahedron",""),
@@ -478,4 +479,4 @@ class Solids(bpy.types.Operator):
         # turn undo back on
         bpy.context.user_preferences.edit.use_global_undo = True
 
-        return {'FINISHED'}
+        return set(['FINISHED'])

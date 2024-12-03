@@ -21,6 +21,8 @@
 # Script copyright (C) Campbell Barton, Bastien Montagne
 
 
+from __future__ import division
+from __future__ import absolute_import
 import math
 import time
 
@@ -34,6 +36,7 @@ from bpy.types import Object, Bone, PoseBone, DupliObject
 from mathutils import Vector, Matrix
 
 from . import encode_bin, data_types
+from itertools import izip
 
 
 # "Constants"
@@ -65,7 +68,7 @@ FBX_MATERIAL_VERSION = 102
 FBX_TEXTURE_VERSION = 202
 FBX_ANIM_KEY_VERSION = 4008
 
-FBX_NAME_CLASS_SEP = b"\x00\x01"
+FBX_NAME_CLASS_SEP = "\x00\x01"
 FBX_ANIM_PROPSGROUP_NAME = "d"
 
 FBX_KTIME = 46186158000  # This is the number of "ktimes" in one second (yep, precision over the nanosecond...)
@@ -78,8 +81,8 @@ MAT_CONVERT_CAMERA = Matrix.Rotation(math.pi / 2.0, 4, 'Y')  # Blender is -Z, FB
 MAT_CONVERT_BONE = Matrix()
 
 
-BLENDER_OTHER_OBJECT_TYPES = {'CURVE', 'SURFACE', 'FONT', 'META'}
-BLENDER_OBJECT_TYPES_MESHLIKE = {'MESH'} | BLENDER_OTHER_OBJECT_TYPES
+BLENDER_OTHER_OBJECT_TYPES = set(['CURVE', 'SURFACE', 'FONT', 'META'])
+BLENDER_OBJECT_TYPES_MESHLIKE = set(['MESH']) | BLENDER_OTHER_OBJECT_TYPES
 
 
 # Lamps.
@@ -151,7 +154,7 @@ FBX_FRAMERATES = (
 DO_PERFMON = True
 
 if DO_PERFMON:
-    class PerfMon():
+    class PerfMon(object):
         def __init__(self):
             self.level = -1
             self.ref_time = []
@@ -160,19 +163,18 @@ if DO_PERFMON:
             self.level += 1
             self.ref_time.append(None)
             if message:
-                print("\t" * self.level, message, sep="")
+                print "".join([unicode("\t" * self.level), unicode(message)])
 
         def level_down(self, message=""):
             if not self.ref_time:
                 if message:
-                    print(message)
+                    print message
                 return
             ref_time = self.ref_time[self.level]
-            print("\t" * self.level,
-                  "\tDone (%f sec)\n" % ((time.process_time() - ref_time) if ref_time is not None else 0.0),
-                  sep="")
+            print "".join([unicode("\t" * self.level),
+                  unicode("\tDone (%f sec)\n" % ((time.process_time() - ref_time) if ref_time is not None else 0.0))])
             if message:
-                print("\t" * self.level, message, sep="")
+                print "".join([unicode("\t" * self.level), unicode(message)])
             del self.ref_time[self.level]
             self.level -= 1
 
@@ -180,11 +182,11 @@ if DO_PERFMON:
             ref_time = self.ref_time[self.level]
             curr_time = time.process_time()
             if ref_time is not None:
-                print("\t" * self.level, "\tDone (%f sec)\n" % (curr_time - ref_time), sep="")
+                print "".join([unicode("\t" * self.level), unicode("\tDone (%f sec)\n" % (curr_time - ref_time))])
             self.ref_time[self.level] = curr_time
-            print("\t" * self.level, message, sep="")
+            print "".join([unicode("\t" * self.level), unicode(message)])
 else:
-    class PerfMon():
+    class PerfMon(object):
         def __init__(self):
             pass
 
@@ -248,7 +250,7 @@ def matrix4_to_array(mat):
 def array_to_matrix4(arr):
     """Convert a single 16-len tuple into a valid 4D Blender matrix"""
     # Blender matrix is row major, fbx is col major so transpose on read
-    return Matrix(tuple(zip(*[iter(arr)]*4))).transposed()
+    return Matrix(tuple(izip(*[iter(arr)]*4))).transposed()
 
 
 def similar_values(v1, v2, e=1e-6):
@@ -262,21 +264,21 @@ def similar_values_iter(v1, v2, e=1e-6):
     """Return True if iterables v1 and v2 are nearly the same."""
     if v1 == v2:
         return True
-    for v1, v2 in zip(v1, v2):
+    for v1, v2 in izip(v1, v2):
         if (v1 != v2) and ((abs(v1 - v2) / max(abs(v1), abs(v2))) > e):
             return False
     return True
 
 def vcos_transformed_gen(raw_cos, m=None):
     # Note: we could most likely get much better performances with numpy, but will leave this as TODO for now.
-    gen = zip(*(iter(raw_cos),) * 3)
+    gen = izip(*(iter(raw_cos),) * 3)
     return gen if m is None else (m * Vector(v) for v in gen)
 
 def nors_transformed_gen(raw_nors, m=None):
     # Great, now normals are also expected 4D!
     # XXX Back to 3D normals for now!
     # gen = zip(*(iter(raw_nors),) * 3 + (_infinite_gen(1.0),))
-    gen = zip(*(iter(raw_nors),) * 3)
+    gen = izip(*(iter(raw_nors),) * 3)
     return gen if m is None else (m * Vector(v) for v in gen)
 
 
@@ -521,7 +523,7 @@ def elem_data_vec_float64(elem, name, value):
 # ##### Generators for standard FBXProperties70 properties. #####
 
 def elem_properties(elem):
-    return elem_empty(elem, b"Properties70")
+    return elem_empty(elem, "Properties70")
 
 
 # Properties definitions, format: (b"type_1", b"label(???)", "name_set_value_1", "name_set_value_2", ...)
@@ -530,42 +532,42 @@ def elem_properties(elem):
 #     these are just Vector3D ultimately... *sigh* (again).
 FBX_PROPERTIES_DEFINITIONS = {
     # Generic types.
-    "p_bool": (b"bool", b"", "add_int32"),  # Yes, int32 for a bool (and they do have a core bool type)!!!
-    "p_integer": (b"int", b"Integer", "add_int32"),
-    "p_ulonglong": (b"ULongLong", b"", "add_int64"),
-    "p_double": (b"double", b"Number", "add_float64"),  # Non-animatable?
-    "p_number": (b"Number", b"", "add_float64"),  # Animatable-only?
-    "p_enum": (b"enum", b"", "add_int32"),
-    "p_vector_3d": (b"Vector3D", b"Vector", "add_float64", "add_float64", "add_float64"),  # Non-animatable?
-    "p_vector": (b"Vector", b"", "add_float64", "add_float64", "add_float64"),  # Animatable-only?
-    "p_color_rgb": (b"ColorRGB", b"Color", "add_float64", "add_float64", "add_float64"),  # Non-animatable?
-    "p_color": (b"Color", b"", "add_float64", "add_float64", "add_float64"),  # Animatable-only?
-    "p_string": (b"KString", b"", "add_string_unicode"),
-    "p_string_url": (b"KString", b"Url", "add_string_unicode"),
-    "p_timestamp": (b"KTime", b"Time", "add_int64"),
-    "p_datetime": (b"DateTime", b"", "add_string_unicode"),
+    "p_bool": ("bool", "", "add_int32"),  # Yes, int32 for a bool (and they do have a core bool type)!!!
+    "p_integer": ("int", "Integer", "add_int32"),
+    "p_ulonglong": ("ULongLong", "", "add_int64"),
+    "p_double": ("double", "Number", "add_float64"),  # Non-animatable?
+    "p_number": ("Number", "", "add_float64"),  # Animatable-only?
+    "p_enum": ("enum", "", "add_int32"),
+    "p_vector_3d": ("Vector3D", "Vector", "add_float64", "add_float64", "add_float64"),  # Non-animatable?
+    "p_vector": ("Vector", "", "add_float64", "add_float64", "add_float64"),  # Animatable-only?
+    "p_color_rgb": ("ColorRGB", "Color", "add_float64", "add_float64", "add_float64"),  # Non-animatable?
+    "p_color": ("Color", "", "add_float64", "add_float64", "add_float64"),  # Animatable-only?
+    "p_string": ("KString", "", "add_string_unicode"),
+    "p_string_url": ("KString", "Url", "add_string_unicode"),
+    "p_timestamp": ("KTime", "Time", "add_int64"),
+    "p_datetime": ("DateTime", "", "add_string_unicode"),
     # Special types.
-    "p_object": (b"object", b""),  # XXX Check this! No value for this prop??? Would really like to know how it works!
-    "p_compound": (b"Compound", b""),
+    "p_object": ("object", ""),  # XXX Check this! No value for this prop??? Would really like to know how it works!
+    "p_compound": ("Compound", ""),
     # Specific types (sic).
     # ## Objects (Models).
-    "p_lcl_translation": (b"Lcl Translation", b"", "add_float64", "add_float64", "add_float64"),
-    "p_lcl_rotation": (b"Lcl Rotation", b"", "add_float64", "add_float64", "add_float64"),
-    "p_lcl_scaling": (b"Lcl Scaling", b"", "add_float64", "add_float64", "add_float64"),
-    "p_visibility": (b"Visibility", b"", "add_float64"),
-    "p_visibility_inheritance": (b"Visibility Inheritance", b"", "add_int32"),
+    "p_lcl_translation": ("Lcl Translation", "", "add_float64", "add_float64", "add_float64"),
+    "p_lcl_rotation": ("Lcl Rotation", "", "add_float64", "add_float64", "add_float64"),
+    "p_lcl_scaling": ("Lcl Scaling", "", "add_float64", "add_float64", "add_float64"),
+    "p_visibility": ("Visibility", "", "add_float64"),
+    "p_visibility_inheritance": ("Visibility Inheritance", "", "add_int32"),
     # ## Cameras!!!
-    "p_roll": (b"Roll", b"", "add_float64"),
-    "p_opticalcenterx": (b"OpticalCenterX", b"", "add_float64"),
-    "p_opticalcentery": (b"OpticalCenterY", b"", "add_float64"),
-    "p_fov": (b"FieldOfView", b"", "add_float64"),
-    "p_fov_x": (b"FieldOfViewX", b"", "add_float64"),
-    "p_fov_y": (b"FieldOfViewY", b"", "add_float64"),
+    "p_roll": ("Roll", "", "add_float64"),
+    "p_opticalcenterx": ("OpticalCenterX", "", "add_float64"),
+    "p_opticalcentery": ("OpticalCenterY", "", "add_float64"),
+    "p_fov": ("FieldOfView", "", "add_float64"),
+    "p_fov_x": ("FieldOfViewX", "", "add_float64"),
+    "p_fov_y": ("FieldOfViewY", "", "add_float64"),
 }
 
 
 def _elem_props_set(elem, ptype, name, value, flags):
-    p = elem_data_single_string(elem, b"P", name)
+    p = elem_data_single_string(elem, "P", name)
     for t in ptype[:2]:
         p.add_string(t)
     p.add_string(flags)
@@ -573,7 +575,7 @@ def _elem_props_set(elem, ptype, name, value, flags):
         getattr(p, ptype[2])(value)
     elif len(ptype) > 3:
         # We assume value is iterable, else it's a bug!
-        for callback, val in zip(ptype[2:], value):
+        for callback, val in izip(ptype[2:], value):
             getattr(p, callback)(val)
 
 
@@ -585,14 +587,14 @@ def _elem_props_flags(animatable, animated, custom):
     if animatable:
         if animated:
             if custom:
-                return b"A+U"
-            return b"A+"
+                return "A+U"
+            return "A+"
         if custom:
-            return b"AU"
-        return b"A"
+            return "AU"
+        return "A"
     if custom:
-        return b"U"
-    return b""
+        return "U"
+    return ""
 
 
 def elem_props_set(elem, ptype, name, value=None, animatable=False, animated=False, custom=False):
@@ -602,7 +604,7 @@ def elem_props_set(elem, ptype, name, value=None, animatable=False, animated=Fal
 
 def elem_props_compound(elem, cmpd_name, custom=False):
     def _setter(ptype, name, value, animatable=False, animated=False, custom=False):
-        name = cmpd_name + b"|" + name
+        name = cmpd_name + "|" + name
         elem_props_set(elem, ptype, name, value, animatable=animatable, animated=animated, custom=custom)
 
     elem_props_set(elem, "p_compound", cmpd_name, custom=custom)
@@ -668,7 +670,7 @@ FBXTemplate = namedtuple("FBXTemplate", ("type_name", "prop_type_name", "propert
 def fbx_templates_generate(root, fbx_templates):
     # We may have to gather different templates in the same node (e.g. NodeAttribute template gathers properties
     # for Lights, Cameras, LibNodes, etc.).
-    ref_templates = {(tmpl.type_name, tmpl.prop_type_name): tmpl for tmpl in fbx_templates.values()}
+    ref_templates = dict(((tmpl.type_name, tmpl.prop_type_name), tmpl) for tmpl in fbx_templates.values())
 
     templates = OrderedDict()
     for type_name, prop_type_name, properties, nbr_users, _written in fbx_templates.values():
@@ -680,11 +682,11 @@ def fbx_templates_generate(root, fbx_templates):
             tmpl[1] += nbr_users
 
     for type_name, (subprops, nbr_users) in templates.items():
-        template = elem_data_single_string(root, b"ObjectType", type_name)
-        elem_data_single_int32(template, b"Count", nbr_users)
+        template = elem_data_single_string(root, "ObjectType", type_name)
+        elem_data_single_int32(template, "Count", nbr_users)
 
         if len(subprops) == 1:
-            prop_type_name, (properties, _nbr_sub_type_users) = next(iter(subprops.items()))
+            prop_type_name, (properties, _nbr_sub_type_users) = iter(subprops.items()).next()
             subprops = (prop_type_name, properties)
             ref_templates[(type_name, prop_type_name)].written[0] = True
         else:
@@ -701,20 +703,20 @@ def fbx_templates_generate(root, fbx_templates):
 
         prop_type_name, properties = subprops
         if prop_type_name and properties:
-            elem = elem_data_single_string(template, b"PropertyTemplate", prop_type_name)
+            elem = elem_data_single_string(template, "PropertyTemplate", prop_type_name)
             props = elem_properties(elem)
             for name, (value, ptype, animatable) in properties.items():
                 try:
                     elem_props_set(props, ptype, name, value, animatable=animatable)
-                except Exception as e:
-                    print("Failed to write template prop (%r)" % e)
-                    print(props, ptype, name, value, animatable)
+                except Exception, e:
+                    print "Failed to write template prop (%r)" % e
+                    print props, ptype, name, value, animatable
 
 
 # ##### FBX animation helpers. #####
 
 
-class AnimationCurveNodeWrapper:
+class AnimationCurveNodeWrapper(object):
     """
     This class provides a same common interface for all (FBX-wise) AnimationCurveNode and AnimationCurve elements,
     and easy API to handle those.
@@ -745,7 +747,7 @@ class AnimationCurveNodeWrapper:
         else:
             self.default_values = (0.0) * len(self.fbx_props[0])
 
-    def __bool__(self):
+    def __nonzero__(self):
         # We are 'True' if we do have some validated keyframes...
         return bool(self._keys) and (True in ((True in k[2]) for k in self._keys))
 
@@ -784,7 +786,7 @@ class AnimationCurveNodeWrapper:
         p_keyed = list(p_key)
         are_keyed = [False] * len(p_key)
         for currframe, key, key_write in keys:
-            for idx, (val, p_val) in enumerate(zip(key, p_key)):
+            for idx, (val, p_val) in enumerate(izip(key, p_key)):
                 key_write[idx] = False
                 p_keyedval = p_keyed[idx]
                 if val == p_val:
@@ -831,16 +833,16 @@ class AnimationCurveNodeWrapper:
         """
         curves = [[] for k in self._keys[0][1]]
         for currframe, key, key_write in self._keys:
-            for curve, val, wrt in zip(curves, key, key_write):
+            for curve, val, wrt in izip(curves, key, key_write):
                 if wrt:
                     curve.append((currframe, val))
 
         force_keep = force_keep or self.force_keying
         for elem_key, fbx_group, fbx_gname, fbx_props in \
-            zip(self.elem_keys, self.fbx_group, self.fbx_gname, self.fbx_props):
+            izip(self.elem_keys, self.fbx_group, self.fbx_gname, self.fbx_props):
             group_key = get_blender_anim_curve_node_key(scene, ref_id, elem_key, fbx_group)
             group = OrderedDict()
-            for c, def_val, fbx_item in zip(curves, self.default_values, fbx_props):
+            for c, def_val, fbx_item in izip(curves, self.default_values, fbx_props):
                 fbx_item = FBX_ANIM_PROPSGROUP_NAME + "|" + fbx_item
                 curve_key = get_blender_anim_curve_key(scene, ref_id, elem_key, fbx_group, fbx_item)
                 # (curve key, default value, keyframes, write flag).
@@ -892,7 +894,8 @@ class MetaObjectWrapper(type):
         return instance
 
 
-class ObjectWrapper(metaclass=MetaObjectWrapper):
+class ObjectWrapper(object):
+    __metaclass__ = MetaObjectWrapper
     """
     This class provides a same common interface for all (FBX-wise) object-like elements:
     * Blender Object
@@ -1018,10 +1021,10 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         if par in objects:
             if self._tag == 'OB':
                 par_type = self.bdata.parent_type
-                if par_type in {'OBJECT', 'BONE'}:
+                if par_type in set(['OBJECT', 'BONE']):
                     return True
                 else:
-                    print("Sorry, “{}” parenting type is not supported".format(par_type))
+                    print "Sorry, “{}” parenting type is not supported".format(par_type)
                     return False
             return True
         return False
@@ -1029,8 +1032,8 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
     def use_bake_space_transform(self, scene_data):
         # NOTE: Only applies to object types supporting this!!! Currently, only meshes and the like...
         # TODO: Check whether this can work for bones too...
-        return (scene_data.settings.bake_space_transform and self._tag in {'OB', 'DP'} and
-                self.bdata.type in BLENDER_OBJECT_TYPES_MESHLIKE | {'EMPTY'})
+        return (scene_data.settings.bake_space_transform and self._tag in set(['OB', 'DP']) and
+                self.bdata.type in BLENDER_OBJECT_TYPES_MESHLIKE | set(['EMPTY']))
 
     def fbx_object_matrix(self, scene_data, rest=False, local_space=False, global_space=False):
         """
@@ -1046,7 +1049,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         # Objects which are not bones and do not have any parent are *always* in global space
         # (unless local_space is True!).
         is_global = (not local_space and
-                     (global_space or not (self._tag in {'DP', 'BO'} or self.has_valid_parent(scene_data.objects))))
+                     (global_space or not (self._tag in set(['DP', 'BO']) or self.has_valid_parent(scene_data.objects))))
 
         # Objects (meshes!) parented to armature are not parented to anything in FBX, hence we need them
         # in global space, which is their 'virtual' local space...
@@ -1069,7 +1072,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         elif self.bdata.type == 'CAMERA':
             matrix = matrix * MAT_CONVERT_CAMERA
 
-        if self._tag in {'DP', 'OB'} and parent:
+        if self._tag in set(['DP', 'OB']) and parent:
             if parent._tag == 'BO':
                 # In bone parent case, we get transformation in **bone tip** space (sigh).
                 # Have to bring it back into bone root, which is FBX expected value.
@@ -1126,7 +1129,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
     is_bone = property(get_is_bone)
 
     def get_type(self):
-        if self._tag in {'OB', 'DP'}:
+        if self._tag in set(['OB', 'DP']):
             return self.bdata.type
         return ...
     type = property(get_type)
@@ -1144,7 +1147,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
     bones = property(get_bones)
 
     def get_material_slots(self):
-        if self._tag in {'OB', 'DP'}:
+        if self._tag in set(['OB', 'DP']):
             return self.bdata.material_slots
         return ()
     material_slots = property(get_material_slots)

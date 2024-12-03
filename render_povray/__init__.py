@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "POV-Ray 3.7",
     "author": "Campbell Barton, Silvio Falcinelli, Maurice Raybaud, Constantin Rahn, Bastien Montagne",
@@ -121,7 +122,7 @@ class RenderPovSettingsScene(PropertyGroup):
     media_color = FloatVectorProperty(
             name="Media Color", description="The atmospheric media color",
             precision=4, step=0.01, min=0, soft_max=1,
-            default=(0.001, 0.001, 0.001), options={'ANIMATABLE'}, subtype='COLOR')
+            default=(0.001, 0.001, 0.001), options=set(['ANIMATABLE']), subtype='COLOR')
 
     baking_enable = BoolProperty(
             name="Enable Baking",
@@ -354,7 +355,7 @@ class RenderPovSettingsMaterial(PropertyGroup):
     interior_fade_color = FloatVectorProperty(
             name="Fade Color", description="Color of filtered attenuation for transparent materials",
             precision=4, step=0.01, min=0.0, soft_max=1.0,
-            default=(0, 0, 0), options={'ANIMATABLE'}, subtype='COLOR')
+            default=(0, 0, 0), options=set(['ANIMATABLE']), subtype='COLOR')
 
     caustics_enable = BoolProperty(
             name="Caustics",

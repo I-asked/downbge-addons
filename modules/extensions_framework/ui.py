@@ -24,6 +24,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 #
+from __future__ import absolute_import
 import bpy
 
 from extensions_framework.validate import Logician
@@ -35,8 +36,8 @@ class EF_OT_msg(bpy.types.Operator):
     msg_type = bpy.props.StringProperty(default='INFO')
     msg_text = bpy.props.StringProperty(default='')
     def execute(self, context):
-        self.report({self.properties.msg_type}, self.properties.msg_text)
-        return {'FINISHED'}
+        self.report(set([self.properties.msg_type]), self.properties.msg_text)
+        return set(['FINISHED'])
 
 def _get_item_from_context(context, path):
     """Utility to get an object when the path to it is known:

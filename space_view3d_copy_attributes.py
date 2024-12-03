@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Copy Attributes Menu",
     "author": "Bassam Kurdali, Fabian Fricke, Adam Wiseman",
@@ -39,7 +40,7 @@ def build_exec(loopfunc, func):
 
     def exec_func(self, context):
         loopfunc(self, context, func)
-        return {'FINISHED'}
+        return set(['FINISHED'])
     return exec_func
 
 
@@ -48,7 +49,7 @@ def build_invoke(loopfunc, func):
 
     def invoke_func(self, context, event):
         loopfunc(self, context, func)
-        return {'FINISHED'}
+        return set(['FINISHED'])
     return invoke_func
 
 
@@ -224,14 +225,14 @@ def pose_poll_func(cls, context):
 def pose_invoke_func(self, context, event):
     wm = context.window_manager
     wm.invoke_props_dialog(self)
-    return {'RUNNING_MODAL'}
+    return set(['RUNNING_MODAL'])
 
 
 class CopySelectedPoseConstraints(bpy.types.Operator):
     """Copy Chosen constraints from active to selected"""
     bl_idname = "pose.copy_selected_constraints"
     bl_label = "Copy Selected Constraints"
-    selection = bpy.props.BoolVectorProperty(size=32, options={'SKIP_SAVE'})
+    selection = bpy.props.BoolVectorProperty(size=32, options=set(['SKIP_SAVE']))
 
     poll = pose_poll_func
     invoke = pose_invoke_func
@@ -253,7 +254,7 @@ class CopySelectedPoseConstraints(bpy.types.Operator):
                     new_constraint = bone.constraints.new(\
                        active.constraints[index].type)
                     generic_copy(old_constraint, new_constraint)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 pose_ops = []  # list of pose mode copy operators
 
@@ -281,7 +282,7 @@ def obLoopExec(self, context, funk):
     for obj in selected:
         msg = funk(obj, active, context)
     if msg:
-        self.report({msg[0]}, msg[1])
+        self.report(set([msg[0]]), msg[1])
 
 
 def world_to_basis(active, ob, context):
@@ -425,7 +426,7 @@ def obWei(ob, active, context):
     if len(me_source.vertices) != len(me_target.vertices):
         return('ERROR', "objects have different vertex counts, doing nothing")
     vgroups_IndexName = {}
-    for i in range(0, len(active.vertex_groups)):
+    for i in xrange(0, len(active.vertex_groups)):
         groups = active.vertex_groups[i]
         vgroups_IndexName[groups.index] = groups.name
     data = {}  # vert_indices, [(vgroup_index, weights)]
@@ -434,7 +435,7 @@ def obWei(ob, active, context):
         vi = v.index
         if len(vg) > 0:
             vgroup_collect = []
-            for i in range(0, len(vg)):
+            for i in xrange(0, len(vg)):
                 vgroup_collect.append((vg[i].group, vg[i].weight))
             data[vi] = vgroup_collect
     # write data to target
@@ -443,7 +444,7 @@ def obWei(ob, active, context):
         for vgroup_name in vgroups_IndexName.values():
             #check if group already exists...
             already_present = 0
-            for i in range(0, len(ob.vertex_groups)):
+            for i in xrange(0, len(ob.vertex_groups)):
                 if ob.vertex_groups[i].name == vgroup_name:
                     already_present = 1
             # ... if not, then add
@@ -454,10 +455,10 @@ def obWei(ob, active, context):
             for vi_source, vgroupIndex_weight in data.items():
                 if v.index == vi_source:
 
-                    for i in range(0, len(vgroupIndex_weight)):
+                    for i in xrange(0, len(vgroupIndex_weight)):
                         groupName = vgroups_IndexName[vgroupIndex_weight[i][0]]
                         groups = ob.vertex_groups
-                        for vgs in range(0, len(groups)):
+                        for vgs in xrange(0, len(groups)):
                             if groups[vgs].name == groupName:
                                 groups[vgs].add((v.index,),
                                    vgroupIndex_weight[i][1], "REPLACE")
@@ -524,14 +525,14 @@ def object_poll_func(cls, context):
 def object_invoke_func(self, context, event):
     wm = context.window_manager
     wm.invoke_props_dialog(self)
-    return {'RUNNING_MODAL'}
+    return set(['RUNNING_MODAL'])
 
 
 class CopySelectedObjectConstraints(bpy.types.Operator):
     """Copy Chosen constraints from active to selected"""
     bl_idname = "object.copy_selected_constraints"
     bl_label = "Copy Selected Constraints"
-    selection = bpy.props.BoolVectorProperty(size=32, options={'SKIP_SAVE'})
+    selection = bpy.props.BoolVectorProperty(size=32, options=set(['SKIP_SAVE']))
 
     poll = object_poll_func
 
@@ -554,14 +555,14 @@ class CopySelectedObjectConstraints(bpy.types.Operator):
                     new_constraint = obj.constraints.new(\
                        active.constraints[index].type)
                     generic_copy(old_constraint, new_constraint)
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 
 class CopySelectedObjectModifiers(bpy.types.Operator):
     """Copy Chosen modifiers from active to selected"""
     bl_idname = "object.copy_selected_modifiers"
     bl_label = "Copy Selected Modifiers"
-    selection = bpy.props.BoolVectorProperty(size=32, options={'SKIP_SAVE'})
+    selection = bpy.props.BoolVectorProperty(size=32, options=set(['SKIP_SAVE']))
 
     poll = object_poll_func
 
@@ -585,7 +586,7 @@ class CopySelectedObjectModifiers(bpy.types.Operator):
                        type=active.modifiers[index].type,
                        name=active.modifiers[index].name)
                     generic_copy(old_modifier, new_modifier)
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 object_ops = []
 genops(object_copies, object_ops, "object.copy_", object_poll_func, obLoopExec)
@@ -694,7 +695,7 @@ class MESH_OT_CopyFaceSettings(bpy.types.Operator):
     """Copy settings from active face to all selected faces"""
     bl_idname = 'mesh.copy_face_settings'
     bl_label = "Copy Face Settings"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     mode = bpy.props.StringProperty(name="mode")
     layer = bpy.props.StringProperty(name="layer")
@@ -705,9 +706,9 @@ class MESH_OT_CopyFaceSettings(bpy.types.Operator):
 
     def execute(self, context):
         mode = getattr(self, 'mode', '')
-        if not mode in {'MAT', 'VCOL', 'IMAGE', 'UV'}:
-            self.report({'ERROR'}, "No mode specified or invalid mode.")
-            return self._end(context, {'CANCELLED'})
+        if not mode in set(['MAT', 'VCOL', 'IMAGE', 'UV']):
+            self.report(set(['ERROR']), "No mode specified or invalid mode.")
+            return self._end(context, set(['CANCELLED']))
         layername = getattr(self, 'layer', '')
         mesh = context.object.data
 
@@ -729,8 +730,8 @@ class MESH_OT_CopyFaceSettings(bpy.types.Operator):
                 layers = mesh.uv_layers
                 act_layer = mesh.uv_layers.active
             if not layers or (layername and not layername in layers):
-                self.report({'ERROR'}, "Invalid UV or color layer.")
-                return self._end(context, {'CANCELLED'})
+                self.report(set(['ERROR']), "Invalid UV or color layer.")
+                return self._end(context, set(['CANCELLED']))
             from_data = layers[layername or act_layer.name].data
             to_data = act_layer.data
         from_index = polys.active
@@ -751,8 +752,8 @@ class MESH_OT_CopyFaceSettings(bpy.types.Operator):
                     to_data[f.index].image = from_data[from_index].image
                     continue
                 if len(f.loop_indices) != len(polys[from_index].loop_indices):
-                    self.report({'WARNING'}, "Different number of vertices.")
-                for i in range(len(f.loop_indices)):
+                    self.report(set(['WARNING']), "Different number of vertices.")
+                for i in xrange(len(f.loop_indices)):
                     to_vertex = f.loop_indices[i]
                     from_vertex = polys[from_index].loop_indices[i]
                     if mode == 'VCOL':
@@ -760,7 +761,7 @@ class MESH_OT_CopyFaceSettings(bpy.types.Operator):
                     elif mode == 'UV':
                         to_data[to_vertex].uv = from_data[from_vertex].uv
 
-        return self._end(context, {'FINISHED'})
+        return self._end(context, set(['FINISHED']))
 
     def _end(self, context, retval):
         if context.mode != 'EDIT_MESH':

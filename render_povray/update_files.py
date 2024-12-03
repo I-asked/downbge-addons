@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 
+from __future__ import absolute_import
 import bpy
 from bpy.props import (
         StringProperty,
@@ -127,7 +128,7 @@ class RenderCopySettings(bpy.types.Operator):
     """Update old POV properties to new ones"""
     bl_idname = "scene.pov_update_properties"
     bl_label = "PovRay render: Update to script v0.0.9"
-    bl_option = {'REGISTER'}
+    bl_option = set(['REGISTER'])
 
     @classmethod
     def poll(cls, context):
@@ -135,7 +136,7 @@ class RenderCopySettings(bpy.types.Operator):
 
     def execute(self, context):
         update2_0_0_9()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 def register():
@@ -200,7 +201,7 @@ def register():
             min=0,
             soft_max=1,
             default=(0.001, 0.001, 0.001),
-            options={'ANIMATABLE'})
+            options=set(['ANIMATABLE']))
 
     Scene.pov_baking_enable = BoolProperty(
             name="Enable Baking",
@@ -386,7 +387,7 @@ def register():
             min=0.0,
             soft_max=1.0,
             default=(0, 0, 0),
-            options={'ANIMATABLE'})
+            options=set(['ANIMATABLE']))
 
     Mat.pov_caustics_enable = BoolProperty(
             name="Caustics",

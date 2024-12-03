@@ -32,6 +32,8 @@ bl_info = {
 
 ##------------------------------------------------------------
 #### import modules
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from bpy.props import *
 from math import sin, cos, pi
@@ -57,7 +59,7 @@ def Torus_Knot(self):
     scale = h
     height = w
 
-    for i in range(res-1):
+    for i in xrange(res-1):
         t = ( i*step*pi)
 
         x = (2 * scale + cos((q*t)/p*v)) * cos(t * u)
@@ -98,7 +100,7 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
     """"""
     bl_idname = "curve.torus_knot_plus"
     bl_label = "Torus Knot +"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
     bl_description = "adds many types of knots"
 
     #### general options
@@ -220,4 +222,4 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
         # restore pre operator undo state
         bpy.context.user_preferences.edit.use_global_undo = undo
 
-        return {'FINISHED'}
+        return set(['FINISHED'])

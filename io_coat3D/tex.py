@@ -17,6 +17,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import absolute_import
 import bpy
 import os
 
@@ -74,7 +75,7 @@ def gettex(mat_list, objekti, scene,export):
     ko = os.path.splitext(ki)[0]
     just_nimi = ko + '_'
     just_nimi_len = len(just_nimi)
-    print('terve:' + coa.applink_name)
+    print 'terve:' + coa.applink_name
         
     if(len(objekti.material_slots) != 0):
         for obj_tex in objekti.active_material.texture_slots:

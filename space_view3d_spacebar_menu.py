@@ -18,6 +18,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Dynamic Spacebar Menu",
     "author": "meta-androcto, JayDez, sim88, sam",
@@ -594,7 +595,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             # Pose Copy Block
             layout.menu("VIEW3D_MT_PoseCopy", icon='FILE')
 
-            if arm.draw_type in {'BBONE', 'ENVELOPE'}:
+            if arm.draw_type in set(['BBONE', 'ENVELOPE']):
                 layout.operator("transform.transform",
                                 text="Scale Envelope Distance").mode = 'BONE_SIZE'
 
@@ -1239,7 +1240,7 @@ class VIEW3D_OT_pivot_cursor(bpy.types.Operator):
 
     def execute(self, context):
         bpy.context.space_data.pivot_point = 'CURSOR'
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 class VIEW3D_OT_revert_pivot(bpy.types.Operator):
     "Revert Pivot Point"
@@ -1253,7 +1254,7 @@ class VIEW3D_OT_revert_pivot(bpy.types.Operator):
     def execute(self, context):
         bpy.context.space_data.pivot_point = 'MEDIAN_POINT'
         # @todo Change this to 'BOUDNING_BOX_CENTER' if needed...
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 class VIEW3D_MT_CursorMenu(bpy.types.Menu):
     bl_label = "Snap Cursor Menu"
@@ -1322,7 +1323,7 @@ def edgeIntersect(context, operator):
     obj = context.active_object
 
     if (obj.type != "MESH"):
-        operator.report({'ERROR'}, "Object must be a mesh")
+        operator.report(set(['ERROR']), "Object must be a mesh")
         return None
 
     edges = []
@@ -1344,7 +1345,7 @@ def edgeIntersect(context, operator):
         bpy.ops.object.mode_set(mode='EDIT')
 
     if len(edges) != 2:
-        operator.report({'ERROR'},
+        operator.report(set(['ERROR']),
                         "Operator requires exactly 2 edges to be selected")
         return
 
@@ -1354,7 +1355,7 @@ def edgeIntersect(context, operator):
                                verts[edges[1].vertices[1]].co)
 
     if line is None:
-        operator.report({'ERROR'}, "Selected edges do not intersect")
+        operator.report(set(['ERROR']), "Selected edges do not intersect")
         return
 
     point = line[0].lerp(line[1], 0.5)
@@ -1373,7 +1374,7 @@ class VIEW3D_OT_CursorToEdgeIntersection(bpy.types.Operator):
 
     def execute(self, context):
         edgeIntersect(context, self)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 class VIEW3D_MT_undoS(bpy.types.Menu):
     bl_label = "Undo/Redo"

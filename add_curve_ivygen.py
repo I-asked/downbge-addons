@@ -96,7 +96,7 @@ def createIvyGeometry(IVY, growLeaves):
 
             # Loop over all nodes in the root
             for i, n in enumerate(root.ivyNodes):
-                for k in range(len(gaussWeight)):
+                for k in xrange(len(gaussWeight)):
                     idx = max(0, min(i + k - 5, numNodes - 1))
                     n.smoothAdhesionVector += (gaussWeight[k] *
                                              root.ivyNodes[idx].adhesionVector)
@@ -136,7 +136,7 @@ def createIvyGeometry(IVY, growLeaves):
                     # Calculate the leaf size an append the face to the list
                     leafSize = IVY.ivyLeafSize * sizeWeight
 
-                    for j in range(10):
+                    for j in xrange(10):
                         # Generate the probability
                         probability = rand_val()
 
@@ -177,8 +177,8 @@ def createIvyGeometry(IVY, growLeaves):
     bpy.context.scene.objects.link(newCurve)
 
     if growLeaves:
-        faceList = [[4 * i + l for l in range(4)] for i in
-                                                     range(len(vertList) // 4)]
+        faceList = [[4 * i + l for l in xrange(4)] for i in
+                                                     xrange(len(vertList) // 4)]
 
         # Generate the new leaf mesh and link
         me = bpy.data.meshes.new('IvyLeaf')
@@ -216,7 +216,9 @@ def computeBoundingSphere(ob):
 '''
 
 
-class IvyNode:
+from __future__ import division
+from __future__ import absolute_import
+class IvyNode(object):
     """ The basic class used for each point on the ivy which is grown."""
     __slots__ = ('pos', 'primaryDir', 'adhesionVector', 'adhesionLength',
                  'smoothAdhesionVector', 'length', 'floatingLength', 'climb')
@@ -231,7 +233,7 @@ class IvyNode:
         self.climb = True
 
 
-class IvyRoot:
+class IvyRoot(object):
     """ The class used to hold all ivy nodes growing from this root point."""
     __slots__ = ('ivyNodes', 'alive', 'parents')
 
@@ -241,7 +243,7 @@ class IvyRoot:
         self.parents = 0
 
 
-class Ivy:
+class Ivy(object):
     """ The class holding all parameters and ivy roots."""
     __slots__ = ('ivyRoots', 'primaryWeight', 'randomWeight',
                  'gravityWeight', 'adhesionWeight', 'branchingProbability',
@@ -443,7 +445,7 @@ def collision(ob, pos, new_pos):
 class IvyGen(bpy.types.Operator):
     bl_idname = "curve.ivy_gen"
     bl_label = "IvyGen"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     maxIvyLength = FloatProperty(name="Max Ivy Length",
                     description="Maximum ivy length in Blender Units",
@@ -539,7 +541,7 @@ class IvyGen(bpy.types.Operator):
 
     def execute(self, context):
         if not self.updateIvy:
-            return {'PASS_THROUGH'}
+            return set(['PASS_THROUGH'])
 
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
@@ -583,24 +585,24 @@ class IvyGen(bpy.types.Operator):
 
             # Print the proportion of ivy growth to console
             if (IVY.maxLength / maxLength * 100) > 10 * startPercent // 10:
-                print('%0.2f%% of Ivy nodes have grown' %
-                                         (IVY.maxLength / maxLength * 100))
+                print '%0.2f%% of Ivy nodes have grown' %
+                                         (IVY.maxLength / maxLength * 100)
                 startPercent += 10
                 if IVY.maxLength / maxLength > 1:
-                    print("Halting Growth")
+                    print "Halting Growth"
 
             # Make an iterator to check if all are alive
             checkAliveIter = (r.alive for r in IVY.ivyRoots)
 
         # Create the curve and leaf geometry
         createIvyGeometry(IVY, self.growLeaves)
-        print("Geometry Generation Complete")
+        print "Geometry Generation Complete"
 
-        print("Ivy generated in %0.2f s" % (time.time() - t))
+        print "Ivy generated in %0.2f s" % (time.time() - t)
 
         self.updateIvy = False
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def draw(self, context):
         layout = self.layout

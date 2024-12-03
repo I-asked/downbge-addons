@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "DirectX X Format",
     "author": "Chris Foster",
@@ -160,13 +161,13 @@ class ExportDirectX(bpy.types.Operator):
         from . import export_x
         Exporter = export_x.DirectXExporter(self, context)
         Exporter.Export()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         if not self.filepath:
             self.filepath = bpy.path.ensure_ext(bpy.data.filepath, ".x")
         context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 
 def menu_func(self, context):

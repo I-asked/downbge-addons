@@ -22,6 +22,10 @@
 # Science and Technology of Portugal, under the grant SFRH/BD/66452/2009.
 
 
+from __future__ import division
+from __future__ import absolute_import
+from io import open
+from itertools import izip
 bl_info = {
     "name": "Acclaim Motion Capture Files (.asf, .amc)",
     "author": "Daniel Monteiro Basso <daniel@basso.inf.br>",
@@ -47,7 +51,7 @@ from bpy.props import (
         )
 
 
-class DataStructure:
+class DataStructure(object):
     """
         Parse the Skeleton and Motion Files to an internal data structure.
     """
@@ -89,7 +93,7 @@ class DataStructure:
                 s = [t for t in re.split(r"[^a-zA-Z0-9-+.]", bd[k]) if t]
                 if k == 'axis':
                     rot = Matrix()
-                    for ang, basis in zip(s[:3], s[3].upper()):
+                    for ang, basis in izip(s[:3], s[3].upper()):
                         rot = Matrix.Rotation(radians(float(ang)),
                                               4, basis) * rot
                     bd['axis'] = rot
@@ -145,7 +149,7 @@ class DataStructure:
                     # from a different origin than the ASF, such as the
                     # AMC exporter in this package. Assume XYZ order.
                     self.bones[b[0]]['dof'] = ['X', 'Y', 'Z']
-                for dof, ang in zip(self.bones[b[0]]['dof'], vs):
+                for dof, ang in izip(self.bones[b[0]]['dof'], vs):
                     rot = Matrix.Rotation(radians(ang), 4, dof) * rot
                 self.pose_def[b[0]] = rot
             pose = self.calculate_pose(Matrix.Translation(loc))
@@ -261,14 +265,14 @@ class StructureBuilder(DataStructure):
         if dof:
             limits = (radians(float(v)) for v in bone_def['limits'])
             if 'X' in dof:
-                constr.min_x = next(limits)
-                constr.max_x = next(limits)
+                constr.min_x = limits.next()
+                constr.max_x = limits.next()
             if 'Y' in dof:
-                constr.max_z = -next(limits)
-                constr.min_z = -next(limits)
+                constr.max_z = -limits.next()
+                constr.min_z = -limits.next()
             if 'Z' in dof:
-                constr.min_y = next(limits)
-                constr.max_y = next(limits)
+                constr.min_y = limits.next()
+                constr.max_y = limits.next()
         bpy.ops.object.mode_set(mode='EDIT')
 
     def load_motion_capture(self, filename, frame_skip=5, use_frame_no=False):
@@ -292,7 +296,7 @@ class StructureBuilder(DataStructure):
 
     def apply_next_frame(self):
         try:
-            frame, bones = next(self.motion)
+            frame, bones = self.motion.next()
         except StopIteration:
             return False
         regframe = frame if self.use_frame_no else self.fno
@@ -349,7 +353,7 @@ class AsfImporter(bpy.types.Operator):
             description="Correct orientation",
             )
 
-    filter_glob = StringProperty(default="*.asf", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.asf", options=set(['HIDDEN']))
 
     def execute(self, context):
         uscale = (0.0254 if self.from_inches else 1.0)
@@ -363,12 +367,12 @@ class AsfImporter(bpy.types.Operator):
             bpy.ops.transform.rotate(value=radians(90.0), axis=(1, 0, 0))
         if self.use_rot_z:
             bpy.ops.transform.rotate(value=radians(90.0), axis=(0, 0, 1))
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         wm = context.window_manager
         wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 
 class AmcAnimator(bpy.types.Operator):
@@ -384,18 +388,18 @@ class AmcAnimator(bpy.types.Operator):
     def modal(self, context, event):
         if event.type == 'ESC':
             self.cancel(context)
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
         if event.type == 'TIMER':
             if not self.sb.apply_next_frame():
                 self.cancel(context)
-                return {'FINISHED'}
-        return {'PASS_THROUGH'}
+                return set(['FINISHED'])
+        return set(['PASS_THROUGH'])
 
     def execute(self, context):
         self.timer = context.window_manager.\
             event_timer_add(0.001, context.window)
         context.window_manager.modal_handler_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
     def cancel(self, context):
         bpy.context.scene.frame_set(bpy.context.scene.frame_current)
@@ -426,7 +430,7 @@ class AmcImporter(bpy.types.Operator):
             description="Offset start of animation according to the source",
             )
 
-    filter_glob = StringProperty(default="*.amc", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.amc", options=set(['HIDDEN']))
 
     @classmethod
     def poll(cls, context):
@@ -445,18 +449,18 @@ class AmcImporter(bpy.types.Operator):
                                self.use_frame_no)
         AmcAnimator.sb = sb
         bpy.ops.import_anim.amc_animate()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         ob = context.active_object
         import os
         if not os.path.exists(ob['source_file_path']):
-            self.report({'ERROR'},
+            self.report(set(['ERROR']),
                 "Original Armature source file not found... was it moved?")
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
         wm = context.window_manager
         wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 
 class AmcExporter(bpy.types.Operator):
@@ -475,7 +479,7 @@ class AmcExporter(bpy.types.Operator):
             description="Scale movement to original scale if available",
             )
 
-    filter_glob = StringProperty(default="*.amc", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.amc", options=set(['HIDDEN']))
 
     @classmethod
     def poll(cls, context):
@@ -489,7 +493,7 @@ class AmcExporter(bpy.types.Operator):
         out.write(":FULLY-SPECIFIED\n:DEGREES\n")
         ds = DataStructure(ob['source_file_path'], ob['source_scale'])
         scale = ds.scale if self.use_scale else 1
-        for frame in range(scn.frame_start, scn.frame_end + 1):
+        for frame in xrange(scn.frame_start, scn.frame_end + 1):
             out.write("{}\n".format(frame))
             scn.frame_set(frame)
             for bone in ob.pose.bones:
@@ -505,12 +509,12 @@ class AmcExporter(bpy.types.Operator):
                     AiR_i = AiR.inverted()
                     rot = (AiR * bone.matrix_basis.to_3x3() * AiR_i).to_euler()
                 out.write(" ".join(str(degrees(v)) for v in rot) + "\n")
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         wm = context.window_manager
         wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 
 def menu_func_s(self, context):

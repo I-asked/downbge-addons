@@ -22,6 +22,8 @@
 # Science and Technology of Portugal, under the grant SFRH/BD/66452/2009.
 
 
+from __future__ import division
+from __future__ import absolute_import
 bl_info = {
     "name": "C3D Graphics Lab Motion Capture file (.c3d)",
     "author": "Daniel Monteiro Basso <daniel@basso.inf.br>",
@@ -73,7 +75,7 @@ class C3DAnimateCloud(bpy.types.Operator):
             fno = self.curframe
             if not self.use_frame_no:
                 fno = (self.curframe - self.markerset.startFrame) / self.fskip
-            for i in range(self.fskip):
+            for i in xrange(self.fskip):
                 self.markerset.readNextFrameData()
             for ml in self.markerset.markerLabels:
                 name = self.unames[self.prefix + ml]
@@ -84,18 +86,18 @@ class C3DAnimateCloud(bpy.types.Operator):
                 if m.confidence >= self.confidence:
                     o.keyframe_insert('location', frame=fno)
             self.curframe += self.fskip
-        return {'PASS_THROUGH'}
+        return set(['PASS_THROUGH'])
 
     def execute(self, context):
         self.timer = context.window_manager.\
             event_timer_add(0.001, context.window)
         context.window_manager.modal_handler_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
     def cancel(self, context):
         bpy.context.scene.frame_set(bpy.context.scene.frame_current)
         context.window_manager.event_timer_remove(self.timer)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class C3DImporter(bpy.types.Operator):
@@ -180,7 +182,7 @@ class C3DImporter(bpy.types.Operator):
             soft_min=-1., soft_max=100.0,
             )
 
-    filter_glob = StringProperty(default="*.c3d;*.csv", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.c3d;*.csv", options=set(['HIDDEN']))
 
     def find_height(self, ms):
         """
@@ -268,12 +270,12 @@ class C3DImporter(bpy.types.Operator):
         C3DAnimateCloud.confidence = self.properties.confidence
         C3DAnimateCloud.curframe = ms.startFrame
         bpy.ops.import_anim.c3danim()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         wm = context.window_manager
         wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 
 def menu_func(self, context):

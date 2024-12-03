@@ -21,6 +21,7 @@
 # Contributors: Mackraken, Andrew Hale (TrumanBlending)
 # Adapted from Mackraken's "Tools for Curves" addon
 
+from __future__ import absolute_import
 import bpy
 
 selected = []
@@ -31,7 +32,7 @@ class SelectionOrder(bpy.types.Operator):
     """use RETURN key to confirm selection, ESCAPE key to cancel"""
     bl_idname = "object.select_order"
     bl_label = "Select with Order"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     num_selected = 0
 
@@ -53,7 +54,7 @@ class SelectionOrder(bpy.types.Operator):
             selected.extend(new)
         elif num < self.num_selected:
             # Get the selected objects and remove from list
-            curnames = {ob.name for ob in sel}
+            curnames = set(ob.name for ob in sel)
             selected[:] = [name for name in selected if name in curnames]
 
         # Set the number of currently select objects
@@ -62,20 +63,20 @@ class SelectionOrder(bpy.types.Operator):
     def modal(self, context, event):
         if event.type == 'RET':
             # If return is pressed, finish the operator
-            return {'FINISHED'}
+            return set(['FINISHED'])
         elif event.type == 'ESC':
             # If escape is pressed, cancel the operator
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         # Update selection if we need to
         self.update(context)
-        return {'PASS_THROUGH'}
+        return set(['PASS_THROUGH'])
 
     def invoke(self, context, event):
         self.update(context)
 
         context.window_manager.modal_handler_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 
 bpy.utils.register_module(__name__)

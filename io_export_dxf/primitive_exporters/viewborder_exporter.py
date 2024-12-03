@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from base_exporter import BasePrimitiveDXFExporter
 
 
@@ -12,7 +13,7 @@ class ViewBorderDXFExporter(BasePrimitiveDXFExporter):
         points = toGlobalOrigin(points)
         c = settings['curve_as']
         if c=="LINEs": # export Curve as multiple LINEs
-            for i in range(len(points)-1):
+            for i in xrange(len(points)-1):
                 linepoints = [points[i], points[i+1]]
                 dxfLINE = DXF.Line(linepoints,paperspace=espace,color=LAYERCOLOR_DEF)
                 entities.append(dxfLINE)

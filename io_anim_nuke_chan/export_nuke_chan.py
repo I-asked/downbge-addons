@@ -22,8 +22,10 @@
 It takes the currently active object and writes it's transformation data
 into a text file with .chan extension."""
 
+from __future__ import absolute_import
 from mathutils import Matrix
 from math import radians, degrees
+from io import open
 
 
 def save_chan(context, filepath, y_up, rot_ord):
@@ -44,7 +46,7 @@ def save_chan(context, filepath, y_up, rot_ord):
     fw = filehandle.write
 
     # iterate the frames
-    for frame in range(f_start, f_end + 1, 1):
+    for frame in xrange(f_start, f_end + 1, 1):
 
         # set the current frame
         scene.frame_set(frame)
@@ -79,4 +81,4 @@ def save_chan(context, filepath, y_up, rot_ord):
     # after the whole loop close the file
     filehandle.close()
 
-    return {'FINISHED'}
+    return set(['FINISHED'])

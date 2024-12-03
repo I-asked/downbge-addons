@@ -20,8 +20,10 @@
 
 """ This script is an importer for the nuke's .chan files"""
 
+from __future__ import absolute_import
 from mathutils import Vector, Matrix, Euler
 from math import radians
+from io import open
 
 
 def read_chan(context, filepath, z_up, rot_ord, sensor_width, sensor_height):
@@ -109,4 +111,4 @@ def read_chan(context, filepath, z_up, rot_ord, sensor_width, sensor_height):
                 camera.keyframe_insert("lens")
     filehandle.close()
 
-    return {'FINISHED'}
+    return set(['FINISHED'])

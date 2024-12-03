@@ -2,6 +2,7 @@
 # Created: 21.07.2012, taken from my ezdxf project
 # Copyright (C) 2012, Manfred Moitzi
 # License: MIT License
+from __future__ import absolute_import
 from __future__ import unicode_literals
 __author__ = "mozman <mozman@gmx.at>"
 
@@ -55,19 +56,19 @@ def dxfinfo(stream):
     tag = DXFTag(999999, '')
     tagreader = TagIterator(stream)
     while tag != DXFTag(0, 'ENDSEC'):
-        tag = next(tagreader)
+        tag = tagreader.next()
         if tag.code != 9:
             continue
         name = tag.value[1:]
         method = getattr(info, name, None)
         if method is not None:
-            method(next(tagreader).value)
+            method(tagreader.next().value)
     return info
 
 
 def binary_encoded_data_to_bytes(data):
     PY3 = sys.version_info[0] >= 3
-    byte_array = array('B' if PY3 else b'B')
+    byte_array = array('B' if PY3 else 'B')
     for text in data:
-        byte_array.extend(int(text[index:index+2], 16) for index in range(0, len(text), 2))
+        byte_array.extend(int(text[index:index+2], 16) for index in xrange(0, len(text), 2))
     return byte_array.tobytes() if PY3 else byte_array.tostring()

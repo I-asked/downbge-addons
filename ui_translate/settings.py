@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 if "bpy" in locals():
     import importlib
     importlib.reload(settings_i18n)
@@ -46,59 +47,59 @@ class UI_OT_i18n_settings_load(bpy.types.Operator):
     """Load translations' settings from a persistent JSon file"""
     bl_idname = "ui.i18n_settings_load"
     bl_label = "I18n Load Settings"
-    bl_option = {'REGISTER'}
+    bl_option = set(['REGISTER'])
 
     # "Parameters"
     filepath = StringProperty(description="Path to the saved settings file",
                               subtype='FILE_PATH')
-    filter_glob = StringProperty(default="*.json", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.json", options=set(['HIDDEN']))
 
     def invoke(self, context, event):
         if not self.properties.is_property_set("filepath"):
             context.window_manager.fileselect_add(self)
-            return {'RUNNING_MODAL'}
+            return set(['RUNNING_MODAL'])
         else:
             return self.execute(context)
 
     def execute(self, context):
         if not (self.filepath and settings):
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
         settings.load(self.filepath, reset=True)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class UI_OT_i18n_settings_save(bpy.types.Operator):
     """Save translations' settings in a persistent JSon file"""
     bl_idname = "ui.i18n_settings_save"
     bl_label = "I18n Save Settings"
-    bl_option = {'REGISTER'}
+    bl_option = set(['REGISTER'])
 
     # "Parameters"
     filepath = StringProperty(description="Path to the saved settings file",
                               subtype='FILE_PATH')
-    filter_glob = StringProperty(default="*.json", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.json", options=set(['HIDDEN']))
 
     def invoke(self, context, event):
         if not self.properties.is_property_set("filepath"):
             context.window_manager.fileselect_add(self)
-            return {'RUNNING_MODAL'}
+            return set(['RUNNING_MODAL'])
         else:
             return self.execute(context)
 
     def execute(self, context):
         if not (self.filepath and settings):
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
         settings.save(self.filepath)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 def _setattr(self, name, val):
-    print(self, name, val)
+    print self, name, val
     setattr(self, name, val)
 
 class UI_AP_i18n_settings(bpy.types.AddonPreferences):
     bl_idname = __name__.split(".")[0]  # We want "top" module name!
-    bl_option = {'REGISTER'}
+    bl_option = set(['REGISTER'])
 
     _settings = settings
 

@@ -18,6 +18,7 @@
 
 # <pep8-80 compliant>
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Wavefront OBJ format",
     "author": "Campbell Barton, Bastien Montagne",
@@ -63,12 +64,12 @@ class ImportOBJ(bpy.types.Operator, ImportHelper, IOOBJOrientationHelper):
     """Load a Wavefront OBJ File"""
     bl_idname = "import_scene.obj"
     bl_label = "Import OBJ"
-    bl_options = {'PRESET', 'UNDO'}
+    bl_options = set(['PRESET', 'UNDO'])
 
     filename_ext = ".obj"
     filter_glob = StringProperty(
             default="*.obj;*.mtl",
-            options={'HIDDEN'},
+            options=set(['HIDDEN']),
             )
 
     use_edges = BoolProperty(
@@ -180,12 +181,12 @@ class ExportOBJ(bpy.types.Operator, ExportHelper, IOOBJOrientationHelper):
 
     bl_idname = "export_scene.obj"
     bl_label = 'Export OBJ'
-    bl_options = {'PRESET'}
+    bl_options = set(['PRESET'])
 
     filename_ext = ".obj"
     filter_glob = StringProperty(
             default="*.obj;*.mtl",
-            options={'HIDDEN'},
+            options=set(['HIDDEN']),
             )
 
     # context group

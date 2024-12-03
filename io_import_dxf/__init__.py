@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 import os
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty, FloatProperty
@@ -75,7 +76,7 @@ proj_epsg_items = (
     ('EPSG:3414', "SVY21 / Singapore TM", "SVY21 / Singapore TM; EPSG:3414"),
 )
 
-proj_epsg_dict = {e[0]: e[1] for e in proj_epsg_items}
+proj_epsg_dict = dict((e[0], e[1]) for e in proj_epsg_items)
 
 __version__ = '.'.join([str(s) for s in bl_info['version']])
 
@@ -117,13 +118,13 @@ def read(report, filename, obj_merge=BY_LAYER, import_text=True, import_light=Tr
 
         # display errors
         for error in errors:
-            report({'ERROR', 'INFO'}, error)
+            report(set(['ERROR', 'INFO']), error)
 
         # inform the user about the sat/sab files
         if len(do.acis_files) > 0:
-            report({'INFO'}, "Exported %d NURBS objects to sat/sab files next to your DXF file" % len(do.acis_files))
-    except MinVersionError as minv:
-        report({'ERROR', 'INFO'}, str(minv))
+            report(set(['INFO']), "Exported %d NURBS objects to sat/sab files next to your DXF file" % len(do.acis_files))
+    except MinVersionError, minv:
+        report(set(['ERROR', 'INFO']), str(minv))
 
 
 def display_groups_in_outliner():
@@ -193,7 +194,7 @@ class IMPORT_OT_dxf(bpy.types.Operator):
     bl_label = "Import DXf v." + __version__
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     filepath = StringProperty(
             name="input file",
@@ -204,7 +205,7 @@ class IMPORT_OT_dxf(bpy.types.Operator):
 
     filter_glob = StringProperty(
             default="*.dxf",
-            options={'HIDDEN'},
+            options=set(['HIDDEN']),
             )
 
     def _update_merge(self, context):
@@ -363,7 +364,7 @@ class IMPORT_OT_dxf(bpy.types.Operator):
     merc_scene_lon = FloatProperty(name="Geo-Reference Longitude", default=0.0)
 
     # internal use only!
-    internal_using_scene_srid = BoolProperty(default=False, options={'HIDDEN'})
+    internal_using_scene_srid = BoolProperty(default=False, options=set(['HIDDEN']))
 
     def draw(self, context):
         layout = self.layout
@@ -457,7 +458,7 @@ class IMPORT_OT_dxf(bpy.types.Operator):
         if self.proj_scene == 'USER':
             try:
                 Proj(init=self.epsg_scene_user)
-            except Exception as e:
+            except Exception, e:
                 col.alert = True
             col.prop(self, "epsg_scene_user")
             col.alert = False
@@ -526,7 +527,7 @@ class IMPORT_OT_dxf(bpy.types.Operator):
         if self.outliner_groups:
             display_groups_in_outliner()
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         # Force first update...
@@ -534,7 +535,7 @@ class IMPORT_OT_dxf(bpy.types.Operator):
 
         wm = context.window_manager
         wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 
 def menu_func(self, context):

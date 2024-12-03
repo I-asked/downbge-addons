@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import with_statement
+from __future__ import absolute_import
 import bpy
 import os
 import tempfile
@@ -23,6 +25,7 @@ import shutil
 import tarfile
 import time
 import stat
+from io import open
 
 
 bl_info = {
@@ -55,7 +58,7 @@ def WriteRuntime(player_path, output_path, asset_paths, copy_python, overwrite_l
 
     # Check the paths
     if not os.path.isfile(player_path) and not(os.path.exists(player_path) and player_path.endswith('.app')):
-        report({'ERROR'}, "The player could not be found! Runtime not saved")
+        report(set(['ERROR']), "The player could not be found! Runtime not saved")
         return
 
     # Check if we're bundling a .app
@@ -115,12 +118,12 @@ def WriteRuntime(player_path, output_path, asset_paths, copy_python, overwrite_l
                                      (offset >> 0) & 0xFF))
 
             # Stuff for the runtime
-            output.write(b'BRUNTIME')
+            output.write('BRUNTIME')
 
         print("done", flush=True)
 
     # Make sure the runtime is executable
-    os.chmod(output_path, 0o755)
+    os.chmod(output_path, 0755)
 
     # Copy bundled Python
     blender_dir = os.path.dirname(player_path)
@@ -165,7 +168,7 @@ def WriteRuntime(player_path, output_path, asset_paths, copy_python, overwrite_l
                 if ap.overwrite or not os.path.exists(dst):
                     shutil.copy2(src, dst)
         else:
-            report({'ERROR'}, "Could not find asset path: '%s'" % src)
+            report(set(['ERROR']), "Could not find asset path: '%s'" % src)
 
     # Make archive
     if make_archive:
@@ -192,7 +195,7 @@ def WriteRuntime(player_path, output_path, asset_paths, copy_python, overwrite_l
 
             def _set_ex_perm(tarinfo):
                 if tarinfo.name == runtimename:
-                    tarinfo.mode = 0o755
+                    tarinfo.mode = 0755
                 return tarinfo
 
             with tarfile.open(afilename + '.tar.gz', 'w:gz') as tf:
@@ -200,7 +203,7 @@ def WriteRuntime(player_path, output_path, asset_paths, copy_python, overwrite_l
         elif arctype == 'zip':
             shutil.make_archive(afilename, 'zip', output_dir)
         else:
-            report({'ERROR'}, "Unknown archive type %s for runtime %s\n" % (arctype, player_path))
+            report(set(['ERROR']), "Unknown archive type %s for runtime %s\n" % (arctype, player_path))
 
         print("done", flush=True)
 
@@ -213,7 +216,7 @@ class PublishAllPlatforms(bpy.types.Operator):
         ps = context.scene.ge_publish_settings
 
         if ps.publish_default_platform:
-            print("Publishing default platform")
+            print "Publishing default platform"
             blender_bin_path = bpy.app.binary_path
             blender_bin_dir = os.path.dirname(blender_bin_path)
             ext = os.path.splitext(blender_bin_path)[-1].lower()
@@ -227,11 +230,11 @@ class PublishAllPlatforms(bpy.types.Operator):
                          self.report
                          )
         else:
-            print("Skipping default platform")
+            print "Skipping default platform"
 
         for platform in ps.platforms:
             if platform.publish:
-                print("Publishing", platform.name)
+                print "Publishing", platform.name
                 WriteRuntime(platform.player_path,
                             os.path.join(ps.output_path, platform.name, ps.runtime_name),
                             ps.asset_paths,
@@ -242,9 +245,9 @@ class PublishAllPlatforms(bpy.types.Operator):
                             self.report
                             )
             else:
-                print("Skipping", platform.name)
+                print "Skipping", platform.name
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class RENDER_UL_assets(bpy.types.UIList):
@@ -340,11 +343,11 @@ class PublishAutoPlatforms(bpy.types.Operator):
         # verify lib folder
         lib_path = bpy.path.abspath(ps.lib_path)
         if not os.path.exists(lib_path):
-            self.report({'ERROR'}, "Could not add platforms, lib folder (%s) does not exist" % lib_path)
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "Could not add platforms, lib folder (%s) does not exist" % lib_path)
+            return set(['CANCELLED'])
 
         for lib in [i for i in os.listdir(lib_path) if os.path.isdir(os.path.join(lib_path, i))]:
-            print("Found folder:", lib)
+            print "Found folder:", lib
             player_found = False
             for root, dirs, files in os.walk(os.path.join(lib_path, lib)):
                 if "__MACOSX" in root:
@@ -367,7 +370,7 @@ class PublishAutoPlatforms(bpy.types.Operator):
                 if player_found:
                     break
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 # TODO This operator takes a long time to run, which is bad for UX. Could this instead be done as some sort of
 # modal dialog? This could also allow users to select which platforms to download and give a better progress
@@ -377,8 +380,8 @@ class PublishDownloadPlatforms(bpy.types.Operator):
     bl_label = "Download Platforms"
 
     def execute(self, context):
-        import html.parser
-        import urllib.request
+        import HTMLParser
+        import urllib2, urllib
 
         remote_platforms = []
 
@@ -391,7 +394,7 @@ class PublishDownloadPlatforms(bpy.types.Operator):
 
         print("Retrieving list of platforms from blender.org...", end=" ", flush=True)
 
-        class AnchorParser(html.parser.HTMLParser):
+        class AnchorParser(HTMLParser.HTMLParser):
             def handle_starttag(self, tag, attrs):
                 if tag == 'a':
                     for key, value in attrs:
@@ -400,7 +403,7 @@ class PublishDownloadPlatforms(bpy.types.Operator):
 
         url = 'http://download.blender.org/release/Blender' + bpy.app.version_string.split()[0]
         parser = AnchorParser()
-        data = urllib.request.urlopen(url).read()
+        data = urllib2.urlopen(url).read()
         parser.feed(str(data))
 
         print("done", flush=True)
@@ -410,10 +413,10 @@ class PublishDownloadPlatforms(bpy.types.Operator):
             src = '/'.join((url, i))
             dst = os.path.join(lib_path, i)
 
-            dst_dir = '.'.join([i for i in dst.split('.') if i not in {'zip', 'tar', 'bz2'}])
+            dst_dir = '.'.join([i for i in dst.split('.') if i not in set(['zip', 'tar', 'bz2'])])
             if not os.path.exists(dst) and not os.path.exists(dst.split('.')[0]):
                 print("Downloading " + src + "...", end=" ", flush=True)
-                urllib.request.urlretrieve(src, dst)
+                urllib.urlretrieve(src, dst)
                 print("done", flush=True)
             else:
                 print("Reusing existing file: " + dst, flush=True)
@@ -426,7 +429,7 @@ class PublishDownloadPlatforms(bpy.types.Operator):
 
         print("Creating platform from libs...", flush=True)
         bpy.ops.scene.publish_auto_platforms()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class PublishAddPlatform(bpy.types.Operator):
@@ -436,7 +439,7 @@ class PublishAddPlatform(bpy.types.Operator):
     def execute(self, context):
         a = context.scene.ge_publish_settings.platforms.add()
         a.name = a.name
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class PublishRemovePlatform(bpy.types.Operator):
@@ -447,8 +450,8 @@ class PublishRemovePlatform(bpy.types.Operator):
         ps = context.scene.ge_publish_settings
         if ps.platforms_active < len(ps.platforms):
             ps.platforms.remove(ps.platforms_active)
-            return {'FINISHED'}
-        return {'CANCELLED'}
+            return set(['FINISHED'])
+        return set(['CANCELLED'])
 
 
 # TODO maybe this should display a file browser?
@@ -459,7 +462,7 @@ class PublishAddAssetPath(bpy.types.Operator):
     def execute(self, context):
         a = context.scene.ge_publish_settings.asset_paths.add()
         a.name = a.name
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class PublishRemoveAssetPath(bpy.types.Operator):
@@ -470,8 +473,8 @@ class PublishRemoveAssetPath(bpy.types.Operator):
         ps = context.scene.ge_publish_settings
         if ps.asset_paths_active < len(ps.asset_paths):
             ps.asset_paths.remove(ps.asset_paths_active)
-            return {'FINISHED'}
-        return {'CANCELLED'}
+            return set(['FINISHED'])
+        return set(['CANCELLED'])
 
 
 class PUBLISH_MT_platform_specials(bpy.types.Menu):

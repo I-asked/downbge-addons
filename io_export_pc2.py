@@ -40,6 +40,8 @@ cacheFile -pc2 1 -pcf "<insert filepath of source>" -f "<insert target filename 
 
 """
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from bpy.props import BoolProperty, IntProperty, EnumProperty
 import mathutils
@@ -49,9 +51,10 @@ from os import remove
 import time
 import math
 import struct
+from io import open
 
 def get_sampled_frames(start, end, sampling):
-    return [math.modf(start + x * sampling) for x in range(int((end - start) / sampling) + 1)]
+    return [math.modf(start + x * sampling) for x in xrange(int((end - start) / sampling) + 1)]
 
 def do_export(context, props, filepath):
     mat_x90 = mathutils.Matrix.Rotation(-math.pi/2, 4, 'X')
@@ -68,7 +71,7 @@ def do_export(context, props, filepath):
 
     # Create the header
     headerFormat='<12siiffi'
-    headerStr = struct.pack(headerFormat, b'POINTCACHE2\0',
+    headerStr = struct.pack(headerFormat, 'POINTCACHE2\0',
                             1, vertCount, start, sampling, sampleCount)
 
     file = open(filepath, "wb")
@@ -86,7 +89,7 @@ def do_export(context, props, filepath):
                 empty = open(filepath, 'w')
                 empty.write('DUMMIFILE - export failed\n')
                 empty.close()
-            print('Export failed. Vertexcount of Object is not constant')
+            print 'Export failed. Vertexcount of Object is not constant'
             return False
 
         if props.world_space:
@@ -153,11 +156,11 @@ class Export_pc2(bpy.types.Operator, ExportHelper):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object.type in {'MESH', 'CURVE', 'SURFACE', 'FONT'}
+        return context.active_object.type in set(['MESH', 'CURVE', 'SURFACE', 'FONT'])
 
     def execute(self, context):
         start_time = time.time()
-        print('\n_____START_____')
+        print '\n_____START_____'
         props = self.properties
         filepath = self.filepath
         filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
@@ -165,10 +168,10 @@ class Export_pc2(bpy.types.Operator, ExportHelper):
         exported = do_export(context, props, filepath)
 
         if exported:
-            print('finished export in %s seconds' %((time.time() - start_time)))
-            print(filepath)
+            print 'finished export in %s seconds' %((time.time() - start_time))
+            print filepath
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -176,11 +179,11 @@ class Export_pc2(bpy.types.Operator, ExportHelper):
         if True:
             # File selector
             wm.fileselect_add(self) # will run self.execute()
-            return {'RUNNING_MODAL'}
+            return set(['RUNNING_MODAL'])
         elif True:
             # search the enum
             wm.invoke_search_popup(self)
-            return {'RUNNING_MODAL'}
+            return set(['RUNNING_MODAL'])
         elif False:
             # Redo popup
             return wm.invoke_props_popup(self, event)

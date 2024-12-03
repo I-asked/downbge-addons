@@ -31,6 +31,9 @@
 
 
 #import python stuff
+from __future__ import division
+from __future__ import with_statement
+from __future__ import absolute_import
 import io
 from math import (
         pi,
@@ -88,7 +91,7 @@ import bmesh
 
 
 ###############################################################################
-class Ms3dExporter():
+class Ms3dExporter(object):
     """
     Load a MilkShape3D MS3D File
     """
@@ -147,7 +150,7 @@ class Ms3dExporter():
                     raw_io.close()
 
                     if self.options_verbose in Ms3dUi.VERBOSE_MAXIMAL:
-                        print(debug_out)
+                        print debug_out
             finally:
                 pass
 
@@ -169,19 +172,19 @@ class Ms3dExporter():
 
             is_valid, statistics = ms3d_model.is_valid()
             if self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
-                print()
-                print("##########################################################")
-                print("Export from Blender to MS3D")
-                print(statistics)
-                print("##########################################################")
+                print
+                print "##########################################################"
+                print "Export from Blender to MS3D"
+                print statistics
+                print "##########################################################"
 
         except Exception:
             type, value, traceback = exc_info()
             if self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
-                print("write - exception in try block\n  type: '{0}'\n"
-                        "  value: '{1}'".format(type, value, traceback))
+                print "write - exception in try block\n  type: '{0}'\n"
+                        "  value: '{1}'".format(type, value, traceback)
                 if self.report:
-                    self.report({'WARNING', 'ERROR', }, "write - exception.")
+                    self.report(set(['WARNING', 'ERROR',]), "write - exception.")
 
             if t2 is None:
                 t2 = time()
@@ -193,8 +196,8 @@ class Ms3dExporter():
 
         t3 = time()
         if self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
-            print(ms3d_str['SUMMARY_EXPORT'].format(
-                    (t3 - t1), (t2 - t1), (t3 - t2)))
+            print ms3d_str['SUMMARY_EXPORT'].format(
+                    (t3 - t1), (t2 - t1), (t3 - t2))
 
         return True
 
@@ -285,7 +288,7 @@ class Ms3dExporter():
                     # disable only armature modifiers and only,
                     # when use_animation is enabled
                     if  self.options_use_animation \
-                            and modifier.type in {'ARMATURE', }:
+                            and modifier.type in set(['ARMATURE',]):
                         modifier.show_viewport = False
                         modifier.show_render = False
                 else:
@@ -389,13 +392,13 @@ class Ms3dExporter():
                                     bone_ids.append(ms3d_index)
                                     if self.report and self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
                                         self.report(
-                                                {'WARNING', 'INFO'},
+                                                set(['WARNING', 'INFO']),
                                                 ms3d_str['WARNING_EXPORT_SKIP_WEIGHT'])
                                 else:
                                     # only first three weights will be supported / four bones
                                     if self.report and self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
                                         self.report(
-                                                {'WARNING', 'INFO'},
+                                                set(['WARNING', 'INFO']),
                                                 ms3d_str['WARNING_EXPORT_SKIP_WEIGHT_EX'])
                                     break
                                 count += 1
@@ -702,7 +705,7 @@ class Ms3dExporter():
             frames = frames.union(frames_scale)
 
             if not self.options_shrink_to_keys:
-                frames = frames.intersection(range(
+                frames = frames.intersection(xrange(
                         blender_scene.frame_start, blender_scene.frame_end + 1))
 
             frames_sorted = list(frames)
@@ -715,7 +718,7 @@ class Ms3dExporter():
                 frame_offset = frame_start - 1
 
             if self.options_bake_each_frame:
-                frames_sorted = range(int(frame_start), int(frame_end + 1),
+                frames_sorted = xrange(int(frame_start), int(frame_end + 1),
                         int(frame_step))
 
             frame_temp = blender_scene.frame_current

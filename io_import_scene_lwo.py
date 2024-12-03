@@ -16,6 +16,10 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import division
+from __future__ import absolute_import
+from io import open
+from itertools import imap
 bl_info= {
     "name": "Import LightWave Objects",
     "author": "Ken Nign (Ken9)",
@@ -160,7 +164,7 @@ def load_lwo(filename,
     try:
         header, chunk_size, chunk_name = struct.unpack(">4s1L4s", file.read(12))
     except:
-        print("Error parsing file header!")
+        print "Error parsing file header!"
         file.close()
         return
 
@@ -168,13 +172,13 @@ def load_lwo(filename,
     surfs= {}
     tags= []
     # Gather the object data using the version specific handler.
-    if chunk_name == b'LWO2':
+    if chunk_name == 'LWO2':
         read_lwo2(file, filename, layers, surfs, tags, ADD_SUBD_MOD, LOAD_HIDDEN, SKEL_TO_ARM)
-    elif chunk_name == b'LWOB' or chunk_name == b'LWLO':
+    elif chunk_name == 'LWOB' or chunk_name == 'LWLO':
         # LWOB and LWLO are the old format, LWLO is a layered object.
         read_lwob(file, filename, layers, surfs, tags, ADD_SUBD_MOD)
     else:
-        print("Not a supported file type!")
+        print "Not a supported file type!"
         file.close()
         return
 
@@ -193,7 +197,7 @@ def read_lwo2(file, filename, layers, surfs, tags, add_subd_mod, load_hidden, sk
     handle_layer= True
     last_pols_count= 0
     just_read_bones= False
-    print("Importing LWO: " + filename + "\nLWO v2 Format")
+    print "Importing LWO: " + filename + "\nLWO v2 Format"
 
     while True:
         try:
@@ -201,72 +205,72 @@ def read_lwo2(file, filename, layers, surfs, tags, add_subd_mod, load_hidden, sk
         except EOFError:
             break
 
-        if rootchunk.chunkname == b'TAGS':
+        if rootchunk.chunkname == 'TAGS':
             read_tags(rootchunk.read(), tags)
-        elif rootchunk.chunkname == b'LAYR':
+        elif rootchunk.chunkname == 'LAYR':
             handle_layer= read_layr(rootchunk.read(), layers, load_hidden)
-        elif rootchunk.chunkname == b'PNTS' and handle_layer:
+        elif rootchunk.chunkname == 'PNTS' and handle_layer:
             read_pnts(rootchunk.read(), layers)
-        elif rootchunk.chunkname == b'VMAP' and handle_layer:
+        elif rootchunk.chunkname == 'VMAP' and handle_layer:
             vmap_type = rootchunk.read(4)
 
-            if vmap_type == b'WGHT':
+            if vmap_type == 'WGHT':
                 read_weightmap(rootchunk.read(), layers)
-            elif vmap_type == b'MORF':
+            elif vmap_type == 'MORF':
                 read_morph(rootchunk.read(), layers, False)
-            elif vmap_type == b'SPOT':
+            elif vmap_type == 'SPOT':
                 read_morph(rootchunk.read(), layers, True)
-            elif vmap_type == b'TXUV':
+            elif vmap_type == 'TXUV':
                 read_uvmap(rootchunk.read(), layers)
-            elif vmap_type == b'RGB ' or vmap_type == b'RGBA':
+            elif vmap_type == 'RGB ' or vmap_type == 'RGBA':
                 read_colmap(rootchunk.read(), layers)
             else:
                 rootchunk.skip()
 
-        elif rootchunk.chunkname == b'VMAD' and handle_layer:
+        elif rootchunk.chunkname == 'VMAD' and handle_layer:
             vmad_type= rootchunk.read(4)
 
-            if vmad_type == b'TXUV':
+            if vmad_type == 'TXUV':
                 read_uv_vmad(rootchunk.read(), layers, last_pols_count)
-            elif vmad_type == b'RGB ' or vmad_type == b'RGBA':
+            elif vmad_type == 'RGB ' or vmad_type == 'RGBA':
                 read_color_vmad(rootchunk.read(), layers, last_pols_count)
-            elif vmad_type == b'WGHT':
+            elif vmad_type == 'WGHT':
                 # We only read the Edge Weight map if it's there.
                 read_weight_vmad(rootchunk.read(), layers)
             else:
                 rootchunk.skip()
 
-        elif rootchunk.chunkname == b'POLS' and handle_layer:
+        elif rootchunk.chunkname == 'POLS' and handle_layer:
             face_type = rootchunk.read(4)
             just_read_bones= False
             # PTCH is LW's Subpatches, SUBD is CatmullClark.
-            if (face_type == b'FACE' or face_type == b'PTCH' or
-                face_type == b'SUBD') and handle_layer:
+            if (face_type == 'FACE' or face_type == 'PTCH' or
+                face_type == 'SUBD') and handle_layer:
                 last_pols_count= read_pols(rootchunk.read(), layers)
-                if face_type != b'FACE':
+                if face_type != 'FACE':
                     layers[-1].has_subds= True
-            elif face_type == b'BONE' and handle_layer:
+            elif face_type == 'BONE' and handle_layer:
                 read_bones(rootchunk.read(), layers)
                 just_read_bones= True
             else:
                 rootchunk.skip()
 
-        elif rootchunk.chunkname == b'PTAG' and handle_layer:
+        elif rootchunk.chunkname == 'PTAG' and handle_layer:
             tag_type,= struct.unpack("4s", rootchunk.read(4))
-            if tag_type == b'SURF' and not just_read_bones:
+            if tag_type == 'SURF' and not just_read_bones:
                 # Ignore the surface data if we just read a bones chunk.
                 read_surf_tags(rootchunk.read(), layers, last_pols_count)
 
             elif skel_to_arm:
-                if tag_type == b'BNUP':
+                if tag_type == 'BNUP':
                     read_bone_tags(rootchunk.read(), layers, tags, 'BNUP')
-                elif tag_type == b'BONE':
+                elif tag_type == 'BONE':
                     read_bone_tags(rootchunk.read(), layers, tags, 'BONE')
                 else:
                     rootchunk.skip()
             else:
                 rootchunk.skip()
-        elif rootchunk.chunkname == b'SURF':
+        elif rootchunk.chunkname == 'SURF':
             read_surf(rootchunk.read(), surfs)
         else:
             #if handle_layer:
@@ -277,7 +281,7 @@ def read_lwo2(file, filename, layers, surfs, tags, add_subd_mod, load_hidden, sk
 def read_lwob(file, filename, layers, surfs, tags, add_subd_mod):
     """Read version 1 file, LW < 6."""
     last_pols_count= 0
-    print("Importing LWO: " + filename + "\nLWO v1 Format")
+    print "Importing LWO: " + filename + "\nLWO v1 Format"
 
     while True:
         try:
@@ -285,29 +289,29 @@ def read_lwob(file, filename, layers, surfs, tags, add_subd_mod):
         except EOFError:
             break
 
-        if rootchunk.chunkname == b'SRFS':
+        if rootchunk.chunkname == 'SRFS':
             read_tags(rootchunk.read(), tags)
-        elif rootchunk.chunkname == b'LAYR':
+        elif rootchunk.chunkname == 'LAYR':
             read_layr_5(rootchunk.read(), layers)
-        elif rootchunk.chunkname == b'PNTS':
+        elif rootchunk.chunkname == 'PNTS':
             if len(layers) == 0:
                 # LWOB files have no LAYR chunk to set this up.
                 nlayer= _obj_layer()
                 nlayer.name= "Layer 1"
                 layers.append(nlayer)
             read_pnts(rootchunk.read(), layers)
-        elif rootchunk.chunkname == b'POLS':
+        elif rootchunk.chunkname == 'POLS':
             last_pols_count= read_pols_5(rootchunk.read(), layers)
-        elif rootchunk.chunkname == b'PCHS':
+        elif rootchunk.chunkname == 'PCHS':
             last_pols_count= read_pols_5(rootchunk.read(), layers)
             layers[-1].has_subds= True
-        elif rootchunk.chunkname == b'PTAG':
+        elif rootchunk.chunkname == 'PTAG':
             tag_type,= struct.unpack("4s", rootchunk.read(4))
-            if tag_type == b'SURF':
+            if tag_type == 'SURF':
                 read_surf_tags_5(rootchunk.read(), layers, last_pols_count)
             else:
                 rootchunk.skip()
-        elif rootchunk.chunkname == b'SURF':
+        elif rootchunk.chunkname == 'SURF':
             read_surf_5(rootchunk.read(), surfs)
         else:
             # For Debugging \/.
@@ -319,7 +323,7 @@ def read_lwob(file, filename, layers, surfs, tags, add_subd_mod):
 def read_lwostring(raw_name):
     """Parse a zero-padded string."""
 
-    i = raw_name.find(b'\0')
+    i = raw_name.find('\0')
     name_len = i + 1
     if name_len % 2 == 1:   # Test for oddness.
         name_len += 1
@@ -364,7 +368,7 @@ def read_layr(layr_bytes, object_layers, load_hidden):
     if flags > 0 and not load_hidden:
         return False
 
-    print("Reading Object Layer")
+    print "Reading Object Layer"
     offset= 4
     pivot= struct.unpack(">fff", layr_bytes[offset:offset+12])
     # Swap Y and Z to match Blender's pitch.
@@ -391,7 +395,7 @@ def read_layr_5(layr_bytes, object_layers):
     new_layr= _obj_layer()
     new_layr.index, flags= struct.unpack(">HH", layr_bytes[0:4])
 
-    print("Reading Object Layer")
+    print "Reading Object Layer"
     offset= 4
     layr_name, name_len = read_lwostring(layr_bytes[offset:])
     offset+= name_len
@@ -406,7 +410,7 @@ def read_layr_5(layr_bytes, object_layers):
 
 def read_pnts(pnt_bytes, object_layers):
     """Read the layer's points."""
-    print("\tReading Layer ("+object_layers[-1].name+") Points")
+    print "\tReading Layer ("+object_layers[-1].name+") Points"
     offset= 0
     chunk_len= len(pnt_bytes)
 
@@ -640,7 +644,7 @@ def read_weight_vmad(ew_bytes, object_layers):
 
 def read_pols(pol_bytes, object_layers):
     """Read the layer's polygons, each one is just a list of point indexes."""
-    print("\tReading Layer ("+object_layers[-1].name+") Polygons")
+    print "\tReading Layer ("+object_layers[-1].name+") Polygons"
     offset= 0
     pols_count = len(pol_bytes)
     old_pols_count= len(object_layers[-1].pols)
@@ -649,7 +653,7 @@ def read_pols(pol_bytes, object_layers):
         pnts_count,= struct.unpack(">H", pol_bytes[offset:offset+2])
         offset+= 2
         all_face_pnts= []
-        for j in range(pnts_count):
+        for j in xrange(pnts_count):
             face_pnt, data_size= read_vx(pol_bytes[offset:offset+4])
             offset+= data_size
             all_face_pnts.append(face_pnt)
@@ -664,7 +668,7 @@ def read_pols_5(pol_bytes, object_layers):
     Read the polygons, each one is just a list of point indexes.
     But it also includes the surface index.
     """
-    print("\tReading Layer ("+object_layers[-1].name+") Polygons")
+    print "\tReading Layer ("+object_layers[-1].name+") Polygons"
     offset= 0
     chunk_len= len(pol_bytes)
     old_pols_count= len(object_layers[-1].pols)
@@ -674,7 +678,7 @@ def read_pols_5(pol_bytes, object_layers):
         pnts_count,= struct.unpack(">H", pol_bytes[offset:offset+2])
         offset+= 2
         all_face_pnts= []
-        for j in range(pnts_count):
+        for j in xrange(pnts_count):
             face_pnt,= struct.unpack(">H", pol_bytes[offset:offset+2])
             offset+= 2
             all_face_pnts.append(face_pnt)
@@ -693,7 +697,7 @@ def read_pols_5(pol_bytes, object_layers):
 
 def read_bones(bone_bytes, object_layers):
     """Read the layer's skelegons."""
-    print("\tReading Layer ("+object_layers[-1].name+") Bones")
+    print "\tReading Layer ("+object_layers[-1].name+") Bones"
     offset= 0
     bones_count = len(bone_bytes)
 
@@ -701,7 +705,7 @@ def read_bones(bone_bytes, object_layers):
         pnts_count,= struct.unpack(">H", bone_bytes[offset:offset+2])
         offset+= 2
         all_bone_pnts= []
-        for j in range(pnts_count):
+        for j in xrange(pnts_count):
             bone_pnt, data_size= read_vx(bone_bytes[offset:offset+4])
             offset+= data_size
             all_bone_pnts.append(bone_pnt)
@@ -731,7 +735,7 @@ def read_bone_tags(tag_bytes, object_layers, object_tags, type):
 
 def read_surf_tags(tag_bytes, object_layers, last_pols_count):
     """Read the list of PolyIDs and tag indexes."""
-    print("\tReading Layer ("+object_layers[-1].name+") Surface Assignments")
+    print "\tReading Layer ("+object_layers[-1].name+") Surface Assignments"
     offset= 0
     chunk_len= len(tag_bytes)
 
@@ -750,7 +754,7 @@ def read_surf_tags(tag_bytes, object_layers, last_pols_count):
 def read_surf(surf_bytes, object_surfs):
     """Read the object's surface data."""
     if len(object_surfs) == 0:
-        print("Reading Object Surfaces")
+        print "Reading Object Surfaces"
 
     surf= _obj_surf()
     name, name_len= read_lwostring(surf_bytes)
@@ -768,44 +772,44 @@ def read_surf(surf_bytes, object_surfs):
         offset+= 2
 
         # Now test which subchunk it is.
-        if subchunk_name == b'COLR':
+        if subchunk_name == 'COLR':
             surf.colr= struct.unpack(">fff", surf_bytes[offset:offset+12])
             # Don't bother with any envelopes for now.
 
-        elif subchunk_name == b'DIFF':
+        elif subchunk_name == 'DIFF':
             surf.diff,= struct.unpack(">f", surf_bytes[offset:offset+4])
 
-        elif subchunk_name == b'LUMI':
+        elif subchunk_name == 'LUMI':
             surf.lumi,= struct.unpack(">f", surf_bytes[offset:offset+4])
 
-        elif subchunk_name == b'SPEC':
+        elif subchunk_name == 'SPEC':
             surf.spec,= struct.unpack(">f", surf_bytes[offset:offset+4])
 
-        elif subchunk_name == b'REFL':
+        elif subchunk_name == 'REFL':
             surf.refl,= struct.unpack(">f", surf_bytes[offset:offset+4])
 
-        elif subchunk_name == b'RBLR':
+        elif subchunk_name == 'RBLR':
             surf.rblr,= struct.unpack(">f", surf_bytes[offset:offset+4])
 
-        elif subchunk_name == b'TRAN':
+        elif subchunk_name == 'TRAN':
             surf.tran,= struct.unpack(">f", surf_bytes[offset:offset+4])
 
-        elif subchunk_name == b'RIND':
+        elif subchunk_name == 'RIND':
             surf.rind,= struct.unpack(">f", surf_bytes[offset:offset+4])
 
-        elif subchunk_name == b'TBLR':
+        elif subchunk_name == 'TBLR':
             surf.tblr,= struct.unpack(">f", surf_bytes[offset:offset+4])
 
-        elif subchunk_name == b'TRNL':
+        elif subchunk_name == 'TRNL':
             surf.trnl,= struct.unpack(">f", surf_bytes[offset:offset+4])
 
-        elif subchunk_name == b'GLOS':
+        elif subchunk_name == 'GLOS':
             surf.glos,= struct.unpack(">f", surf_bytes[offset:offset+4])
 
-        elif subchunk_name == b'SHRP':
+        elif subchunk_name == 'SHRP':
             surf.shrp,= struct.unpack(">f", surf_bytes[offset:offset+4])
 
-        elif subchunk_name == b'SMAN':
+        elif subchunk_name == 'SMAN':
             s_angle,= struct.unpack(">f", surf_bytes[offset:offset+4])
             if s_angle > 0.0:
                 surf.smooth = True
@@ -818,7 +822,7 @@ def read_surf(surf_bytes, object_surfs):
 def read_surf_5(surf_bytes, object_surfs):
     """Read the object's surface data."""
     if len(object_surfs) == 0:
-        print("Reading Object Surfaces")
+        print "Reading Object Surfaces"
 
     surf= _obj_surf()
     name, name_len= read_lwostring(surf_bytes)
@@ -834,37 +838,37 @@ def read_surf_5(surf_bytes, object_surfs):
         offset+= 2
 
         # Now test which subchunk it is.
-        if subchunk_name == b'COLR':
+        if subchunk_name == 'COLR':
             color= struct.unpack(">BBBB", surf_bytes[offset:offset+4])
             surf.colr= [color[0] / 255.0, color[1] / 255.0, color[2] / 255.0]
 
-        elif subchunk_name == b'DIFF':
+        elif subchunk_name == 'DIFF':
             surf.diff,= struct.unpack(">h", surf_bytes[offset:offset+2])
             surf.diff/= 256.0    # Yes, 256 not 255.
 
-        elif subchunk_name == b'LUMI':
+        elif subchunk_name == 'LUMI':
             surf.lumi,= struct.unpack(">h", surf_bytes[offset:offset+2])
             surf.lumi/= 256.0
 
-        elif subchunk_name == b'SPEC':
+        elif subchunk_name == 'SPEC':
             surf.spec,= struct.unpack(">h", surf_bytes[offset:offset+2])
             surf.spec/= 256.0
 
-        elif subchunk_name == b'REFL':
+        elif subchunk_name == 'REFL':
             surf.refl,= struct.unpack(">h", surf_bytes[offset:offset+2])
             surf.refl/= 256.0
 
-        elif subchunk_name == b'TRAN':
+        elif subchunk_name == 'TRAN':
             surf.tran,= struct.unpack(">h", surf_bytes[offset:offset+2])
             surf.tran/= 256.0
 
-        elif subchunk_name == b'RIND':
+        elif subchunk_name == 'RIND':
             surf.rind,= struct.unpack(">f", surf_bytes[offset:offset+4])
 
-        elif subchunk_name == b'GLOS':
+        elif subchunk_name == 'GLOS':
             surf.glos,= struct.unpack(">h", surf_bytes[offset:offset+2])
 
-        elif subchunk_name == b'SMAN':
+        elif subchunk_name == 'SMAN':
             s_angle,= struct.unpack(">f", surf_bytes[offset:offset+4])
             if s_angle > 0.0:
                 surf.smooth = True
@@ -879,50 +883,50 @@ def create_mappack(data, map_name, map_type):
     pack= {}
 
     def color_pointmap(map):
-        for fi in range(len(data.pols)):
+        for fi in xrange(len(data.pols)):
             if fi not in pack:
                 pack[fi]= []
             for pnt in data.pols[fi]:
                 if pnt in map:
-                    pack[fi].append(map[pnt])
+                    pack[fi].append(imap[pnt])
                 else:
                     pack[fi].append((1.0, 1.0, 1.0))
 
     def color_facemap(map):
-        for fi in range(len(data.pols)):
+        for fi in xrange(len(data.pols)):
             if fi not in pack:
                 pack[fi]= []
                 for p in data.pols[fi]:
                     pack[fi].append((1.0, 1.0, 1.0))
             if fi in map:
-                for po in range(len(data.pols[fi])):
-                    if data.pols[fi][po] in map[fi]:
-                        pack[fi].insert(po, map[fi][data.pols[fi][po]])
+                for po in xrange(len(data.pols[fi])):
+                    if data.pols[fi][po] in imap[fi]:
+                        pack[fi].insert(po, imap[fi][data.pols[fi][po]])
                         del pack[fi][po+1]
 
     def uv_pointmap(map):
-        for fi in range(len(data.pols)):
+        for fi in xrange(len(data.pols)):
             if fi not in pack:
                 pack[fi]= []
                 for p in data.pols[fi]:
                     pack[fi].append((-0.1,-0.1))
-            for po in range(len(data.pols[fi])):
+            for po in xrange(len(data.pols[fi])):
                 pnt_id= data.pols[fi][po]
                 if pnt_id in map:
-                    pack[fi].insert(po, map[pnt_id])
+                    pack[fi].insert(po, imap[pnt_id])
                     del pack[fi][po+1]
 
     def uv_facemap(map):
-        for fi in range(len(data.pols)):
+        for fi in xrange(len(data.pols)):
             if fi not in pack:
                 pack[fi]= []
                 for p in data.pols[fi]:
                     pack[fi].append((-0.1,-0.1))
             if fi in map:
-                for po in range(len(data.pols[fi])):
+                for po in xrange(len(data.pols[fi])):
                     pnt_id= data.pols[fi][po]
-                    if pnt_id in map[fi]:
-                        pack[fi].insert(po, map[fi][pnt_id])
+                    if pnt_id in imap[fi]:
+                        pack[fi].insert(po, imap[fi][pnt_id])
                         del pack[fi][po+1]
 
     if map_type == "COLOR":
@@ -944,14 +948,14 @@ def create_mappack(data, map_name, map_type):
 
 def build_armature(layer_data, bones):
     """Build an armature from the skelegon data in the mesh."""
-    print("Building Armature")
+    print "Building Armature"
 
     # New Armatures include a default bone, remove it.
     bones.remove(bones[0])
 
     # Now start adding the bones at the point locations.
     prev_bone= None
-    for skb_idx in range(len(layer_data.bones)):
+    for skb_idx in xrange(len(layer_data.bones)):
         if skb_idx in layer_data.bone_names:
             nb= bones.new(layer_data.bone_names[skb_idx])
         else:
@@ -982,7 +986,7 @@ def build_armature(layer_data, bones):
 def build_objects(object_layers, object_surfs, object_tags, object_name, add_subd_mod, skel_to_arm, use_existing_materials):
     """Using the gathered data, create the objects."""
     ob_dict= {}  # Used for the parenting setup.
-    print("Adding %d Materials" % len(object_surfs))
+    print "Adding %d Materials" % len(object_surfs)
 
     for surf_key in object_surfs:
         surf_data= object_surfs[surf_key]
@@ -1010,9 +1014,9 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
     # Single layer objects use the object file's name instead.
     if len(object_layers) and object_layers[-1].name == 'Layer 1':
         object_layers[-1].name= object_name
-        print("Building '%s' Object" % object_name)
+        print "Building '%s' Object" % object_name
     else:
-        print("Building %d Objects" % len(object_layers))
+        print "Building %d Objects" % len(object_layers)
 
     # Before adding any meshes or armatures go into Object mode.
     if bpy.ops.object.mode_set.poll():
@@ -1039,7 +1043,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
 
             vlen= len(fpol)
             if vlen == 3 or vlen == 4:
-                for i in range(vlen):
+                for i in xrange(vlen):
                     me.tessfaces[fi].vertices_raw[i]= fpol[i]
             elif vlen == 2:
                 edges.append(fi)
@@ -1067,7 +1071,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
 
         # Create the Vertex Groups (LW's Weight Maps).
         if len(layer_data.wmaps) > 0:
-            print("Adding %d Vertex Groups" % len(layer_data.wmaps))
+            print "Adding %d Vertex Groups" % len(layer_data.wmaps)
             for wmap_key in layer_data.wmaps:
                 vgroup= ob.vertex_groups.new()
                 vgroup.name= wmap_key
@@ -1077,7 +1081,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
 
         # Create the Shape Keys (LW's Endomorphs).
         if len(layer_data.morphs) > 0:
-            print("Adding %d Shapes Keys" % len(layer_data.morphs))
+            print "Adding %d Shapes Keys" % len(layer_data.morphs)
             ob.shape_key_add('Basis')   # Got to have a Base Shape.
             for morph_key in layer_data.morphs:
                 skey= ob.shape_key_add(morph_key)
@@ -1087,7 +1091,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
 
         # Create the Vertex Color maps.
         if len(layer_data.colmaps) > 0:
-            print("Adding %d Vertex Color Maps" % len(layer_data.colmaps))
+            print "Adding %d Vertex Color Maps" % len(layer_data.colmaps)
             for cmap_key in layer_data.colmaps:
                 map_pack= create_mappack(layer_data, cmap_key, "COLOR")
                 me.vertex_colors.new(cmap_key)
@@ -1109,7 +1113,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
 
         # Create the UV Maps.
         if len(layer_data.uvmaps) > 0:
-            print("Adding %d UV Textures" % len(layer_data.uvmaps))
+            print "Adding %d UV Textures" % len(layer_data.uvmaps)
             for uvmap_key in layer_data.uvmaps:
                 map_pack= create_mappack(layer_data, uvmap_key, "UV")
                 me.uv_textures.new(name=uvmap_key)
@@ -1135,7 +1139,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
                 face_offset= len(me.tessfaces)
                 ng= ngons[ng_key]
                 v_locs= []
-                for vi in range(len(ng)):
+                for vi in xrange(len(ng)):
                     v_locs.append(mathutils.Vector(layer_data.pnts[ngons[ng_key][vi]]))
                 tris= tessellate_polygon([v_locs])
                 me.tessfaces.add(len(tris))
@@ -1196,9 +1200,9 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
 
         # We may have some invalid mesh data, See: [#27916]
         # keep this last!
-        print("validating mesh: %r..." % me.name)
+        print "validating mesh: %r..." % me.name
         me.validate(verbose=1)
-        print("done!")
+        print "done!"
 
     # With the objects made, setup the parents and re-adjust the locations.
     for ob_key in ob_dict:
@@ -1209,7 +1213,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
 
     bpy.context.scene.update()
 
-    print("Done Importing LWO File")
+    print "Done Importing LWO File"
 
 
 from bpy.props import StringProperty, BoolProperty
@@ -1220,7 +1224,7 @@ class IMPORT_OT_lwo(bpy.types.Operator):
     bl_idname= "import_scene.lwo"
     bl_label= "Import LWO"
     bl_description= "Import a LightWave Object file"
-    bl_options= {'REGISTER', 'UNDO'}
+    bl_options= set(['REGISTER', 'UNDO'])
 
     filepath= StringProperty(name="File Path", description="Filepath used for importing the LWO file", maxlen=1024, default="")
 
@@ -1236,12 +1240,12 @@ class IMPORT_OT_lwo(bpy.types.Operator):
                  self.LOAD_HIDDEN,
                  self.SKEL_TO_ARM,
                  self.USE_EXISTING_MATERIALS)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         wm= context.window_manager
         wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 
 def menu_func(self, context):

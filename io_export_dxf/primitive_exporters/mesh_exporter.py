@@ -1,7 +1,9 @@
 
+from __future__ import absolute_import
 import mathutils
 from .base_exporter import BasePrimitiveDXFExporter
 import copy
+from itertools import imap
 
 class MeshDXFExporter(BasePrimitiveDXFExporter):
     
@@ -112,7 +114,7 @@ class MeshDXFExporter(BasePrimitiveDXFExporter):
                     args = copy.copy(kwargs)
                     args['points'] = points
                     entities.append(('Line', args))
-        elif c in {'POLYFACE', 'POLYLINE'}:
+        elif c in set(['POLYFACE', 'POLYLINE']):
             if faces and allpoints:
                 #TODO: purge allpoints: left only vertices used by faces
 #                    if exportsettings['verbose']: 
@@ -130,10 +132,10 @@ class MeshDXFExporter(BasePrimitiveDXFExporter):
                         for used_i,used in enumerate(verts_state):
                             if used:
                                 newverts.append(allpoints[used_i])    
-                                map[used_i]=i
+                                imap[used_i]=i
                                 i+=1
                         allpoints = newverts
-                        faces = [[map[v]+1 for v in f] for f in faces]
+                        faces = [[imap[v]+1 for v in f] for f in faces]
                 args = copy.copy(kwargs)
                 args['flag70'] = 64
                 args['flag75'] = 0

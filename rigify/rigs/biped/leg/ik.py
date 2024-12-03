@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from mathutils import Vector
 
@@ -29,9 +31,10 @@ from ....utils import copy_bone, flip_bone, put_bone
 from ....utils import connected_children_names, has_connected_children
 from ....utils import strip_org, make_mechanism_name, insert_before_lr
 from ....utils import create_widget, create_circle_widget
+from itertools import izip
 
 
-class Rig:
+class Rig(object):
     """ An IK leg rig, with an optional ik/fk switch.
 
     """
@@ -66,7 +69,7 @@ class Rig:
                         rocker = b.children[0].name
 
         if foot is None or heel is None:
-            print("blah")
+            print "blah"
             raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type" % (strip_org(bone)))
 
         # Get the toe
@@ -320,7 +323,7 @@ class Rig:
         # Set layers if specified
         if self.layers:
             foot_roll_p.bone.layers = self.layers
-            toe_p.bone.layers = [(i[0] or i[1]) for i in zip(toe_p.bone.layers, self.layers)]  # Both FK and IK layers
+            toe_p.bone.layers = [(i[0] or i[1]) for i in izip(toe_p.bone.layers, self.layers)]  # Both FK and IK layers
 
         # Create widgets
         create_circle_widget(self.obj, toe, radius=0.7, head_tail=0.5)

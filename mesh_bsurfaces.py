@@ -17,6 +17,8 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
+from __future__ import division
+from __future__ import absolute_import
 bl_info = {
     "name": "Bsurfaces GPL Edition",
     "author": "Eclectiel",
@@ -124,7 +126,7 @@ def get_strokes_type(main_object):
                     strokes_num = len(ob.data.splines)
 
                     # Check if there is any non-bezier spline.
-                    for i in range(len(ob.data.splines)):
+                    for i in xrange(len(ob.data.splines)):
                         if ob.data.splines[i].type != "BEZIER":
                             strokes_type = "CURVE_WITH_NON_BEZIER_SPLINES"
                             break
@@ -161,7 +163,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
     bl_idname = "gpencil.surfsk_add_surface"
     bl_label = "Bsurfaces add surface"
     bl_description = "Generates surfaces from grease pencil strokes, bezier curves or loose edges"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
 
     edges_U = bpy.props.IntProperty(name = "Cross",
@@ -292,7 +294,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
         edges_lengths = []
         edges_lengths_sum = 0
-        for i in range(0, len(verts_ordered)):
+        for i in xrange(0, len(verts_ordered)):
             if i == 0:
                 prev_v_co = matrix * verts_ordered[i].co
             else:
@@ -319,7 +321,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 verts_count += 1
         else:
             verts_count = 1
-            for n in range(0, fixed_edges_num):
+            for n in xrange(0, fixed_edges_num):
                 edges_proportions.append(1 / fixed_edges_num)
                 verts_count += 1
 
@@ -344,7 +346,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
     def shortest_distance(self, object, point_co, verts_idx):
         matrix = object.matrix_world
 
-        for i in range(0, len(verts_idx)):
+        for i in xrange(0, len(verts_idx)):
             dist = (point_co - matrix * object.data.vertices[verts_idx[i]].co).length
             if i == 0:
                 prev_dist = dist
@@ -362,7 +364,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
     #### Returns the index of the opposite vert tip in a chain, given a vert tip index as parameter, and a multidimentional list with all pairs of tips.
     def opposite_tip(self, vert_tip_idx, all_chains_tips_idx):
         opposite_vert_tip_idx = None
-        for i in range(0, len(all_chains_tips_idx)):
+        for i in xrange(0, len(all_chains_tips_idx)):
             if vert_tip_idx == all_chains_tips_idx[i][0]:
                 opposite_vert_tip_idx = all_chains_tips_idx[i][1]
             if vert_tip_idx == all_chains_tips_idx[i][1]:
@@ -378,7 +380,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         points_between_segments = round(len(spline_coords) / segments_num)
 
         simplified_spline.append(spline_coords[0])
-        for i in range(1, segments_num):
+        for i in xrange(1, segments_num):
             simplified_spline.append(spline_coords[i * points_between_segments])
 
         simplified_spline.append(spline_coords[len(spline_coords) - 1])
@@ -418,10 +420,10 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         # Calculate the length of each final surface spline.
         surface_splines_lengths = []
         surface_splines_parsed = []
-        for sp_idx in range(0, len(surface_splines)):
+        for sp_idx in xrange(0, len(surface_splines)):
             # Calculate spline length
             surface_splines_lengths.append(0)
-            for i in range(0, len(surface_splines[sp_idx].bezier_points)):
+            for i in xrange(0, len(surface_splines[sp_idx].bezier_points)):
                 if i == 0:
                     prev_p = surface_splines[sp_idx].bezier_points[i]
                 else:
@@ -435,13 +437,13 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 
         # Calculate vertex positions with appropriate edge proportions, and ordered, for each spline.
-        for sp_idx in range(0, len(surface_splines)):
+        for sp_idx in xrange(0, len(surface_splines)):
             surface_splines_parsed.append([])
             surface_splines_parsed[sp_idx].append(surface_splines[sp_idx].bezier_points[0].co)
 
             prev_p_co = surface_splines[sp_idx].bezier_points[0].co
             p_idx = 0
-            for prop_idx in range(len(proportions) - 1):
+            for prop_idx in xrange(len(proportions) - 1):
                 target_length = surface_splines_lengths[sp_idx] * proportions[prop_idx]
 
                 partial_segment_length = 0
@@ -506,10 +508,10 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 
         edge_face_count = []
-        for i in range(len(ob.data.edges)):
+        for i in xrange(len(ob.data.edges)):
             edge_face_count.append(0)
 
-        for i in range(len(ob.data.edges)):
+        for i in xrange(len(ob.data.edges)):
             ed = ob.data.edges[i]
 
             v1 = ed.vertices[0]
@@ -563,7 +565,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         all_edges_around_sel_verts = []
         edges_connected_to_sel_verts = {}
         verts_connected_to_every_vert = {}
-        for ed_idx in range(len(object.data.edges)):
+        for ed_idx in xrange(len(object.data.edges)):
             ed = object.data.edges[ed_idx]
             include_edge = False
 
@@ -736,7 +738,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                     sum_y_co = 0
                     sum_z_co = 0
                     movable_verts_to_merge_count = 0
-                    for i in range(len(verts_to_merge)):
+                    for i in xrange(len(verts_to_merge)):
                         if verts_to_merge[i] in movable_verts:
                             v_co = object.data.vertices[verts_to_merge[i]].co
 
@@ -944,8 +946,8 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         #### Keep only the faces that don't overlap by ignoring quads that overlap with two adjacent triangles.
         faces_to_not_include_idx = [] # Indices of faces_verts_idx to eliminate.
         all_faces_to_check_idx = faces_verts_idx + all_object_faces_verts_idx
-        for i in range(len(faces_verts_idx)):
-            for t in range(len(all_faces_to_check_idx)):
+        for i in xrange(len(faces_verts_idx)):
+            for t in xrange(len(all_faces_to_check_idx)):
                 if i != t:
                     verts_in_common = 0
 
@@ -965,7 +967,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         bm.from_mesh(me)
 
         num_faces_created = 0
-        for i in range(len(faces_verts_idx)):
+        for i in xrange(len(faces_verts_idx)):
             if not i in faces_to_not_include_idx:
                 bm.faces.new([ bm.verts[v] for v in faces_verts_idx[i] ])
 
@@ -1000,7 +1002,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         # If the main object uses modifiers deactivate them temporarily until the surface is joined. (without this the surface verts merging with the main object doesn't work well)
         self.modifiers_prev_viewport_state = []
         if len(self.main_object.modifiers) > 0:
-            for m_idx in range(len(self.main_object.modifiers)):
+            for m_idx in xrange(len(self.main_object.modifiers)):
                 self.modifiers_prev_viewport_state.append(self.main_object.modifiers[m_idx].show_viewport)
 
                 self.main_object.modifiers[m_idx].show_viewport = False
@@ -1022,7 +1024,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             first_dist = 0
             second_dist = 0
             coords_first_pt = ob_splines.data.splines[0].bezier_points[0].co
-            for i in range(len(ob_splines.data.splines)):
+            for i in xrange(len(ob_splines.data.splines)):
                 sp = ob_splines.data.splines[i]
 
                 if coords_first_pt != sp.bezier_points[0].co:
@@ -1067,7 +1069,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
             bpy.ops.curve.select_all('INVOKE_REGION_WIN', action='SELECT')
 
-            for i in range(4):
+            for i in xrange(4):
                 bpy.ops.curve.smooth('INVOKE_REGION_WIN')
 
             bpy.ops.curve.select_all('INVOKE_REGION_WIN', action='DESELECT')
@@ -1155,7 +1157,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 angle_sum = 0
 
                 angle_limit = 2 # Degrees
-                for t in range(len(sp.bezier_points)):
+                for t in xrange(len(sp.bezier_points)):
                     if t <= len(sp.bezier_points) - 3: # Because on each iteration it checks the "next two points" of the actual. This way it doesn't go out of range.
                         p1 = sp.bezier_points[t]
                         p2 = sp.bezier_points[t + 1]
@@ -1191,7 +1193,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             #### Smooth out strokes a little to improve crosshatch detection.
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
 
-            for i in range(15):
+            for i in xrange(15):
                 bpy.ops.curve.smooth('INVOKE_REGION_WIN')
 
             bpy.ops.curve.select_all('INVOKE_REGION_WIN', action='DESELECT')
@@ -1214,7 +1216,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 
                 angle_limit = 15 # Degrees
-                for t in range(len(sp.bezier_points)):
+                for t in xrange(len(sp.bezier_points)):
                     if t <= len(sp.bezier_points) - 3: # Because on each iteration it checks the "next two points" of the actual. This way it doesn't go out of range.
                         p1 = sp.bezier_points[t]
                         p2 = sp.bezier_points[t + 1]
@@ -1256,7 +1258,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             #### Check if the strokes are a crosshatch.
             if self.is_crosshatch:
                 all_points_coords = []
-                for i in range(len(ob_splines.data.splines)):
+                for i in xrange(len(ob_splines.data.splines)):
                     all_points_coords.append([])
 
                     all_points_coords[i] = [mathutils.Vector((x, y, z)) for x, y, z in [bp.co for bp in ob_splines.data.splines[i].bezier_points]]
@@ -1264,15 +1266,15 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
                 all_intersections = []
                 checked_splines = []
-                for i in range(len(all_points_coords)):
+                for i in xrange(len(all_points_coords)):
 
-                    for t in range(len(all_points_coords[i]) - 1):
+                    for t in xrange(len(all_points_coords[i]) - 1):
                         bp1_co = all_points_coords[i][t]
                         bp2_co = all_points_coords[i][t + 1]
 
-                        for i2 in range(len(all_points_coords)):
+                        for i2 in xrange(len(all_points_coords)):
                             if i != i2 and not i2 in checked_splines:
-                                for t2 in range(len(all_points_coords[i2]) - 1):
+                                for t2 in xrange(len(all_points_coords[i2]) - 1):
                                     bp3_co = all_points_coords[i2][t2]
                                     bp4_co = all_points_coords[i2][t2 + 1]
 
@@ -1301,7 +1303,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 
                 self.crosshatch_strokes_coords = {}
-                for i in range(len(all_intersections)):
+                for i in xrange(len(all_intersections)):
                     if not all_intersections[i][0] in self.crosshatch_strokes_coords:
                         self.crosshatch_strokes_coords[all_intersections[i][0]] = []
 
@@ -1321,7 +1323,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
         #### If the main object has modifiers, turn their "viewport view status" to what it was before the forced deactivation above.
         if len(self.main_object.modifiers) > 0:
-            for m_idx in range(len(self.main_object.modifiers)):
+            for m_idx in xrange(len(self.main_object.modifiers)):
                 self.main_object.modifiers[m_idx].show_viewport = self.modifiers_prev_viewport_state[m_idx]
 
 
@@ -1335,7 +1337,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         # If the main object uses modifiers deactivate them temporarily until the surface is joined. (without this the surface verts merging with the main object doesn't work well)
         self.modifiers_prev_viewport_state = []
         if len(self.main_object.modifiers) > 0:
-            for m_idx in range(len(self.main_object.modifiers)):
+            for m_idx in xrange(len(self.main_object.modifiers)):
                 self.modifiers_prev_viewport_state.append(self.main_object.modifiers[m_idx].show_viewport)
 
                 self.main_object.modifiers[m_idx].show_viewport = False
@@ -1351,7 +1353,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         all_verts_coords = []
         all_edges = []
         for st_idx in self.crosshatch_strokes_coords:
-            for co_idx in range(len(self.crosshatch_strokes_coords[st_idx])):
+            for co_idx in xrange(len(self.crosshatch_strokes_coords[st_idx])):
                 coords = self.crosshatch_strokes_coords[st_idx][co_idx]
 
                 all_verts_coords.append(coords)
@@ -1377,11 +1379,11 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         #### Get together each vert and its nearest, to the middle position.
         verts = ob.data.vertices
         checked_verts = []
-        for i in range(len(verts)):
+        for i in xrange(len(verts)):
             shortest_dist = None
 
             if not i in checked_verts:
-                for t in range(len(verts)):
+                for t in xrange(len(verts)):
                     if i != t and not t in checked_verts:
                         dist = (verts[i].co - verts[t].co).length
 
@@ -1503,8 +1505,8 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
         #### Keep only the faces that don't overlap by ignoring quads that overlap with two adjacent triangles.
         faces_to_not_include_idx = [] # Indices of faces_verts_idx to eliminate.
-        for i in range(len(faces_verts_idx)):
-            for t in range(len(faces_verts_idx)):
+        for i in xrange(len(faces_verts_idx)):
+            for t in xrange(len(faces_verts_idx)):
                 if i != t:
                     verts_in_common = 0
 
@@ -1521,13 +1523,13 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         #### Build surface.
         all_surface_verts_co = []
         verts_idx_translation = {}
-        for i in range(len(final_points_ob.data.vertices)):
+        for i in xrange(len(final_points_ob.data.vertices)):
             coords = final_points_ob.data.vertices[i].co
             all_surface_verts_co.append([coords[0], coords[1], coords[2]])
 
         # Verts of each face.
         all_surface_faces = []
-        for i in range(len(faces_verts_idx)):
+        for i in xrange(len(faces_verts_idx)):
             if not i in faces_to_not_include_idx:
                 face = []
                 for v_idx in faces_verts_idx[i]:
@@ -1616,7 +1618,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         for v in self.main_object.data.vertices:
             coords = self.main_object.matrix_world * v.co
 
-            for c in range(len(coords)): # To avoid problems when taking "-0.00" as a different value as "0.00".
+            for c in xrange(len(coords)): # To avoid problems when taking "-0.00" as a different value as "0.00".
                 if "%.3f" % coords[c] == "-0.00":
                     coords[c] = 0
 
@@ -1628,7 +1630,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         # Determine which verts will be merged, snap them to the nearest verts on the original verts, and get them selected.
         crosshatch_verts_to_merge = []
         if self.automatic_join:
-            for i in range(len(ob_surface.data.vertices)):
+            for i in xrange(len(ob_surface.data.vertices)):
                 # Calculate the distance from each of the connected verts to the actual vert, and compare it with the distance they would have if joined. If they don't change much, that vert can be joined.
                 merge_actual_vert = True
                 if len(surface_connected_verts[i]) < 4:
@@ -1664,7 +1666,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 if merge_actual_vert:
                     coords = final_ob_duplicate.data.vertices[i].co
 
-                    for c in range(len(coords)): # To avoid problems when taking "-0.000" as a different value as "0.00".
+                    for c in xrange(len(coords)): # To avoid problems when taking "-0.000" as a different value as "0.00".
                         if "%.3f" % coords[c] == "-0.00":
                             coords[c] = 0
 
@@ -1710,12 +1712,12 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
         #### If the main object has modifiers, turn their "viewport view status" to what it was before the forced deactivation above.
         if len(self.main_object.modifiers) > 0:
-            for m_idx in range(len(self.main_object.modifiers)):
+            for m_idx in xrange(len(self.main_object.modifiers)):
                 self.main_object.modifiers[m_idx].show_viewport = self.modifiers_prev_viewport_state[m_idx]
 
 
 
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 
 
@@ -1783,7 +1785,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         middle_vertex_idx = None
         tips_to_discard_idx = []
         # Check if there is a "middle-vertex", and get its index.
-        for i in range(0, len(single_unselected_verts_and_neighbors)):
+        for i in xrange(0, len(single_unselected_verts_and_neighbors)):
             actual_chain_verts = self.get_ordered_verts(self.main_object, all_selected_edges_idx, all_verts_idx, single_unselected_verts_and_neighbors[i][1], None, None)
 
             if single_unselected_verts_and_neighbors[i][2] != actual_chain_verts[len(actual_chain_verts) - 1].index:
@@ -1796,7 +1798,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         verts_tips_same_chain_idx = []
         if len(all_chains_tips_idx) >= 2:
             checked_v = []
-            for i in range(0, len(all_chains_tips_idx)):
+            for i in xrange(0, len(all_chains_tips_idx)):
                 if all_chains_tips_idx[i] not in checked_v:
                     v_chain = self.get_ordered_verts(self.main_object, all_selected_edges_idx, all_verts_idx, all_chains_tips_idx[i], middle_vertex_idx, None)
 
@@ -1820,12 +1822,12 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 selection_type = "TWO_CONNECTED"
             else:
                 # The type of the selection was not identified, the script stops.
-                self.report({'WARNING'}, "The selection isn't valid.")
+                self.report(set(['WARNING']), "The selection isn't valid.")
                 bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
                 self.cleanup_on_interruption()
                 self.stopping_errors = True
 
-                return{'CANCELLED'}
+                returnset(['CANCELLED'])
         else:
             if len(all_chains_tips_idx) == 2: # If there are 2 tips
                 selection_type = "SINGLE"
@@ -1836,33 +1838,33 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                     selection_type = "NO_SELECTION"
                 else:
                     # If the selection was not identified and there is only one stroke, there's no possibility to build a surface, so the script is interrupted.
-                    self.report({'WARNING'}, "The selection isn't valid.")
+                    self.report(set(['WARNING']), "The selection isn't valid.")
                     bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
                     self.cleanup_on_interruption()
                     self.stopping_errors = True
 
-                    return{'CANCELLED'}
+                    returnset(['CANCELLED'])
             else:
                 # The type of the selection was not identified, the script stops.
-                self.report({'WARNING'}, "The selection isn't valid.")
+                self.report(set(['WARNING']), "The selection isn't valid.")
 
                 bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
                 self.cleanup_on_interruption()
 
                 self.stopping_errors = True
 
-                return{'CANCELLED'}
+                returnset(['CANCELLED'])
 
 
 
         #### If the selection type is TWO_NOT_CONNECTED and there is only one stroke, stop the script.
         if selection_type == "TWO_NOT_CONNECTED" and len(self.main_splines.data.splines) == 1:
-            self.report({'WARNING'}, "At least two strokes are needed when there are two not connected selections.")
+            self.report(set(['WARNING']), "At least two strokes are needed when there are two not connected selections.")
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
             self.cleanup_on_interruption()
             self.stopping_errors = True
 
-            return{'CANCELLED'}
+            returnset(['CANCELLED'])
 
 
 
@@ -2017,7 +2019,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
                     verts_V = self.get_ordered_verts(self.main_object, all_selected_edges_idx, all_verts_idx, vert_neighbors[0], middle_vertex_idx, None)
 
-                    for i in range(0, len(verts_V)):
+                    for i in xrange(0, len(verts_V)):
                         if verts_V[i].index == nearest_vert_to_second_st_first_pt_idx:
                             if i >= len(verts_V) / 2: # If the vertex nearest to the first point of the second stroke is in the first half of the selected verts.
                                 first_vert_V_idx = vert_neighbors[1]
@@ -2053,7 +2055,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
                         verts_V2 = self.get_ordered_verts(self.main_object, all_selected_edges_idx, all_verts_idx, vert_neighbors[0], middle_vertex_idx, None)
 
-                        for i in range(0, len(verts_V2)):
+                        for i in xrange(0, len(verts_V2)):
                             if verts_V2[i].index == nearest_vert_to_second_st_last_pt_idx:
                                 if i >= len(verts_V2) / 2: # If the vertex nearest to the first point of the second stroke is in the first half of the selected verts.
                                     first_vert_V2_idx = vert_neighbors[1]
@@ -2198,13 +2200,13 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         #### Check if when there are two-not-connected selections both have the same number of verts. If not terminate the script.
         if ((self.selection_U2_exists and len(verts_ordered_U) != len(verts_ordered_U2)) or (self.selection_V2_exists and len(verts_ordered_V) != len(verts_ordered_V2))):
             # Display a warning.
-            self.report({'WARNING'}, "Both selections must have the same number of edges")
+            self.report(set(['WARNING']), "Both selections must have the same number of edges")
 
             self.cleanup_on_interruption()
 
             self.stopping_errors = True
 
-            return{'CANCELLED'}
+            returnset(['CANCELLED'])
 
 
 
@@ -2269,7 +2271,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             simplified_curve = []
             ob_simplified_curve = []
             splines_first_v_co = []
-            for i in range(len(self.main_splines.data.splines)):
+            for i in xrange(len(self.main_splines.data.splines)):
                 # Create a curve object for the actual spline "cyclic extension".
                 simplified_curve.append(bpy.data.curves.new('SURFSKIO_simpl_crv', 'CURVE'))
                 ob_simplified_curve.append(bpy.data.objects.new('SURFSKIO_simpl_crv', simplified_curve[i]))
@@ -2291,7 +2293,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 # Generate the spline.
                 spline = simplified_curve[i].splines.new('BEZIER')
                 spline.bezier_points.add(len(simplified_spline_coords[i]) - 1) # less one because one point is added when the spline is created.
-                for p in range(0, len(simplified_spline_coords[i])):
+                for p in xrange(0, len(simplified_spline_coords[i])):
                     spline.bezier_points[p].co = simplified_spline_coords[i][p]
 
 
@@ -2321,7 +2323,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
                 bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
                 segments = sqrt((ob_simplified_curve[i].data.splines[0].bezier_points[0].co - ob_simplified_curve[i].data.splines[0].bezier_points[spline_bp_count - 1].co).length / self.average_gp_segment_length)
-                for t in range(2):
+                for t in xrange(2):
                     bpy.ops.curve.subdivide('INVOKE_REGION_WIN', number_cuts = segments)
 
 
@@ -2335,7 +2337,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 # Add the points of the "closing segment" to the original curve from grease pencil stroke.
                 first_new_index = len(self.main_splines.data.splines[i].bezier_points)
                 self.main_splines.data.splines[i].bezier_points.add(len(ob_simplified_curve[i].data.splines[0].bezier_points) - 1)
-                for t in range(1, len(ob_simplified_curve[i].data.splines[0].bezier_points)):
+                for t in xrange(1, len(ob_simplified_curve[i].data.splines[0].bezier_points)):
                     self.main_splines.data.splines[i].bezier_points[t - 1 + first_new_index].co = ob_simplified_curve[i].data.splines[0].bezier_points[t].co
 
 
@@ -2356,18 +2358,18 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         if self.selection_U2_exists:
             # Initialize the multidimensional list with the proportions of all the segments.
             proportions_loops_crossing_strokes = []
-            for i in range(len(pts_on_strokes_with_proportions_U)):
+            for i in xrange(len(pts_on_strokes_with_proportions_U)):
                 proportions_loops_crossing_strokes.append([])
 
-                for t in range(len(pts_on_strokes_with_proportions_U[0])):
+                for t in xrange(len(pts_on_strokes_with_proportions_U[0])):
                     proportions_loops_crossing_strokes[i].append(None)
 
 
             # Calculate the proportions of each segment of the loops-U from pts_on_strokes_with_proportions_U.
-            for lp in range(len(pts_on_strokes_with_proportions_U[0])):
+            for lp in xrange(len(pts_on_strokes_with_proportions_U[0])):
                 loop_segments_lengths = []
 
-                for st in range(len(pts_on_strokes_with_proportions_U)):
+                for st in xrange(len(pts_on_strokes_with_proportions_U)):
                     if st == 0: # When on the first stroke, add the segment from the selection to the dirst stroke.
                         loop_segments_lengths.append(((self.main_object.matrix_world * verts_ordered_U[lp].co) - pts_on_strokes_with_proportions_U[0][lp]).length)
 
@@ -2379,26 +2381,26 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
                 # Calculate full loop length.
                 loop_seg_lengths_sum = 0
-                for i in range(len(loop_segments_lengths)):
+                for i in xrange(len(loop_segments_lengths)):
                     loop_seg_lengths_sum += loop_segments_lengths[i]
 
                 # Fill the multidimensional list with the proportions of all the segments.
-                for st in range(len(pts_on_strokes_with_proportions_U)):
+                for st in xrange(len(pts_on_strokes_with_proportions_U)):
                     proportions_loops_crossing_strokes[st][lp] = loop_segments_lengths[st] / loop_seg_lengths_sum
 
 
             # Calculate proportions for each stroke.
-            for st in range(len(pts_on_strokes_with_proportions_U)):
+            for st in xrange(len(pts_on_strokes_with_proportions_U)):
                 actual_stroke_spline = []
                 actual_stroke_spline.append(self.main_splines.data.splines[st]) # Needs to be a list for the "distribute_pts" method.
 
                 # Calculate the proportions for the actual stroke.
                 actual_edges_proportions_U = []
-                for i in range(len(edges_proportions_U)):
+                for i in xrange(len(edges_proportions_U)):
                     proportions_sum = 0
 
                     # Sum the proportions of this loop up to the actual.
-                    for t in range(0, st + 1):
+                    for t in xrange(0, st + 1):
                         proportions_sum += proportions_loops_crossing_strokes[t][i]
 
                     actual_edges_proportions_U.append(edges_proportions_U[i] - ((edges_proportions_U[i] - edges_proportions_U2[i]) * proportions_sum))  # i + 1, because proportions_loops_crossing_strokes refers to loops, and the proportions refer to edges, so we start at the element 1 of proportions_loops_crossing_strokes instead of element 0.
@@ -2415,7 +2417,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         #### If the selection type is "TWO_NOT_CONNECTED" replace the points of the last spline with the points in the "target" selection.
         if selection_type == "TWO_NOT_CONNECTED":
             if self.selection_U2_exists:
-                for i in range(0, len(sketched_splines_parsed[len(sketched_splines_parsed) - 1])):
+                for i in xrange(0, len(sketched_splines_parsed[len(sketched_splines_parsed) - 1])):
                     sketched_splines_parsed[len(sketched_splines_parsed) - 1][i] = self.main_object.matrix_world * verts_ordered_U2[i].co
 
 
@@ -2431,7 +2433,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         first_verts = []
         second_verts = []
         last_verts = []
-        for i in range(0, verts_count_U):
+        for i in xrange(0, verts_count_U):
             vert_num_in_spline = 1
 
             if self.selection_U_exists:
@@ -2442,7 +2444,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 vert_num_in_spline += 1
 
 
-            for t in range(0, len(sketched_splines_parsed)):
+            for t in xrange(0, len(sketched_splines_parsed)):
                 ob_ctrl_pts.data.vertices.add(1)
                 v = ob_ctrl_pts.data.vertices[len(ob_ctrl_pts.data.vertices) - 1]
                 v.co = sketched_splines_parsed[t][i]
@@ -2478,7 +2480,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 
         #### Determine which loops-U will be "Cyclic".
-        for i in range(0, len(first_verts)):
+        for i in xrange(0, len(first_verts)):
             if self.automatic_join and not self.cyclic_cross and selection_type != "TWO_CONNECTED" and len(self.main_splines.data.splines) >= 3: # When there is Cyclic Cross there is no need of Automatic Join, (and there are at least three strokes).
                 v = ob_ctrl_pts.data.vertices
 
@@ -2534,7 +2536,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         bpy.ops.curve.handle_type_set('INVOKE_REGION_WIN', type='AUTOMATIC')
 
         # Make Cyclic the splines designated as Cyclic.
-        for i in range(0, len(cyclic_loops_U)):
+        for i in xrange(0, len(cyclic_loops_U)):
             ob_curves_surf.data.splines[i].use_cyclic_u = cyclic_loops_U[i]
 
 
@@ -2570,7 +2572,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
         # Reorder coordinates of the points of each spline to put the first point of the spline starting at the position it was the first point before sudividing the curve. And make a new curve object per spline (to handle memory better later).
         splines_U_objects = []
-        for i in range(len(ob_curves_surf.data.splines)):
+        for i in xrange(len(ob_curves_surf.data.splines)):
             spline_U_curve = bpy.data.curves.new('SURFSKIO_spline_U_' + str(i), 'CURVE')
             ob_spline_U = bpy.data.objects.new('SURFSKIO_spline_U_' + str(i), spline_U_curve)
             bpy.context.scene.objects.link(ob_spline_U)
@@ -2580,7 +2582,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
             # Add points to the spline in the new curve object.
             ob_spline_U.data.splines.new('BEZIER')
-            for t in range(len(ob_curves_surf.data.splines[i].bezier_points)):
+            for t in xrange(len(ob_curves_surf.data.splines[i].bezier_points)):
                 if cyclic_loops_U[i] == True and not self.selection_U_exists: # If the loop is cyclic.
                     if t + verts_position_shift <= len(ob_curves_surf.data.splines[i].bezier_points) - 1:
                         point_index = t + verts_position_shift
@@ -2615,7 +2617,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         if self.loops_on_strokes:
             # Get the indices of points where the original strokes "touch" loops-U.
             points_U_crossed_by_strokes = []
-            for i in range(len(splines_U_objects[0].data.splines[0].bezier_points)):
+            for i in xrange(len(splines_U_objects[0].data.splines[0].bezier_points)):
                 bp = splines_U_objects[0].data.splines[0].bezier_points[i]
                 if ["%.4f" % bp.co[0], "%.4f" % bp.co[1], "%.4f" % bp.co[2]] in coords_loops_U_control_points:
                     points_U_crossed_by_strokes.append(i)
@@ -2628,7 +2630,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                     edge_order_number_for_splines[0] = 0
 
 
-                for i in range(len(self.main_splines.data.splines)):
+                for i in xrange(len(self.main_splines.data.splines)):
                     sp = self.main_splines.data.splines[i]
                     v_idx, dist_temp = self.shortest_distance(self.main_object, sp.bezier_points[0].co, verts_ordered_V_indices)
 
@@ -2665,7 +2667,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
         #### Get the coords of the points distributed along the "crossing curves", with appropriate proportions-V.
         surface_splines_parsed = []
-        for i in range(len(splines_U_objects)):
+        for i in xrange(len(splines_U_objects)):
             sp_ob = splines_U_objects[i]
             # If "Loops on strokes" option is active, calculate the proportions for each loop-U.
             if self.loops_on_strokes:
@@ -2673,7 +2675,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 dist = 0
                 full_dist = 0
                 segments_distances = []
-                for t in range(len(sp_ob.data.splines[0].bezier_points)):
+                for t in xrange(len(sp_ob.data.splines[0].bezier_points)):
                     bp = sp_ob.data.splines[0].bezier_points[t]
 
                     if t == 0:
@@ -2692,20 +2694,20 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
                 # Calculate Proportions.
                 used_edges_proportions_V = []
-                for t in range(len(segments_distances)):
+                for t in xrange(len(segments_distances)):
                     if self.selection_V_exists:
                         if t == 0:
                             order_number_last_stroke = 0
 
                         segment_edges_length_V = 0
                         segment_edges_length_V2 = 0
-                        for order in range(order_number_last_stroke, edge_order_number_for_splines[t + 1]):
+                        for order in xrange(order_number_last_stroke, edge_order_number_for_splines[t + 1]):
                             segment_edges_length_V += edges_lengths_V[order]
                             if self.selection_V2_exists:
                                 segment_edges_length_V2 += edges_lengths_V2[order]
 
 
-                        for order in range(order_number_last_stroke, edge_order_number_for_splines[t + 1]):
+                        for order in xrange(order_number_last_stroke, edge_order_number_for_splines[t + 1]):
                             # Calculate each "sub-segment" (the ones between each stroke) length.
                             if self.selection_V2_exists:
                                 proportion_sub_seg = (edges_lengths_V2[order] - ((edges_lengths_V2[order] - edges_lengths_V[order]) / len(splines_U_objects) * i)) / (segment_edges_length_V2 - (segment_edges_length_V2 - segment_edges_length_V) / len(splines_U_objects) * i)
@@ -2719,7 +2721,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                         order_number_last_stroke = edge_order_number_for_splines[t + 1]
 
                     else:
-                        for c in range(self.edges_V):
+                        for c in xrange(self.edges_V):
                             # Calculate each "sub-segment" (the ones between each stroke) length.
                             sub_seg_dist = segments_distances[t] / self.edges_V
                             used_edges_proportions_V.append(sub_seg_dist / full_dist)
@@ -2730,7 +2732,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             else:
                 if self.selection_V2_exists:
                     used_edges_proportions_V = []
-                    for p in range(len(edges_proportions_V)):
+                    for p in xrange(len(edges_proportions_V)):
                         used_edges_proportions_V.append(edges_proportions_V2[p] - ((edges_proportions_V2[p] - edges_proportions_V[p]) / len(splines_U_objects) * i))
                 else:
                     used_edges_proportions_V = edges_proportions_V
@@ -2743,12 +2745,12 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
         # Set the verts of the first and last splines to the locations of the respective verts in the selections.
         if self.selection_V_exists:
-            for i in range(0, len(surface_splines_parsed[0])):
+            for i in xrange(0, len(surface_splines_parsed[0])):
                 surface_splines_parsed[len(surface_splines_parsed) - 1][i] = self.main_object.matrix_world * verts_ordered_V[i].co
 
         if selection_type == "TWO_NOT_CONNECTED":
             if self.selection_V2_exists:
-                for i in range(0, len(surface_splines_parsed[0])):
+                for i in xrange(0, len(surface_splines_parsed[0])):
                     surface_splines_parsed[0][i] = self.main_object.matrix_world * verts_ordered_V2[i].co
 
 
@@ -2758,7 +2760,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         if self.automatic_join and selection_type != "TWO_CONNECTED":
             #### Join the tips of "Follow" loops that are near enough and must be "closed".
             if not self.selection_V_exists and len(edges_proportions_U) >= 3:
-                for i in range(len(surface_splines_parsed[0])):
+                for i in xrange(len(surface_splines_parsed[0])):
                     sp = surface_splines_parsed
                     loop_segment_dist = (sp[0][i] - sp[1][i]).length
                     full_loop_dist = loop_segment_dist * self.edges_U
@@ -2811,7 +2813,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
         # Get all verts coords.
         all_surface_verts_co = []
-        for i in range(0, len(surface_splines_parsed)):
+        for i in xrange(0, len(surface_splines_parsed)):
             # Get coords of all verts and make a list with them
             for pt_co in surface_splines_parsed[i]:
                 all_surface_verts_co.append(pt_co)
@@ -2819,7 +2821,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
         # Define verts for each face.
         all_surface_faces = []
-        for i in range(0, len(all_surface_verts_co) - len(surface_splines_parsed[0])):
+        for i in xrange(0, len(all_surface_verts_co) - len(surface_splines_parsed[0])):
             if ((i + 1) / len(surface_splines_parsed[0]) != int((i + 1) / len(surface_splines_parsed[0]))):
                 all_surface_faces.append([i+1, i , i + len(surface_splines_parsed[0]), i + len(surface_splines_parsed[0]) + 1])
 
@@ -2856,7 +2858,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 
 
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 
 
@@ -2878,7 +2880,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             for sp in self.last_strokes_splines_coords:
                 spline = self.main_splines.data.splines.new('BEZIER')
                 spline.bezier_points.add(len(sp) - 1) # less one because one point is added when the spline is created.
-                for p in range(0, len(sp)):
+                for p in xrange(0, len(sp)):
                     spline.bezier_points[p].co = [sp[p][0], sp[p][1], sp[p][2]]
 
 
@@ -2939,7 +2941,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
         bpy.context.user_preferences.edit.use_global_undo = self.initial_global_undo_state
 
-        return{'FINISHED'}
+        returnset(['FINISHED'])
 
 
 
@@ -3034,7 +3036,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 
             # Delete splines with only a single isolated point.
-            for i in range(len(self.temporary_curve.data.splines)):
+            for i in xrange(len(self.temporary_curve.data.splines)):
                 sp = self.temporary_curve.data.splines[i]
 
                 if len(sp.bezier_points) == 1:
@@ -3054,7 +3056,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
             # Check if the number of points of each curve has at least the number of points of minimum_points_num, which is a bit more than the face-loops limit. If not, subdivide to reach at least that number of ponts.
-            for i in range(len(self.temporary_curve.data.splines)):
+            for i in xrange(len(self.temporary_curve.data.splines)):
                 sp = self.temporary_curve.data.splines[i]
 
                 if len(sp.bezier_points) < minimum_points_num:
@@ -3090,7 +3092,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 minimum_points_num = 60
 
                 # Check if the number of points of each curve has at least the number of points of minimum_points_num, which is a bit more than the face-loops limit. If not, subdivide to reach at least that number of ponts.
-                for i in range(len(self.temporary_curve.data.splines)):
+                for i in xrange(len(self.temporary_curve.data.splines)):
                     sp = self.temporary_curve.data.splines[i]
 
                     if len(sp.bezier_points) < minimum_points_num:
@@ -3112,15 +3114,15 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 
             # Save coordinates of the actual strokes (as the "last saved splines").
-            for sp_idx in range(len(self.temporary_curve.data.splines)):
+            for sp_idx in xrange(len(self.temporary_curve.data.splines)):
                 self.last_strokes_splines_coords.append([])
-                for bp_idx in range(len(self.temporary_curve.data.splines[sp_idx].bezier_points)):
+                for bp_idx in xrange(len(self.temporary_curve.data.splines[sp_idx].bezier_points)):
                     coords = self.temporary_curve.matrix_world * self.temporary_curve.data.splines[sp_idx].bezier_points[bp_idx].co
                     self.last_strokes_splines_coords[sp_idx].append([coords[0], coords[1], coords[2]])
 
 
             # Check for cyclic splines, put the first and last points in the middle of their actual positions.
-            for sp_idx in range(len(self.temporary_curve.data.splines)):
+            for sp_idx in xrange(len(self.temporary_curve.data.splines)):
                 if self.temporary_curve.data.splines[sp_idx].use_cyclic_u == True:
                     first_p_co = self.last_strokes_splines_coords[sp_idx][0]
                     last_p_co = self.last_strokes_splines_coords[sp_idx][len(self.last_strokes_splines_coords[sp_idx]) - 1]
@@ -3138,7 +3140,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             segments_lengths_sum = 0
             segments_count = 0
             random_spline = self.temporary_curve.data.splines[0].bezier_points
-            for i in range(0, len(random_spline)):
+            for i in xrange(0, len(random_spline)):
                 if i != 0 and len(random_spline) - 1 >= i:
                     segments_lengths_sum += (random_spline[i - 1].co - random_spline[i].co).length
                     segments_count += 1
@@ -3191,9 +3193,9 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 
             if not self.stopping_errors:
-                return {"FINISHED"}
+                return set(["FINISHED"])
             else:
-                return{"CANCELLED"}
+                returnset(["CANCELLED"])
 
         elif self.strokes_type == "SELECTION_ALONE":
             self.is_fill_faces = True
@@ -3205,36 +3207,36 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             bpy.context.user_preferences.edit.use_global_undo = self.initial_global_undo_state
 
             if created_faces_count == 0:
-                self.report({'WARNING'}, "There aren't any strokes attatched to the object")
-                return {"CANCELLED"}
+                self.report(set(['WARNING']), "There aren't any strokes attatched to the object")
+                return set(["CANCELLED"])
             else:
-                return {"FINISHED"}
+                return set(["FINISHED"])
 
 
         bpy.context.user_preferences.edit.use_global_undo = self.initial_global_undo_state
 
         if self.strokes_type == "EXTERNAL_NO_CURVE":
-            self.report({'WARNING'}, "The secondary object is not a Curve.")
-            return{"CANCELLED"}
+            self.report(set(['WARNING']), "The secondary object is not a Curve.")
+            returnset(["CANCELLED"])
 
         elif self.strokes_type == "MORE_THAN_ONE_EXTERNAL":
-            self.report({'WARNING'}, "There shouldn't be more than one secondary object selected.")
-            return{"CANCELLED"}
+            self.report(set(['WARNING']), "There shouldn't be more than one secondary object selected.")
+            returnset(["CANCELLED"])
 
         elif self.strokes_type == "SINGLE_GP_STROKE_NO_SELECTION" or self.strokes_type == "SINGLE_CURVE_STROKE_NO_SELECTION":
-            self.report({'WARNING'}, "It's needed at least one stroke and one selection, or two strokes.")
-            return{"CANCELLED"}
+            self.report(set(['WARNING']), "It's needed at least one stroke and one selection, or two strokes.")
+            returnset(["CANCELLED"])
 
         elif self.strokes_type == "NO_STROKES":
-            self.report({'WARNING'}, "There aren't any strokes attatched to the object")
-            return{"CANCELLED"}
+            self.report(set(['WARNING']), "There aren't any strokes attatched to the object")
+            returnset(["CANCELLED"])
 
         elif self.strokes_type == "CURVE_WITH_NON_BEZIER_SPLINES":
-            self.report({'WARNING'}, "All splines must be Bezier.")
-            return{"CANCELLED"}
+            self.report(set(['WARNING']), "All splines must be Bezier.")
+            returnset(["CANCELLED"])
 
         else:
-            return{"CANCELLED"}
+            returnset(["CANCELLED"])
 
 
 # Edit strokes operator.
@@ -3292,16 +3294,16 @@ class GPENCIL_OT_SURFSK_edit_strokes(bpy.types.Operator):
             bpy.data.curves[curve_crv.name].show_normal_face = False
 
         elif self.strokes_type == "EXTERNAL_NO_CURVE":
-            self.report({'WARNING'}, "The secondary object is not a Curve.")
-            return{"CANCELLED"}
+            self.report(set(['WARNING']), "The secondary object is not a Curve.")
+            returnset(["CANCELLED"])
         elif self.strokes_type == "MORE_THAN_ONE_EXTERNAL":
-            self.report({'WARNING'}, "There shouldn't be more than one secondary object selected.")
-            return{"CANCELLED"}
+            self.report(set(['WARNING']), "There shouldn't be more than one secondary object selected.")
+            returnset(["CANCELLED"])
         elif self.strokes_type == "NO_STROKES" or self.strokes_type == "SELECTION_ALONE":
-            self.report({'WARNING'}, "There aren't any strokes attatched to the object")
-            return{"CANCELLED"}
+            self.report(set(['WARNING']), "There aren't any strokes attatched to the object")
+            returnset(["CANCELLED"])
         else:
-            return{"CANCELLED"}
+            returnset(["CANCELLED"])
 
 
 
@@ -3310,14 +3312,14 @@ class GPENCIL_OT_SURFSK_edit_strokes(bpy.types.Operator):
 
         self.execute(context)
 
-        return {"FINISHED"}
+        return set(["FINISHED"])
 
 
 class CURVE_OT_SURFSK_reorder_splines(bpy.types.Operator):
     bl_idname = "curve.surfsk_reorder_splines"
     bl_label = "Bsurfaces reorder splines"
     bl_description = "Defines the order of the splines by using grease pencil strokes"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def execute(self, context):
         objects_to_delete = []
@@ -3362,9 +3364,9 @@ class CURVE_OT_SURFSK_reorder_splines(bpy.types.Operator):
         minimum_points_num = 500
 
 
-        for x in range(round(minimum_points_num / 100)): # Some iterations since the subdivision operator has a limit of 100 subdivisions per iteration.
+        for x in xrange(round(minimum_points_num / 100)): # Some iterations since the subdivision operator has a limit of 100 subdivisions per iteration.
             #### Check if the number of points of each curve has at least the number of points of minimum_points_num. If not, subdivide to reach at least that number of ponts.
-            for i in range(len(curves_duplicate_1.data.splines)):
+            for i in xrange(len(curves_duplicate_1.data.splines)):
                 sp = curves_duplicate_1.data.splines[i]
 
                 if len(sp.bezier_points) < minimum_points_num:
@@ -3400,8 +3402,8 @@ class CURVE_OT_SURFSK_reorder_splines(bpy.types.Operator):
 
         #### Get the distance of each vert from its original position to its position with Shrinkwrap.
         nearest_points_coords = {}
-        for st_idx in range(len(curves_duplicate_1.data.splines)):
-            for bp_idx in range(len(curves_duplicate_1.data.splines[st_idx].bezier_points)):
+        for st_idx in xrange(len(curves_duplicate_1.data.splines)):
+            for bp_idx in xrange(len(curves_duplicate_1.data.splines[st_idx].bezier_points)):
                 bp_1_co = curves_duplicate_1.matrix_world * curves_duplicate_1.data.splines[st_idx].bezier_points[bp_idx].co
                 bp_2_co = curves_duplicate_2.matrix_world * curves_duplicate_2.data.splines[st_idx].bezier_points[bp_idx].co
 
@@ -3419,16 +3421,16 @@ class CURVE_OT_SURFSK_reorder_splines(bpy.types.Operator):
 
         #### Get all coords of GP strokes points, for comparison.
         GP_strokes_coords = []
-        for st_idx in range(len(GP_strokes_curve.data.splines)):
+        for st_idx in xrange(len(GP_strokes_curve.data.splines)):
             GP_strokes_coords.append([("%.4f" % x if "%.4f" % x != "-0.00" else "0.00", "%.4f" % y if "%.4f" % y != "-0.00" else "0.00", "%.4f" % z if "%.4f" % z != "-0.00" else "0.00") for x, y, z in [bp.co for bp in GP_strokes_curve.data.splines[st_idx].bezier_points]])
 
 
         #### Check the point of the GP strokes with the same coords as the nearest points of the curves (with shrinkwrap).
         GP_connection_points = {} # Dictionary with GP stroke index as index, and a list as value. The list has as index the point index of the GP stroke nearest to the spline, and as value the spline index.
-        for gp_st_idx in range(len(GP_strokes_coords)):
+        for gp_st_idx in xrange(len(GP_strokes_coords)):
             GPvert_spline_relationship = {}
 
-            for splines_st_idx in range(len(nearest_points_coords)):
+            for splines_st_idx in xrange(len(nearest_points_coords)):
                 if nearest_points_coords[splines_st_idx] in GP_strokes_coords[gp_st_idx]:
                     GPvert_spline_relationship[GP_strokes_coords[gp_st_idx].index(nearest_points_coords[splines_st_idx])] = splines_st_idx
 
@@ -3461,7 +3463,7 @@ class CURVE_OT_SURFSK_reorder_splines(bpy.types.Operator):
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
 
 
-        for sp_idx in range(len(self.main_curve.data.splines)):
+        for sp_idx in xrange(len(self.main_curve.data.splines)):
             self.main_curve.data.splines[0].bezier_points[0].select_control_point = True
 
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
@@ -3517,7 +3519,7 @@ class CURVE_OT_SURFSK_reorder_splines(bpy.types.Operator):
 
 
 
-        return {"FINISHED"}
+        return set(["FINISHED"])
 
 
 
@@ -3538,11 +3540,11 @@ class CURVE_OT_SURFSK_reorder_splines(bpy.types.Operator):
 
         if there_are_GP_strokes:
             self.execute(context)
-            self.report({'INFO'}, "Splines have been reordered.")
+            self.report(set(['INFO']), "Splines have been reordered.")
         else:
-            self.report({'WARNING'}, "Draw grease pencil strokes to connect splines.")
+            self.report(set(['WARNING']), "Draw grease pencil strokes to connect splines.")
 
-        return {"FINISHED"}
+        return set(["FINISHED"])
 
 
 
@@ -3551,7 +3553,7 @@ class CURVE_OT_SURFSK_first_points(bpy.types.Operator):
     bl_idname = "curve.surfsk_first_points"
     bl_label = "Bsurfaces set first points"
     bl_description = "Set the selected points as the first point of each spline"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
 
 
@@ -3559,7 +3561,7 @@ class CURVE_OT_SURFSK_first_points(bpy.types.Operator):
         splines_to_invert = []
 
         #### Check non-cyclic splines to invert.
-        for i in range(len(self.main_curve.data.splines)):
+        for i in xrange(len(self.main_curve.data.splines)):
             b_points = self.main_curve.data.splines[i].bezier_points
 
             if not i in self.cyclic_splines: # Only for non-cyclic splines
@@ -3574,7 +3576,7 @@ class CURVE_OT_SURFSK_first_points(bpy.types.Operator):
         for i in self.cyclic_splines:
             sp = self.main_curve.data.splines[i]
 
-            for t in range(len(sp.bezier_points)):
+            for t in xrange(len(sp.bezier_points)):
                 bp = sp.bezier_points[t]
                 if bp.select_control_point or bp.select_right_handle or bp.select_left_handle:
                     cyclic_splines_new_first_pt[i] = t
@@ -3599,7 +3601,7 @@ class CURVE_OT_SURFSK_first_points(bpy.types.Operator):
                 spline_old_coords.append([coords, left_handle_type, right_handle_type, left_handle_length, right_handle_length, left_handle_xyz, right_handle_xyz])
 
 
-            for t in range(len(sp.bezier_points)):
+            for t in xrange(len(sp.bezier_points)):
                 bp = sp.bezier_points
 
                 if t + cyclic_splines_new_first_pt[spline_idx] + 1 <= len(bp) - 1:
@@ -3629,7 +3631,7 @@ class CURVE_OT_SURFSK_first_points(bpy.types.Operator):
 
 
         #### Invert the non-cyclic splines designated above.
-        for i in range(len(splines_to_invert)):
+        for i in xrange(len(splines_to_invert)):
             bpy.ops.curve.select_all('INVOKE_REGION_WIN', action='DESELECT')
 
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
@@ -3643,7 +3645,7 @@ class CURVE_OT_SURFSK_first_points(bpy.types.Operator):
 
         #### Keep selected the first vert of each spline.
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
-        for i in range(len(self.main_curve.data.splines)):
+        for i in xrange(len(self.main_curve.data.splines)):
             if not self.main_curve.data.splines[i].use_cyclic_u:
                 bp = self.main_curve.data.splines[i].bezier_points[0]
             else:
@@ -3657,7 +3659,7 @@ class CURVE_OT_SURFSK_first_points(bpy.types.Operator):
 
 
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 
@@ -3666,11 +3668,11 @@ class CURVE_OT_SURFSK_first_points(bpy.types.Operator):
 
         # Check if all curves are Bezier, and detect which ones are cyclic.
         self.cyclic_splines = []
-        for i in range(len(self.main_curve.data.splines)):
+        for i in xrange(len(self.main_curve.data.splines)):
             if self.main_curve.data.splines[i].type != "BEZIER":
-                self.report({'WARNING'}, 'All splines must be Bezier type.')
+                self.report(set(['WARNING']), 'All splines must be Bezier type.')
 
-                return {'CANCELLED'}
+                return set(['CANCELLED'])
             else:
                 if self.main_curve.data.splines[i].use_cyclic_u:
                     self.cyclic_splines.append(i)
@@ -3678,9 +3680,9 @@ class CURVE_OT_SURFSK_first_points(bpy.types.Operator):
 
 
         self.execute(context)
-        self.report({'INFO'}, "First points have been set.")
+        self.report(set(['INFO']), "First points have been set.")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 

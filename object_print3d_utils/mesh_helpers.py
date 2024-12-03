@@ -20,6 +20,7 @@
 
 # Generic helper functions, to be used by any modules.
 
+from __future__ import absolute_import
 import bmesh
 import array
 
@@ -112,7 +113,7 @@ def bmesh_check_self_intersect_object(obj):
     tree = mathutils.bvhtree.BVHTree.FromBMesh(bm, epsilon=0.00001)
 
     overlap = tree.overlap(tree)
-    faces_error = {i for i_pair in overlap for i in i_pair}
+    faces_error = set([i for i_pair in overlap for i in i_pair])
     return array.array('i', faces_error)
 
 
@@ -126,7 +127,7 @@ def bmesh_face_points_random(f, num_points=1, margin=0.05):
 
     vecs = [v.co for v in f.verts]
 
-    for i in range(num_points):
+    for i in xrange(num_points):
         u1 = uniform(*uniform_args)
         u2 = uniform(*uniform_args)
         u_tot = u1 + u2
@@ -148,7 +149,7 @@ def bmesh_check_thick_object(obj, thickness):
     # Triangulate
     bm = bmesh_copy_from_object(obj, transform=True, triangulate=False)
     # map original faces to their index.
-    face_index_map_org = {f: i for i, f in enumerate(bm.faces)}
+    face_index_map_org = dict((f, i) for i, f in enumerate(bm.faces))
     ret = bmesh.ops.triangulate(bm, faces=bm.faces)
     face_map = ret["face_map"]
     del ret
@@ -215,7 +216,7 @@ def object_merge(context, objects):
         tot = len(seq)
         if tot > 1:
             act = seq.active_index
-            for i in range(tot - 1, -1, -1):
+            for i in xrange(tot - 1, -1, -1):
                 if i != act:
                     seq.remove(seq[i])
 

@@ -2,6 +2,7 @@
 # Created: 21.07.2012, taken from my ezdxf project
 # Copyright (C) 2012, Manfred Moitzi
 # License: MIT License
+from __future__ import absolute_import
 from __future__ import unicode_literals
 __author__ = "mozman <mozman@gmx.at>"
 
@@ -64,8 +65,8 @@ class TablesSection(object):
             return table[1].value
 
         def skiptags(tags, count):
-            for i in range(count):
-                next(tags)
+            for i in xrange(count):
+                tags.next()
             return tags
 
         itertags = skiptags(iter(tags), 2)  # (0, 'SECTION'), (2, 'TABLES')

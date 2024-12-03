@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 from . import presets
 
@@ -50,7 +51,7 @@ class RenderCopySettingsPrepare(bpy.types.Operator):
     """Prepare internal data for render_copy_settings (gathering all existingrender settings, and scenes)"""
     bl_idname = "scene.render_copy_settings_prepare"
     bl_label = "Render: Copy Settings Prepare"
-    bl_option = {'REGISTER'}
+    bl_option = set(['REGISTER'])
 
     @classmethod
     def poll(cls, context):
@@ -62,7 +63,7 @@ class RenderCopySettingsPrepare(bpy.types.Operator):
         # Get all available render settings, and update accordingly affected_settings…
         props = {}
         for prop in context.scene.render.bl_rna.properties:
-            if prop.identifier in {'rna_type'}:
+            if prop.identifier in set(['rna_type']):
                 continue
             if prop.is_readonly:
                 continue
@@ -87,12 +88,12 @@ class RenderCopySettingsPrepare(bpy.types.Operator):
                 import re
                 try:
                     regex = re.compile(cp_sett.filter_scene)
-                except Exception as e:
-                    self.report({'ERROR_INVALID_INPUT'}, "The filter-scene regex did not compile:\n    (%s)." % str(e))
-                    return {'CANCELLED'}
+                except Exception, e:
+                    self.report(set(['ERROR_INVALID_INPUT']), "The filter-scene regex did not compile:\n    (%s)." % str(e))
+                    return set(['CANCELLED'])
             except:
                 regex = None
-                self.report({'WARNING'}, "Unable to import the re module, regex scene filtering will be disabled!")
+                self.report(set(['WARNING']), "Unable to import the re module, regex scene filtering will be disabled!")
         scenes = set()
         for scene in bpy.data.scenes:
             if scene == bpy.context.scene:  # Exclude current scene!
@@ -113,7 +114,7 @@ class RenderCopySettingsPrepare(bpy.types.Operator):
             sett.name = scene
         collection_property_sort(cp_sett.allowed_scenes, "name")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 from bpy.props import EnumProperty
@@ -125,11 +126,11 @@ class RenderCopySettingsPreset(bpy.types.Operator):
     bl_label = "Render: Copy Settings Preset"
     bl_description = "Apply or clear this preset of render settings"
     # Enable undo…
-    bl_option = {'REGISTER', 'UNDO'}
+    bl_option = set(['REGISTER', 'UNDO'])
 
     presets = EnumProperty(items=(p.rna_enum for p in presets.presets),
                            default=set(),
-                           options={'ENUM_FLAG'})
+                           options=set(['ENUM_FLAG']))
 
     @staticmethod
     def process_elements(settings, elts):
@@ -151,15 +152,15 @@ class RenderCopySettingsPreset(bpy.types.Operator):
         for p in presets.presets:
             if p.rna_enum[0] in self.presets:
                 self.process_elements(cp_sett.affected_settings, p.elements)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 # Real interesting stuff…
 
 def do_copy(context, affected_settings, allowed_scenes):
     # Stores render settings from current scene.
-    p = {sett: getattr(context.scene.render, sett)
-         for sett in affected_settings}
+    p = dict((sett, getattr(context.scene.render, sett))
+         for sett in affected_settings)
     # put it in all other (valid) scenes’ render settings!
     for scene in bpy.data.scenes:
         # If scene not in allowed scenes, skip.
@@ -175,7 +176,7 @@ class RenderCopySettings(bpy.types.Operator):
     bl_idname = "scene.render_copy_settings"
     bl_label = "Render: Copy Settings"
     # Enable undo…
-    bl_option = {'REGISTER', 'UNDO'}
+    bl_option = set(['REGISTER', 'UNDO'])
 
     @classmethod
     def poll(cls, context):
@@ -184,10 +185,10 @@ class RenderCopySettings(bpy.types.Operator):
     def execute(self, context):
         regex = None
         cp_sett = context.scene.render_copy_settings
-        affected_settings = {sett.strid for sett in cp_sett.affected_settings if sett.copy}
-        allowed_scenes = {sce.name for sce in cp_sett.allowed_scenes if sce.allowed}
+        affected_settings = set(sett.strid for sett in cp_sett.affected_settings if sett.copy)
+        allowed_scenes = set(sce.name for sce in cp_sett.allowed_scenes if sce.allowed)
         do_copy(context, affected_settings=affected_settings, allowed_scenes=allowed_scenes)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 if __name__ == "__main__":

@@ -18,10 +18,13 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from mathutils import Vector, Matrix
 from math import radians
 from bpy_extras.anim_utils import bake_action
+from itertools import imap
 
 
 def hasIKConstraint(pose_bone):
@@ -86,7 +89,7 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
     def manyPerfToSingleInterRetarget(inter_bone, performer_bones_s):
         retarget_matrices = [singleBoneRetarget(inter_bone, perf_bone) for perf_bone in performer_bones_s]
         lerp_matrix = Matrix()
-        for i in range(len(retarget_matrices) - 1):
+        for i in xrange(len(retarget_matrices) - 1):
             first_mat = retarget_matrices[i]
             next_mat = retarget_matrices[i + 1]
             lerp_matrix = first_mat.lerp(next_mat, 0.5)
@@ -100,7 +103,7 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
                 # 1 to many not supported yet
                 # then its either a many to 1 or 1 to 1
             if len(perf_bone_name) > 1:
-                performer_bones_s = [performer_bones[map.name] for map in perf_bone_name]
+                performer_bones_s = [performer_bones[imap.name] for map in perf_bone_name]
                 #we need to map several performance bone to a single
                 inter_bone.matrix_basis = manyPerfToSingleInterRetarget(inter_bone, performer_bones_s)
             else:
@@ -126,7 +129,7 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
     bpy.ops.object.mode_set(mode='EDIT')
     #add some temporary connecting bones in case end user bones are not connected to their parents
     rollDict = {}
-    print("creating temp bones")
+    print "creating temp bones"
     for bone in inter_obj.data.edit_bones:
         if not bone.use_connect and bone.parent:
             if inter_obj.data.bones[bone.parent.name].reverseMap or inter_obj.data.bones[bone.name].reverseMap:
@@ -140,7 +143,7 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
         rollDict[bone.name] = bone.roll
         bone.roll = 0
     #resets roll
-    print("retargeting to intermediate")
+    print "retargeting to intermediate"
     bpy.ops.object.mode_set(mode="OBJECT")
     inter_obj.data.name = "inter_arm"
     inter_arm = inter_obj.data
@@ -153,9 +156,9 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
         else:
             inter_bone.bone.use_inherit_rotation = True
 
-    for t in range(s_frame, e_frame, step):
+    for t in xrange(s_frame, e_frame, step):
         if (t - s_frame) % 10 == 0:
-            print("First pass: retargeting frame {0}/{1}".format(t, e_frame - s_frame))
+            print "First pass: retargeting frame {0}/{1}".format(t, e_frame - s_frame)
         scene.frame_set(t)
         for bone in inter_bones:
             retargetPerfToInter(bone)
@@ -210,9 +213,9 @@ def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene, step)
         for bone in end_bone.children:
             bakeTransform(bone)
 
-    for t in range(s_frame, e_frame, step):
+    for t in xrange(s_frame, e_frame, step):
         if (t - s_frame) % 10 == 0:
-            print("Second pass: retargeting frame {0}/{1}".format(t, e_frame - s_frame))
+            print "Second pass: retargeting frame {0}/{1}".format(t, e_frame - s_frame)
         scene.frame_set(t)
         end_bone = end_bones[root]
         end_bone.location = Vector((0, 0, 0))
@@ -245,7 +248,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
     for key in locDictKeys:
         locDict[key] = []
 
-    for t in range(scene.frame_start, scene.frame_end):
+    for t in xrange(scene.frame_start, scene.frame_end):
         scene.frame_set(t)
         for bone in perfFeet:
             locDict[bone].append(tailLoc(perf_bones[bone]))
@@ -264,7 +267,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
 
     linearAvg = []
     for key in perfFeet:
-        for i in range(len(locDict[key]) - 1):
+        for i in xrange(len(locDict[key]) - 1):
             v = locDeriv(key, i)
             if (v.length < 0.1):
                 hipV = locDeriv(perfRoot, i)
@@ -295,7 +298,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
         avg = 1
     scene.frame_set(s_frame)
     initialPos = (tailLoc(perf_bones[perfRoot]) / avg)
-    for t in range(s_frame, e_frame):
+    for t in xrange(s_frame, e_frame):
         scene.frame_set(t)
         #calculate the new position, by dividing by the found ratio between performer and enduser
         newTranslation = (tailLoc(perf_bones[perfRoot]) / avg)
@@ -332,7 +335,7 @@ def IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene, step):
                 target = ik_constraint.target
 
             # bake the correct locations for the ik target bones
-            for t in range(s_frame, e_frame, step):
+            for t in xrange(s_frame, e_frame, step):
                 scene.frame_set(t)
                 if target_is_bone:
                     final_loc = pose_bone.tail - target.bone.matrix_local.to_translation()
@@ -381,7 +384,7 @@ def restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, str
 def originalLocationTarget(end_bone, enduser_obj):
     ik_bone = hasIKConstraint(end_bone).subtarget
     if not ik_bone:
-        print("Adding IK bones for: " + end_bone.name)
+        print "Adding IK bones for: " + end_bone.name
         newBone = enduser_obj.data.edit_bones.new(end_bone.name + "IK")
         newBone.head = end_bone.tail
         newBone.tail = end_bone.tail + Vector((0, 0.1, 0))
@@ -400,7 +403,7 @@ def NLASystemInitialize(enduser_arm, context):
     if ("Base " + name) in bpy.data.actions:
         mocapAction = bpy.data.actions[("Base " + name)]
     else:
-        print("That retargeted anim has no base action")
+        print "That retargeted anim has no base action"
     anim_data.use_nla = True
     for track in anim_data.nla_tracks:
         anim_data.nla_tracks.remove(track)
@@ -506,29 +509,29 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
         enduser_obj.animation_data.action = bpy.data.actions.new("temp")
         enduser_obj.animation_data.action.use_fake_user = True
     except:
-        print("no need to create new action")
+        print "no need to create new action"
 
-    print("creating Dictionary")
+    print "creating Dictionary"
     feetBones, root = createDictionary(perf_arm, end_arm)
-    print("cleaning stuff up")
+    print "cleaning stuff up"
     perf_obj_mat, enduser_obj_mat = cleanAndStoreObjMat(performer_obj, enduser_obj)
     if not advanced:
         turnOffIK(enduser_obj)
-        print("Creating intermediate armature (for first pass)")
+        print "Creating intermediate armature (for first pass)"
         inter_obj = createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene, step)
-        print("First pass: retargeting from intermediate to end user")
+        print "First pass: retargeting from intermediate to end user"
         retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene, step)
     else:
         prepareForBake(enduser_obj)
-        print("Retargeting pose (Advanced Retarget)")
+        print "Retargeting pose (Advanced Retarget)"
         bake_action(s_frame, e_frame, action=enduser_obj.animation_data.action, only_selected=True, do_pose=True, do_object=False, frame_step=step)
     name = performer_obj.animation_data.action.name[:10]
     #We trim the name down to 10 chars because of Action Name length maximum
     enduser_obj.animation_data.action.name = "Base " + name
-    print("Second pass: retargeting root translation and clean up")
+    print "Second pass: retargeting root translation and clean up"
     stride_bone = copyTranslation(performer_obj, enduser_obj, feetBones, root, s_frame, e_frame, scene, enduser_obj_mat)
     if not advanced:
-        print("hry")
+        print "hry"
         bpy.ops.object.select_all(action='DESELECT')
         bpy.context.scene.objects.active = enduser_obj
         bpy.ops.object.select_pattern(pattern=enduser_obj.name, extend=False)
@@ -549,7 +552,7 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     else:
         NLATracks = end_arm.mocapNLATracks[name]
     end_arm.active_mocap = name
-    print("retargeting done!")
+    print "retargeting done!"
 
 
 def isRigAdvanced(enduser_obj):

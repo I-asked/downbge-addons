@@ -88,8 +88,10 @@ This script has several functions and operators, grouped for convenience:
 """
 
 
+from __future__ import absolute_import
 import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
+from itertools import izip
 
 
 def fake_user_set(fake_user='ON', materials='UNUSED'):
@@ -193,7 +195,7 @@ def select_material_by_name(find_mat_name):
     if not editmode:
         objs = bpy.data.objects
         for ob in objs:
-            if ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
+            if ob.type in set(['MESH', 'CURVE', 'SURFACE', 'FONT', 'META']):
                 ms = ob.material_slots
                 for m in ms:
                     if m.material == find_mat:
@@ -258,7 +260,7 @@ def mat_to_texface():
                 if m.material is None:
                     continue
                 gotimage = False
-                textures = zip(m.material.texture_slots, m.material.use_textures)
+                textures = izip(m.material.texture_slots, m.material.use_textures)
                 for t, enabled in textures:
                     if enabled and t is not None:
                         tex = t.texture
@@ -269,7 +271,7 @@ def mat_to_texface():
                             break
 
                 if not gotimage:
-                    print('noimage on', m.name)
+                    print 'noimage on', m.name
                     images.append(None)
 
             # now we have the images
@@ -411,7 +413,7 @@ def assign_mat(matname="Default"):
         scn = bpy.context.scene
         scn.objects.active = ob
 
-        if ob.type in {'CURVE', 'SURFACE', 'FONT', 'META'}:
+        if ob.type in set(['CURVE', 'SURFACE', 'FONT', 'META']):
             found = False
             i = 0
             for m in bpy.data.materials:
@@ -546,12 +548,12 @@ def texface_to_mat():
 def remove_materials():
 
 	for ob in bpy.data.objects:
-		print (ob.name)
+		print ob.name
 		try:
 			bpy.ops.object.material_slot_remove()
-			print ("removed material from " + ob.name)
+			print "removed material from " + ob.name
 		except:
-			print (ob.name + " does not have materials.")
+			print ob.name + " does not have materials."
 # -----------------------------------------------------------------------------
 # operator classes:
 
@@ -559,7 +561,7 @@ class VIEW3D_OT_texface_to_material(bpy.types.Operator):
     """Create texture materials for images assigned in UV editor"""
     bl_idname = "view3d.texface_to_material"
     bl_label = "Texface Images to Material/Texture (Material Utils)"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     @classmethod
     def poll(cls, context):
@@ -568,18 +570,18 @@ class VIEW3D_OT_texface_to_material(bpy.types.Operator):
     def execute(self, context):
         if context.selected_editable_objects:
             texface_to_mat()
-            return {'FINISHED'}
+            return set(['FINISHED'])
         else:
-            self.report({'WARNING'},
+            self.report(set(['WARNING']),
                         "No editable selected objects, could not finish")
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
 
 class VIEW3D_OT_assign_material(bpy.types.Operator):
     """Assign a material to the selection"""
     bl_idname = "view3d.assign_material"
     bl_label = "Assign Material (Material Utils)"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     matname = StringProperty(
             name='Material Name',
@@ -594,11 +596,11 @@ class VIEW3D_OT_assign_material(bpy.types.Operator):
 
     def execute(self, context):
         mn = self.matname
-        print(mn)
+        print mn
         assign_mat(mn)
         cleanmatslots()
         mat_to_texface()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class VIEW3D_OT_clean_material_slots(bpy.types.Operator):
@@ -606,7 +608,7 @@ class VIEW3D_OT_clean_material_slots(bpy.types.Operator):
     """that are not used by the mesh"""
     bl_idname = "view3d.clean_material_slots"
     bl_label = "Clean Material Slots (Material Utils)"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     @classmethod
     def poll(cls, context):
@@ -614,14 +616,14 @@ class VIEW3D_OT_clean_material_slots(bpy.types.Operator):
 
     def execute(self, context):
         cleanmatslots()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class VIEW3D_OT_material_to_texface(bpy.types.Operator):
     """Transfer material assignments to UV editor"""
     bl_idname = "view3d.material_to_texface"
     bl_label = "Material Images to Texface (Material Utils)"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     @classmethod
     def poll(cls, context):
@@ -629,13 +631,13 @@ class VIEW3D_OT_material_to_texface(bpy.types.Operator):
 
     def execute(self, context):
         mat_to_texface()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 class VIEW3D_OT_material_remove(bpy.types.Operator):
     """Remove all material slots from active objects"""
     bl_idname = "view3d.material_remove"
     bl_label = "Remove All Material Slots (Material Utils)"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     @classmethod
     def poll(cls, context):
@@ -643,14 +645,14 @@ class VIEW3D_OT_material_remove(bpy.types.Operator):
 
     def execute(self, context):
         remove_materials()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class VIEW3D_OT_select_material_by_name(bpy.types.Operator):
     """Select geometry with this material assigned to it"""
     bl_idname = "view3d.select_material_by_name"
     bl_label = "Select Material By Name (Material Utils)"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
     matname = StringProperty(
             name='Material Name',
             description='Name of Material to Select',
@@ -664,14 +666,14 @@ class VIEW3D_OT_select_material_by_name(bpy.types.Operator):
     def execute(self, context):
         mn = self.matname
         select_material_by_name(mn)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class VIEW3D_OT_replace_material(bpy.types.Operator):
     """Replace a material by name"""
     bl_idname = "view3d.replace_material"
     bl_label = "Replace Material (Material Utils)"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     matorg = StringProperty(
             name="Original",
@@ -710,14 +712,14 @@ class VIEW3D_OT_replace_material(bpy.types.Operator):
 
     def execute(self, context):
         replace_material(self.matorg, self.matrep, self.all_objects, self.update_selection)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class VIEW3D_OT_fake_user_set(bpy.types.Operator):
     """Enable/disable fake user for materials"""
     bl_idname = "view3d.fake_user_set"
     bl_label = "Set Fake User (Material Utils)"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     fake_user = EnumProperty(
             name="Fake User",
@@ -748,7 +750,7 @@ class VIEW3D_OT_fake_user_set(bpy.types.Operator):
 
     def execute(self, context):
         fake_user_set(self.fake_user, self.materials)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 # -----------------------------------------------------------------------------

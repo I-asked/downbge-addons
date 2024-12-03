@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 
 from .. import limb_common
@@ -27,7 +28,7 @@ from ....utils import connected_children_names
 from ....utils import strip_org
 
 
-class Rig:
+class Rig(object):
     """ An FK arm rig, with hinge switch.
 
     """

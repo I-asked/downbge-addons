@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import os
 from string import capwords
 
@@ -72,7 +73,7 @@ def make_metarig_add_execute(m):
         m.create(obj)
 
         bpy.ops.object.mode_set(mode='OBJECT')
-        return {'FINISHED'}
+        return set(['FINISHED'])
     return execute
 
 
@@ -97,7 +98,7 @@ for m in metarigs:
     T = type("Add_" + name + "_Metarig", (bpy.types.Operator,), {})
     T.bl_idname = "object.armature_" + name + "_metarig_add"
     T.bl_label = "Add " + name.replace("_", " ").capitalize() + " (metarig)"
-    T.bl_options = {'REGISTER', 'UNDO'}
+    T.bl_options = set(['REGISTER', 'UNDO'])
     T.execute = make_metarig_add_execute(m)
 
     metarig_ops.append((T, name))

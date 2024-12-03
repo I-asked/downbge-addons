@@ -1,5 +1,7 @@
 # GPL # "author": "Buerbaum Martin (Pontiac)"
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from math import *
 from bpy.props import *
@@ -60,7 +62,7 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
             faces.append(face)
 
     # Bridge the rest of the faces.
-    for num in range(total - 1):
+    for num in xrange(total - 1):
         if flipped:
             if fan:
                 face = [vertIdx2[num], vertIdx1[0], vertIdx2[num + 1]]
@@ -83,7 +85,7 @@ class AddElbowJoint(bpy.types.Operator):
     """Add an Elbow pipe mesh"""
     bl_idname = "mesh.primitive_elbow_joint_add"
     bl_label = "Add Pipe Elbow"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe",
@@ -134,7 +136,7 @@ class AddElbowJoint(bpy.types.Operator):
         loop3 = []        # The end circle
 
         # Create start circle
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             locX = sin(curVertAngle)
             locY = cos(curVertAngle)
@@ -143,7 +145,7 @@ class AddElbowJoint(bpy.types.Operator):
             verts.append([locX * radius, locY * radius, locZ])
 
         # Create deformed joint circle
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             locX = sin(curVertAngle)
             locY = cos(curVertAngle)
@@ -154,7 +156,7 @@ class AddElbowJoint(bpy.types.Operator):
         # Create end circle
         baseEndLocX = -endLength * sin(angle)
         baseEndLocZ = endLength * cos(angle)
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             # Create circle
             locX = sin(curVertAngle) * radius
@@ -175,7 +177,7 @@ class AddElbowJoint(bpy.types.Operator):
 
         base = create_mesh_object(context, verts, [], faces, "Elbow Joint")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 class AddTeeJoint(bpy.types.Operator):
     # Create the vertices and polygons for a simple tee (T) joint.
@@ -183,7 +185,7 @@ class AddTeeJoint(bpy.types.Operator):
     """Add a Tee-Joint mesh"""
     bl_idname = "mesh.primitive_tee_joint_add"
     bl_label = "Add Pipe Tee-Joint"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe",
@@ -239,7 +241,7 @@ class AddTeeJoint(bpy.types.Operator):
 
         if (div % 2):
             # Odd vertice number not supported (yet).
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         verts = []
         faces = []
@@ -258,7 +260,7 @@ class AddTeeJoint(bpy.types.Operator):
                                 # end of the main pipe.
 
         # Create start circle (main pipe)
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             locX = sin(curVertAngle)
             locY = cos(curVertAngle)
@@ -269,7 +271,7 @@ class AddTeeJoint(bpy.types.Operator):
         # Create deformed joint circle
         vertTemp1 = None
         vertTemp2 = None
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             locX = sin(curVertAngle)
             locY = cos(curVertAngle)
@@ -295,7 +297,7 @@ class AddTeeJoint(bpy.types.Operator):
 
         # Create 2. deformed joint (half-)circle
         loopTemp = []
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             if (vertIdx > div / 2):
                 curVertAngle = vertIdx * (2.0 * pi / div)
                 locX = sin(curVertAngle)
@@ -321,7 +323,7 @@ class AddTeeJoint(bpy.types.Operator):
         # Create end circle (branching pipe)
         baseEndLocX = -branchLength * sin(angle)
         baseEndLocZ = branchLength * cos(angle)
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             # Create circle
             locX = sin(curVertAngle) * radius
@@ -338,7 +340,7 @@ class AddTeeJoint(bpy.types.Operator):
             verts.append([baseEndLocX + locX, locY, baseEndLocZ + locZ])
 
         # Create end circle (main pipe)
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             locX = sin(curVertAngle)
             locY = cos(curVertAngle)
@@ -353,13 +355,13 @@ class AddTeeJoint(bpy.types.Operator):
 
         base = create_mesh_object(context, verts, [], faces, "Tee Joint")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 class AddWyeJoint(bpy.types.Operator):
     """Add a Wye-Joint mesh"""
     bl_idname = "mesh.primitive_wye_joint_add"
     bl_label = "Add Pipe Wye-Joint"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe",
@@ -422,7 +424,7 @@ class AddWyeJoint(bpy.types.Operator):
 
         if (div % 2):
             # Odd vertice number not supported (yet).
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         verts = []
         faces = []
@@ -440,7 +442,7 @@ class AddWyeJoint(bpy.types.Operator):
         loopArm2 = []        # Vert idxs for end of the 2. arm.
 
         # Create start circle
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             locX = sin(curVertAngle)
             locY = cos(curVertAngle)
@@ -451,7 +453,7 @@ class AddWyeJoint(bpy.types.Operator):
         # Create deformed joint circle
         vertTemp1 = None
         vertTemp2 = None
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             locX = sin(curVertAngle)
             locY = cos(curVertAngle)
@@ -476,7 +478,7 @@ class AddWyeJoint(bpy.types.Operator):
         # Create 2. deformed joint (half-)circle
         loopTemp = []
         angleJoint = (angle2 - angle1) / 2.0
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             if (vertIdx > div / 2):
                 curVertAngle = vertIdx * (2.0 * pi / div)
 
@@ -506,7 +508,7 @@ class AddWyeJoint(bpy.types.Operator):
         # Create end circle (1. branching pipe)
         baseEndLocX = -branch1Length * sin(angle1)
         baseEndLocZ = branch1Length * cos(angle1)
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             # Create circle
             locX = sin(curVertAngle) * radius
@@ -524,7 +526,7 @@ class AddWyeJoint(bpy.types.Operator):
         # Create end circle (2. branching pipe)
         baseEndLocX = branch2Length * sin(angle2)
         baseEndLocZ = branch2Length * cos(angle2)
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             # Create circle
             locX = sin(curVertAngle) * radius
@@ -546,14 +548,14 @@ class AddWyeJoint(bpy.types.Operator):
 
         base = create_mesh_object(context, verts, [], faces, "Wye Joint")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 class AddCrossJoint(bpy.types.Operator):
     """Add a Cross-Joint mesh"""
     # Create the vertices and polygons for a coss (+ or X) pipe joint.
     bl_idname = "mesh.primitive_cross_joint_add"
     bl_label = "Add Pipe Cross-Joint"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe",
@@ -627,7 +629,7 @@ class AddCrossJoint(bpy.types.Operator):
         branch3Length = self.branch3Length
         if (div % 2):
             # Odd vertice number not supported (yet).
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         verts = []
         faces = []
@@ -648,7 +650,7 @@ class AddCrossJoint(bpy.types.Operator):
         loopArm3 = []        # Vert idxs for the center arm end.
 
         # Create start circle
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             locX = sin(curVertAngle)
             locY = cos(curVertAngle)
@@ -659,7 +661,7 @@ class AddCrossJoint(bpy.types.Operator):
         # Create 1. deformed joint circle
         vertTemp1 = None
         vertTemp2 = None
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             locX = sin(curVertAngle)
             locY = cos(curVertAngle)
@@ -688,7 +690,7 @@ class AddCrossJoint(bpy.types.Operator):
         loopTempB = []
         angleJoint1 = (angle1 - angle3) / 2.0
         angleJoint2 = (angle2 + angle3) / 2.0
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
 
             # Skip pole vertices
@@ -741,7 +743,7 @@ class AddCrossJoint(bpy.types.Operator):
         # Create end circle (1. branching pipe)
         baseEndLocX = -branch1Length * sin(angle1)
         baseEndLocZ = branch1Length * cos(angle1)
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             # Create circle
             locX = sin(curVertAngle) * radius
@@ -759,7 +761,7 @@ class AddCrossJoint(bpy.types.Operator):
         # Create end circle (2. branching pipe)
         baseEndLocX = branch2Length * sin(angle2)
         baseEndLocZ = branch2Length * cos(angle2)
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             # Create circle
             locX = sin(curVertAngle) * radius
@@ -777,7 +779,7 @@ class AddCrossJoint(bpy.types.Operator):
         # Create end circle (center pipe)
         baseEndLocX = branch3Length * sin(angle3)
         baseEndLocZ = branch3Length * cos(angle3)
-        for vertIdx in range(div):
+        for vertIdx in xrange(div):
             curVertAngle = vertIdx * (2.0 * pi / div)
             # Create circle
             locX = sin(curVertAngle) * radius
@@ -800,14 +802,14 @@ class AddCrossJoint(bpy.types.Operator):
 
         base = create_mesh_object(context, verts, [], faces, "Cross Joint")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 class AddNJoint(bpy.types.Operator):
     """Add a N-Joint mesh"""
     # Create the vertices and polygons for a regular n-joint.
     bl_idname = "mesh.primitive_n_joint_add"
     bl_label = "Add Pipe N-Joint"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe",
@@ -840,10 +842,10 @@ class AddNJoint(bpy.types.Operator):
 
         if (div % 2):
             # Odd vertice number not supported (yet).
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         if (number < 2):
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
         verts = []
         faces = []
@@ -858,14 +860,14 @@ class AddNJoint(bpy.types.Operator):
         angleDiv = (2.0 * pi / number)
 
         # Create vertices for the end circles.
-        for num in range(number):
+        for num in xrange(number):
             circle = []
             # Create start circle
             angle = num * angleDiv
 
             baseEndLocX = length * sin(angle)
             baseEndLocZ = length * cos(angle)
-            for vertIdx in range(div):
+            for vertIdx in xrange(div):
                 curVertAngle = vertIdx * (2.0 * pi / div)
                 # Create circle
                 locX = sin(curVertAngle) * radius
@@ -884,7 +886,7 @@ class AddNJoint(bpy.types.Operator):
 
             # Create vertices for the joint circles.
             loopJoint = []
-            for vertIdx in range(div):
+            for vertIdx in xrange(div):
                 curVertAngle = vertIdx * (2.0 * pi / div)
                 locX = sin(curVertAngle)
                 locY = cos(curVertAngle)
@@ -931,7 +933,7 @@ class AddNJoint(bpy.types.Operator):
 
         # Create complete loops (loopsJoints) out of the
         # double number of half loops in loopsJointsTemp.
-        for halfLoopIdx in range(len(loopsJointsTemp)):
+        for halfLoopIdx in xrange(len(loopsJointsTemp)):
             if (halfLoopIdx == len(loopsJointsTemp) - 1):
                 idx1 = halfLoopIdx
                 idx2 = 0
@@ -949,11 +951,11 @@ class AddNJoint(bpy.types.Operator):
 
         # Create faces from the two
         # loop arrays (loopsJoints -> loopsEndCircles).
-        for loopIdx in range(len(loopsEndCircles)):
+        for loopIdx in xrange(len(loopsEndCircles)):
             faces.extend(
                 createFaces(loopsJoints[loopIdx],
                 loopsEndCircles[loopIdx], closed=True))
 
         base = create_mesh_object(context, verts, [], faces, "N Joint")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])

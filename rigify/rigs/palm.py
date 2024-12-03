@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 import re
 from math import cos, pi
 
@@ -27,6 +29,7 @@ from ..utils import MetarigError
 from ..utils import copy_bone
 from ..utils import strip_org, deformer
 from ..utils import create_widget
+from itertools import izip
 
 
 def bone_siblings(obj, bone):
@@ -56,7 +59,7 @@ def bone_distance(obj, bone1, bone2):
     return vec.length
 
 
-class Rig:
+class Rig(object):
     """ A "palm" rig.  A set of sibling bones that bend with each other.
         This is a control and deformation rig.
 
@@ -105,7 +108,7 @@ class Rig:
         # Parenting
         eb = self.obj.data.edit_bones
 
-        for d, b in zip(def_bones, self.org_bones):
+        for d, b in izip(def_bones, self.org_bones):
             eb[d].use_connect = False
             eb[d].parent = eb[b]
 

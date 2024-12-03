@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import absolute_import
+from io import open
 bl_info = {
     "name": "Save As Game Engine Runtime",
     "author": "Mitchell Stokes (Moguri)",
@@ -60,7 +62,7 @@ def CopyPythonLibs(dst, overwrite_lib, report=print):
         if write:
             shutil.copytree(src, dst, ignore=lambda dir, contents: [i for i in contents if i == '__pycache__'])
     else:
-        report({'WARNING'}, "Python not found in %r, skipping pythn copy" % src)
+        report(set(['WARNING']), "Python not found in %r, skipping pythn copy" % src)
 
 
 def WriteAppleRuntime(player_path, output_path, copy_python, overwrite_lib):
@@ -85,7 +87,7 @@ def WriteRuntime(player_path, output_path, copy_python, overwrite_lib, copy_dlls
 
     # Check the paths
     if not os.path.isfile(player_path) and not(os.path.exists(player_path) and player_path.endswith('.app')):
-        report({'ERROR'}, "The player could not be found! Runtime not saved")
+        report(set(['ERROR']), "The player could not be found! Runtime not saved")
         return
     
     # Check if we're bundling a .app
@@ -125,7 +127,7 @@ def WriteRuntime(player_path, output_path, copy_python, overwrite_lib, copy_dlls
     output = open(output_path, 'wb')
     
     # Write the player and blend data to the new runtime
-    print("Writing runtime...", end=" ")
+    print "Writing runtime...",
     output.write(player_d)
     output.write(blend_d)
     
@@ -136,35 +138,35 @@ def WriteRuntime(player_path, output_path, copy_python, overwrite_lib, copy_dlls
     output.write(struct.pack('B', (offset>>0)&0xFF))
     
     # Stuff for the runtime
-    output.write(b'BRUNTIME')
+    output.write('BRUNTIME')
     output.close()
     
-    print("done")
+    print "done"
     
     # Make the runtime executable on Linux
     if os.name == 'posix':
-        os.chmod(output_path, 0o755)
+        os.chmod(output_path, 0755)
         
     # Copy bundled Python
     blender_dir = os.path.dirname(bpy.app.binary_path)
     runtime_dir = os.path.dirname(output_path)
     
     if copy_python:
-        print("Copying Python files...", end=" ")
+        print "Copying Python files...",
         py_folder = os.path.join(bpy.app.version_string.split()[0], "python", "lib")
         dst = os.path.join(runtime_dir, py_folder)
         CopyPythonLibs(dst, overwrite_lib, report)
-        print("done")
+        print "done"
 
     # And DLLs
     if copy_dlls:
-        print("Copying DLLs...", end=" ")
+        print "Copying DLLs...",
         for file in [i for i in os.listdir(blender_dir) if i.lower().endswith('.dll')]:
             src = os.path.join(blender_dir, file)
             dst = os.path.join(runtime_dir, file)
             shutil.copy2(src, dst)
 
-        print("done")
+        print "done"
 
 from bpy.props import *
 
@@ -172,7 +174,7 @@ from bpy.props import *
 class SaveAsRuntime(bpy.types.Operator):
     bl_idname = "wm.save_as_runtime"
     bl_label = "Save As Game Engine Runtime"
-    bl_options = {'REGISTER'}
+    bl_options = set(['REGISTER'])
     
     if sys.platform == 'darwin':
         # XXX, this line looks suspicious, could be done better?
@@ -217,7 +219,7 @@ class SaveAsRuntime(bpy.types.Operator):
     def execute(self, context):
         import time
         start_time = time.clock()
-        print("Saving runtime to %r" % self.filepath)
+        print "Saving runtime to %r" % self.filepath
         WriteRuntime(self.player_path,
                      self.filepath,
                      self.copy_python,
@@ -225,8 +227,8 @@ class SaveAsRuntime(bpy.types.Operator):
                      self.copy_dlls,
                      self.report,
                      )
-        print("Finished in %.4fs" % (time.clock()-start_time))
-        return {'FINISHED'}
+        print "Finished in %.4fs" % (time.clock()-start_time)
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         if not self.filepath:
@@ -235,7 +237,7 @@ class SaveAsRuntime(bpy.types.Operator):
 
         wm = context.window_manager
         wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 
 def menu_func(self, context):

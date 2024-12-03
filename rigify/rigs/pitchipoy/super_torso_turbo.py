@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from mathutils import Vector
 from ...utils import copy_bone, flip_bone, put_bone, org
@@ -5,6 +7,7 @@ from ...utils import strip_org, make_deformer_name, connected_children_names
 from ...utils import create_circle_widget, create_sphere_widget, create_widget
 from ...utils import MetarigError, make_mechanism_name, create_cube_widget
 from rna_prop_ui import rna_idprop_ui_prop_get
+from itertools import izip
 
 script = """
 controls = [%s]
@@ -15,7 +18,7 @@ if is_selected( controls ):
     layout.prop( pose_bones[ torso ], '["%s"]', slider = True )
 """
 
-class Rig:
+class Rig(object):
     
     def __init__(self, obj, bone_name, params):
         """ Initialize torso rig and key rig properties """
@@ -372,7 +375,7 @@ class Rig:
                 eb[ twk ].parent = eb[ bones['neck']['mch'][i-1] ]
         
         # Chest tweaks
-        for twk,mch in zip( bones['chest']['tweak'], bones['chest']['mch'] ):
+        for twk,mch in izip( bones['chest']['tweak'], bones['chest']['mch'] ):
             if bones['chest']['tweak'].index( twk ) == 0:
                 eb[ twk ].parent = eb[ bones['pivot']['mch'] ]
             else:
@@ -392,7 +395,7 @@ class Rig:
         if 'tail' in bones.keys():
             tweaks += bones['tail']['tweak']
 
-        for org, twk in zip( org_bones, tweaks ):
+        for org, twk in izip( org_bones, tweaks ):
             eb[ org ].parent = eb[ twk ]
 
 
@@ -476,7 +479,7 @@ class Rig:
         tweaks =  bones['hips']['tweak'] + bones['chest']['tweak']
         tweaks += bones['neck']['tweak'] + [ bones['neck']['ctrl'] ]
 
-        for d,t in zip(deform, tweaks):
+        for d,t in izip(deform, tweaks):
             tidx = tweaks.index(t)
 
             self.make_constraint( d, {
@@ -520,7 +523,7 @@ class Rig:
             prop["description"] = prop
         
         # driving the follow rotation switches for neck and head
-        for bone, prop, in zip( owners, props ):
+        for bone, prop, in izip( owners, props ):
             # Add driver to copy rotation constraint
             drv = pb[ bone ].constraints[ 0 ].driver_add("influence").driver
             drv.type = 'AVERAGE'
@@ -720,7 +723,7 @@ def add_parameters( params ):
     params.tweak_layers = bpy.props.BoolVectorProperty(
         size        = 32,
         description = "Layers for the tweak controls to be on",
-        default     = tuple( [ i == 1 for i in range(0, 32) ] )
+        default     = tuple( [ i == 1 for i in xrange(0, 32) ] )
         )
 
 
@@ -743,23 +746,23 @@ def parameters_ui(layout, params):
     col = r.column(align=True)
     row = col.row(align=True)
 
-    for i in range(8):
+    for i in xrange(8):
         row.prop(params, "tweak_layers", index=i, toggle=True, text="")
 
     row = col.row(align=True)
 
-    for i in range(16,24):
+    for i in xrange(16,24):
         row.prop(params, "tweak_layers", index=i, toggle=True, text="")
 
     col = r.column(align=True)
     row = col.row(align=True)
 
-    for i in range(8,16):
+    for i in xrange(8,16):
         row.prop(params, "tweak_layers", index=i, toggle=True, text="")
 
     row = col.row(align=True)
 
-    for i in range(24,32):
+    for i in xrange(24,32):
         row.prop(params, "tweak_layers", index=i, toggle=True, text="")
 
 def create_sample(obj):

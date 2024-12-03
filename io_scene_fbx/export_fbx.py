@@ -21,12 +21,17 @@
 # Script copyright (C) Campbell Barton
 
 
+from __future__ import division
+from __future__ import absolute_import
 import os
 import time
 import math  # math.pi
 
 import bpy
 from mathutils import Vector, Matrix
+from io import open
+from itertools import izip
+from itertools import imap
 
 def grouper_exact(it, chunk_size):
     """
@@ -43,7 +48,7 @@ def grouper_exact(it, chunk_size):
     """
     import itertools
     i = itertools.zip_longest(*[iter(it)] * chunk_size, fillvalue=...)
-    curr = next(i)
+    curr = i.next()
     for nxt in i:
         yield curr
         curr = nxt
@@ -192,9 +197,9 @@ def BPyMesh_meshWeight2List(ob, me):
 
     if not len_groupNames:
         # no verts? return a vert aligned empty list
-        return [[] for i in range(len(me.vertices))], []
+        return [[] for i in xrange(len(me.vertices))], []
     else:
-        vWeightList = [[0.0] * len_groupNames for i in range(len(me.vertices))]
+        vWeightList = [[0.0] * len_groupNames for i in xrange(len(me.vertices))]
 
     for i, v in enumerate(me.vertices):
         for g in v.groups:
@@ -236,7 +241,7 @@ header_comment = \
 def save_single(operator, scene, filepath="",
         global_matrix=None,
         context_objects=None,
-        object_types={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH'},
+        object_types=set(['EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH']),
         use_mesh_modifiers=True,
         mesh_smooth_type='FACE',
         use_armature_deform_only=False,
@@ -433,15 +438,15 @@ def save_single(operator, scene, filepath="",
 
     # ----------------------------------------------
 
-    print('\nFBX export starting... %r' % filepath)
+    print '\nFBX export starting... %r' % filepath
     start_time = time.process_time()
     try:
         file = open(filepath, "w", encoding="utf8", newline="\n")
     except:
         import traceback
         traceback.print_exc()
-        operator.report({'ERROR'}, "Couldn't open file %r" % filepath)
-        return {'CANCELLED'}
+        operator.report(set(['ERROR']), "Couldn't open file %r" % filepath)
+        return set(['CANCELLED'])
 
     # convenience
     fw = file.write
@@ -1024,7 +1029,7 @@ def save_single(operator, scene, filepath="",
             do_shadow = False
         else:
             do_light = not (light.use_only_shadow or (not light.use_diffuse and not light.use_specular))
-            do_shadow = (light.shadow_method in {'RAY_SHADOW', 'BUFFER_SHADOW'})
+            do_shadow = (light.shadow_method in set(['RAY_SHADOW', 'BUFFER_SHADOW']))
 
         # scale = abs(global_matrix.to_scale()[0])  # scale is always uniform in this case  #  UNUSED
 
@@ -1052,7 +1057,7 @@ def save_single(operator, scene, filepath="",
         fw('\n\t\t\tProperty: "DrawFrontFacingVolumetricLight", "bool", "",0')
         fw('\n\t\t\tProperty: "DrawVolumetricLight", "bool", "",1')
         fw('\n\t\t\tProperty: "GoboProperty", "object", ""')
-        if light.type in {'SPOT', 'POINT'}:
+        if light.type in set(['SPOT', 'POINT']):
             if light.falloff_type == 'CONSTANT':
                 fw('\n\t\t\tProperty: "DecayType", "enum", "",0')
             if light.falloff_type == 'INVERSE_LINEAR':
@@ -1312,7 +1317,7 @@ def save_single(operator, scene, filepath="",
                 # TODO - this is a bit lazy, we could have a simple write loop
                 # for this case because all weights are 1.0 but for now this is ok
                 # Parent Bones arent used all that much anyway.
-                vgroup_data = [(j, 1.0) for j in range(len(my_mesh.blenData.vertices))]
+                vgroup_data = [(j, 1.0) for j in xrange(len(my_mesh.blenData.vertices))]
             else:
                 # This bone is not a parent of this mesh object, no weights
                 vgroup_data = []
@@ -1426,7 +1431,7 @@ def save_single(operator, scene, filepath="",
         t_ls = [None] * len(me.polygons)
         me.polygons.foreach_get("loop_start", t_ls)
         if t_ls != sorted(t_ls):
-            print("Error: polygons and loops orders do not match!")
+            print "Error: polygons and loops orders do not match!"
         for ls in t_ls:
             t_vi[ls - 1] ^= -1
         prep = ',\n\t\t                    '
@@ -1514,7 +1519,7 @@ def save_single(operator, scene, filepath="",
             _nchunk_idx = 64  # Number of color indices per line
             for colindex, collayer in enumerate(collayers):
                 collayer.data.foreach_get("color", t_lc)
-                lc = tuple(zip(*[iter(t_lc)] * 3))
+                lc = tuple(izip(*[iter(t_lc)] * 3))
                 fw('\n\t\tLayerElementColor: %i {'
                    '\n\t\t\tVersion: 101'
                    '\n\t\t\tName: "%s"'
@@ -1527,7 +1532,7 @@ def save_single(operator, scene, filepath="",
                                             for chunk in grouper_exact(col2idx, _nchunk)))
 
                 fw('\n\t\t\tColorIndex: ')
-                col2idx = {col: idx for idx, col in enumerate(col2idx)}
+                col2idx = dict((col, idx) for idx, col in enumerate(col2idx))
                 fw(',\n\t\t\t            '
                    ''.join(','.join('%d' % col2idx[c] for c in chunk) for chunk in grouper_exact(lc, _nchunk_idx)))
                 fw('\n\t\t}')
@@ -1548,11 +1553,11 @@ def save_single(operator, scene, filepath="",
             if do_textures:
                 is_tex_unique = len(my_mesh.blenTextures) == 1
                 tex2idx = {None: -1}
-                tex2idx.update({tex: i for i, tex in enumerate(my_mesh.blenTextures)})
+                tex2idx.update(dict((tex, i) for i, tex in enumerate(my_mesh.blenTextures)))
 
-            for uvindex, (uvlayer, uvtexture) in enumerate(zip(uvlayers, uvtextures)):
+            for uvindex, (uvlayer, uvtexture) in enumerate(izip(uvlayers, uvtextures)):
                 uvlayer.data.foreach_get("uv", t_uv)
-                uvco = tuple(zip(*[iter(t_uv)] * 2))
+                uvco = tuple(izip(*[iter(t_uv)] * 2))
                 fw('\n\t\tLayerElementUV: %d {'
                    '\n\t\t\tVersion: 101'
                    '\n\t\t\tName: "%s"'
@@ -1563,7 +1568,7 @@ def save_single(operator, scene, filepath="",
                 fw(',\n\t\t\t    '
                    ''.join(','.join('%.6f,%.6f' % uv for uv in chunk) for chunk in grouper_exact(uv2idx, _nchunk)))
                 fw('\n\t\t\tUVIndex: ')
-                uv2idx = {uv: idx for idx, uv in enumerate(uv2idx)}
+                uv2idx = dict((uv, idx) for idx, uv in enumerate(uv2idx))
                 fw(',\n\t\t\t         '
                    ''.join(','.join('%d' % uv2idx[uv] for uv in chunk) for chunk in grouper_exact(uvco, _nchunk_idx)))
                 fw('\n\t\t}')
@@ -1612,7 +1617,7 @@ def save_single(operator, scene, filepath="",
             else:
                 _nchunk = 64  # Number of material indices per line
                 # Build a material mapping for this
-                mat2idx = {mt: i for i, mt in enumerate(my_mesh.blenMaterials)}  # (local-mat, tex) -> global index.
+                mat2idx = dict((mt, i) for i, mt in enumerate(my_mesh.blenMaterials))  # (local-mat, tex) -> global index.
                 mats = my_mesh.blenMaterialList
                 if me.uv_textures.active and do_uvs:
                     poly_tex = me.uv_textures.active.data
@@ -1620,7 +1625,7 @@ def save_single(operator, scene, filepath="",
                     poly_tex = [None] * len(me.polygons)
                 _it_mat = (mats[p.material_index] for p in me.polygons)
                 _it_tex = (pt.image if pt else None for pt in poly_tex)  # WARNING - MULTI UV LAYER IMAGES NOT SUPPORTED
-                t_mti = (mat2idx[m, t] for m, t in zip(_it_mat, _it_tex))
+                t_mti = (mat2idx[m, t] for m, t in izip(_it_mat, _it_tex))
                 fw(',\n\t\t\t           '
                    ''.join(','.join('%d' % i for i in chunk) for chunk in grouper_exact(t_mti, _nchunk)))
             fw('\n\t\t}')
@@ -1668,7 +1673,7 @@ def save_single(operator, scene, filepath="",
         fw('\n\t\t}')
 
         if len(uvlayers) > 1:
-            for i in range(1, len(uvlayers)):
+            for i in xrange(1, len(uvlayers)):
                 fw('\n\t\tLayer: %d {'
                    '\n\t\t\tVersion: 100'
                    '\n\t\t\tLayerElement:  {'
@@ -1694,7 +1699,7 @@ def save_single(operator, scene, filepath="",
         if len(collayers) > 1:
             # Take into account any UV layers
             layer_offset = len(uvlayers) - 1 if uvlayers else 0
-            for i in range(layer_offset, len(collayers) + layer_offset):
+            for i in xrange(layer_offset, len(collayers) + layer_offset):
                 fw('\n\t\tLayer: %d {'
                    '\n\t\t\tVersion: 100'
                    '\n\t\t\tLayerElement:  {'
@@ -1718,8 +1723,8 @@ def save_single(operator, scene, filepath="",
 
             for kb in key_blocks[1:]:
                 kb.data.foreach_get("co", t_sk)
-                _dcos = tuple(zip(*[map(operator.sub, t_sk, t_sk_basis)] * 3))
-                verts = tuple(i for i, dco in enumerate(_dcos) if sum(map(operator.pow, dco, (2, 2, 2))) > 3e-12)
+                _dcos = tuple(izip(*[imap(operator.sub, t_sk, t_sk_basis)] * 3))
+                verts = tuple(i for i, dco in enumerate(_dcos) if sum(imap(operator.pow, dco, (2, 2, 2))) > 3e-12)
                 dcos = (_dcos[i] for i in verts)
                 fw('\n\t\tShape: "%s" {'
                    '\n\t\t\tIndexes: ' % kb.name)
@@ -1733,7 +1738,7 @@ def save_single(operator, scene, filepath="",
                 # Would need to recompute them I guess... and I assume those are supposed to be delta as well?
                 fw('\n\t\t\tNormals: ')
                 fw(',\n\t\t\t         '
-                   ''.join(','.join('0,0,0' for c in chunk) for chunk in grouper_exact(range(len(verts)), _nchunk)))
+                   ''.join(','.join('0,0,0' for c in chunk) for chunk in grouper_exact(xrange(len(verts)), _nchunk)))
                 fw('\n\t\t}')
             del t_sk_basis
             del t_sk
@@ -1796,7 +1801,7 @@ def save_single(operator, scene, filepath="",
     for ob_base in context_objects:
 
         # ignore dupli children
-        if ob_base.parent and ob_base.parent.dupli_type in {'VERTS', 'FACES'}:
+        if ob_base.parent and ob_base.parent.dupli_type in set(['VERTS', 'FACES']):
             continue
 
         obs = [(ob_base, ob_base.matrix_world.copy())]
@@ -1871,7 +1876,7 @@ def save_single(operator, scene, filepath="",
                     material_set_local = set()
                     if me.uv_textures:
                         for uvlayer in me.uv_textures:
-                            for p, p_uv in zip(me.polygons, uvlayer.data):
+                            for p, p_uv in izip(me.polygons, uvlayer.data):
                                 tex = p_uv.image
                                 texture_set_local.add(tex)
                                 mat = mats[p.material_index]
@@ -1907,7 +1912,7 @@ def save_single(operator, scene, filepath="",
 
                         # Warning for scaled, mesh objects with armatures
                         if abs(ob.scale[0] - 1.0) > 0.05 or abs(ob.scale[1] - 1.0) > 0.05 or abs(ob.scale[1] - 1.0) > 0.05:
-                            operator.report({'WARNING'}, "Object '%s' has a scale of (%.3f, %.3f, %.3f), " \
+                            operator.report(set(['WARNING']), "Object '%s' has a scale of (%.3f, %.3f, %.3f), " \
                                                          "Armature deformation will not work as expected " \
                                                          "(apply Scale to fix)" % ((ob.name,) + tuple(ob.scale)))
 
@@ -2532,9 +2537,9 @@ Takes:  {''')
             # we have tagged all actious that are used be selected armatures
             if blenAction:
                 if blenAction.name in tagged_actions:
-                    print('\taction: "%s" exporting...' % blenAction.name)
+                    print '\taction: "%s" exporting...' % blenAction.name
                 else:
-                    print('\taction: "%s" has no armature using it, skipping' % blenAction.name)
+                    print '\taction: "%s" has no armature using it, skipping' % blenAction.name
                     continue
 
             if blenAction is None:
@@ -2602,7 +2607,7 @@ Takes:  {''')
                         fw('\n\t\t\tVersion: 1.1')
                         fw('\n\t\t\tChannel: "Transform" {')
 
-                        context_bone_anim_mats = [(my_ob.getAnimParRelMatrix(frame), my_ob.getAnimParRelMatrixRot(frame)) for frame in range(act_start, act_end + 1)]
+                        context_bone_anim_mats = [(my_ob.getAnimParRelMatrix(frame), my_ob.getAnimParRelMatrixRot(frame)) for frame in xrange(act_start, act_end + 1)]
 
                         # ----------------
                         # ----------------
@@ -2628,7 +2633,7 @@ Takes:  {''')
 
                             fw('\n\t\t\t\tChannel: "%s" {' % TX_CHAN)  # translation
 
-                            for i in range(3):
+                            for i in xrange(3):
                                 # Loop on each axis of the bone
                                 fw('\n\t\t\t\t\tChannel: "%s" {' % ('XYZ'[i]))  # translation
                                 fw('\n\t\t\t\t\t\tDefault: %.15f' % context_bone_anim_vecs[0][i])
@@ -2811,15 +2816,15 @@ Takes:  {''')
     # copy all collected files.
     bpy_extras.io_utils.path_reference_copy(copy_set)
 
-    print('export finished in %.4f sec.' % (time.process_time() - start_time))
-    return {'FINISHED'}
+    print 'export finished in %.4f sec.' % (time.process_time() - start_time)
+    return set(['FINISHED'])
 
 
 # defaults for applications, currently only unity but could add others.
 def defaults_unity3d():
     return dict(global_matrix=Matrix.Rotation(-math.pi / 2.0, 4, 'X'),
                 use_selection=False,
-                object_types={'ARMATURE', 'EMPTY', 'MESH'},
+                object_types=set(['ARMATURE', 'EMPTY', 'MESH']),
                 use_mesh_modifiers=True,
                 use_armature_deform_only=True,
                 use_anim=True,
@@ -2882,7 +2887,7 @@ def save(operator, context,
 
             filepath = new_fbxpath + newname + '.fbx'
 
-            print('\nBatch exporting %s as...\n\t%r' % (data, filepath))
+            print '\nBatch exporting %s as...\n\t%r' % (data, filepath)
 
             # XXX don't know what to do with this, probably do the same? (Arystan)
             if batch_mode == 'GROUP':  # group
@@ -2917,7 +2922,7 @@ def save(operator, context,
         # no active scene changing!
         # bpy.data.scenes.active = orig_sce
 
-        return {'FINISHED'}  # so the script wont run after we have batch exported.
+        return set(['FINISHED'])  # so the script wont run after we have batch exported.
 
 
 # NOTE TO Campbell -

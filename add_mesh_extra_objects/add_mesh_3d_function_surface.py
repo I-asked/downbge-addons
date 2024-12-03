@@ -1,5 +1,7 @@
 # GPL # original by Buerbaum Martin (Pontiac), Elod Csirmaz
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from mathutils import *
 from math import *
@@ -83,7 +85,7 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
             faces.append(face)
 
     # Bridge the rest of the faces.
-    for num in range(total - 1):
+    for num in xrange(total - 1):
         if flipped:
             if fan:
                 face = [vertIdx2[num], vertIdx1[0], vertIdx2[num + 1]]
@@ -106,7 +108,7 @@ class AddZFunctionSurface(bpy.types.Operator):
     """Add a surface defined defined by a function z=f(x,y)"""
     bl_idname = "mesh.primitive_z_function_surface"
     bl_label = "Add Z Function Surface"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     equation = StringProperty(name="Z Equation",
         description="Equation for z=f(x,y)",
@@ -160,15 +162,15 @@ class AddZFunctionSurface(bpy.types.Operator):
                 safe_dict)
         except:
             import traceback
-            self.report({'ERROR'}, "Error parsing expression: "
+            self.report(set(['ERROR']), "Error parsing expression: "
                 + traceback.format_exc(limit=1))
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
-        for row_x in range(div_x):
+        for row_x in xrange(div_x):
             edgeloop_cur = []
             x = start_x + row_x * delta_x
 
-            for row_y in range(div_y):
+            for row_y in xrange(div_y):
                 y = start_y + row_y * delta_y
                 z = 0.0
 
@@ -180,9 +182,9 @@ class AddZFunctionSurface(bpy.types.Operator):
                     z = float(eval(*expr_args))
                 except:
                     import traceback
-                    self.report({'ERROR'}, "Error evaluating expression: "
+                    self.report(set(['ERROR']), "Error evaluating expression: "
                         + traceback.format_exc(limit=1))
-                    return {'CANCELLED'}
+                    return set(['CANCELLED'])
 
                 edgeloop_cur.append(len(verts))
                 verts.append((x, y, z))
@@ -195,7 +197,7 @@ class AddZFunctionSurface(bpy.types.Operator):
 
         base = create_mesh_object(context, verts, [], faces, "Z Function")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 def xyz_function_surface_faces(self, x_eq, y_eq, z_eq,
@@ -261,14 +263,14 @@ def xyz_function_surface_faces(self, x_eq, y_eq, z_eq,
             safe_dict)
     except:
         import traceback
-        self.report({'ERROR'}, "Error parsing expression: "
+        self.report(set(['ERROR']), "Error parsing expression: "
             + traceback.format_exc(limit=1))
         return [], []
 
-    for vN in range(vRange):
+    for vN in xrange(vRange):
         v = range_v_min + (vN * vStep)
 
-        for uN in range(uRange):
+        for uN in xrange(uRange):
             u = range_u_min + (uN * uStep)
 
             safe_dict['u'] = u
@@ -301,17 +303,17 @@ def xyz_function_surface_faces(self, x_eq, y_eq, z_eq,
 
             except:
                 import traceback
-                self.report({'ERROR'}, "Error evaluating expression: "
+                self.report(set(['ERROR']), "Error evaluating expression: "
                     + traceback.format_exc(limit=1))
                 return [], []
 
-    for vN in range(range_v_step):
+    for vN in xrange(range_v_step):
         vNext = vN + 1
 
         if wrap_v and (vNext >= vRange):
             vNext = 0
 
-        for uN in range(range_u_step):
+        for uN in xrange(range_u_step):
             uNext = uN + 1
 
             if wrap_u and (uNext >= uRange):
@@ -323,7 +325,7 @@ def xyz_function_surface_faces(self, x_eq, y_eq, z_eq,
                 (vN * uRange) + uNext])
 
     if close_v and wrap_u and (not wrap_v):
-        for uN in range(1, range_u_step - 1):
+        for uN in xrange(1, range_u_step - 1):
             faces.append([
                 range_u_step - 1,
                 range_u_step - 1 - uN,
@@ -360,7 +362,7 @@ class AddXYZFunctionSurface(bpy.types.Operator):
     """ x=F1(u,v), y=F2(u,v) and z=F3(u,v)"""
     bl_idname = "mesh.primitive_xyz_function_surface"
     bl_label = "Add X,Y,Z Function Surface"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     x_eq = StringProperty(name="X equation",
         description="Equation for x=F(u,v). " \
@@ -459,7 +461,7 @@ class AddXYZFunctionSurface(bpy.types.Operator):
 
     def execute(self, context):
 
-        for n in range(0, self.n_eq):
+        for n in xrange(0, self.n_eq):
 
             verts, faces = xyz_function_surface_faces(
                                 self,
@@ -484,8 +486,8 @@ class AddXYZFunctionSurface(bpy.types.Operator):
                                 self.close_v)
 
             if not verts:
-                return {'CANCELLED'}
+                return set(['CANCELLED'])
 
             obj = create_mesh_object(context, verts, [], faces, "XYZ Function")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])

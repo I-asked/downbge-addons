@@ -18,6 +18,12 @@
 
 # <pep8 compliant>
 
+from __future__ import with_statement
+from __future__ import division
+from __future__ import absolute_import
+from io import open
+from itertools import imap
+from itertools import ifilter
 bl_info = {
     "name": "Freestyle SVG Exporter",
     "author": "Folkert de Vries",
@@ -107,7 +113,9 @@ namespaces = {
 
 
 # wrap XMLElem.find, so the namespaces don't need to be given as an argument
-def find_xml_elem(obj, search, namespaces, *, all=False):
+def find_xml_elem(obj, search, namespaces, **_3to2kwargs):
+    if 'all' in _3to2kwargs: all = _3to2kwargs['all']; del _3to2kwargs['all']
+    else: all = False
     if all:
         return obj.findall(search, namespaces=namespaces)
     return obj.find(search, namespaces=namespaces)
@@ -124,7 +132,7 @@ def render_width(scene):
 
 
 # stores the state of the render, used to differ between animation and single frame renders.
-class RenderState:
+class RenderState(object):
 
     # Note that this flag is set to False only after the first frame
     # has been written to file.
@@ -280,7 +288,7 @@ def write_animation(filepath, frame_begin, fps):
         name = lineset.get('id')
         frames = find_svg_elem(lineset, ".//svg:g[@inkscape:groupmode='frame']", all=True)
         n_of_frames = len(frames)
-        keyTimes = ";".join(str(round(x / n_of_frames, 3)) for x in range(n_of_frames)) + ";1"
+        keyTimes = ";".join(str(round(x / n_of_frames, 3)) for x in xrange(n_of_frames)) + ";1"
 
         style = {
             'attributeName': 'display',
@@ -320,7 +328,9 @@ class SVGPathShader(StrokeShader):
         self.path = '\n<path ' + "".join('{}="{}" '.format(k, v) for k, v in style.items()) + 'd=" M '
 
     @classmethod
-    def from_lineset(cls, lineset, filepath, res_y, split_at_invisible, frame_current, *, name=""):
+    def from_lineset(cls, lineset, filepath, res_y, split_at_invisible, frame_current, **_3to2kwargs):
+        if 'name' in _3to2kwargs: name = _3to2kwargs['name']; del _3to2kwargs['name']
+        else: name = ""
         """Builds a SVGPathShader using data from the given lineset"""
         name = name or lineset.name
         linestyle = lineset.linestyle
@@ -356,7 +366,7 @@ class SVGPathShader(StrokeShader):
                 # fast-forward till the next visible vertex
                 it = itertools.dropwhile(f, it)
                 # yield next visible vertex
-                svert = next(it, None)
+                svert = it, None.next()
                 if svert is None:
                     break
                 x, y = svert.point
@@ -410,12 +420,12 @@ class SVGPathShader(StrokeShader):
             lineset_group.append(stroke_group)
 
         # write SVG to file
-        print("SVG Export: writing to", self.filepath)
+        print "SVG Export: writing to", self.filepath
         indent_xml(root)
         tree.write(self.filepath, encoding='ascii', xml_declaration=True)
 
 
-class SVGFillBuilder:
+class SVGFillBuilder(object):
     def __init__(self, filepath, height, name):
         self.filepath = filepath
         self._name = name
@@ -433,14 +443,14 @@ class SVGFillBuilder:
     @staticmethod
     def get_merged_strokes(strokes):
         def extend_stroke(stroke, vertices):
-            for vert in map(StrokeVertex, vertices):
+            for vert in imap(StrokeVertex, vertices):
                 stroke.insert_vertex(vert, stroke.stroke_vertices_end())
             return stroke
 
         base_strokes = tuple(stroke for stroke in strokes if not is_poly_clockwise(stroke))
         merged_strokes = OrderedDict((s, list()) for s in base_strokes)
 
-        for stroke in filter(is_poly_clockwise, strokes):
+        for stroke in ifilter(is_poly_clockwise, strokes):
             for base in base_strokes:
                 # don't merge when diffuse colors don't match
                 if diffuse_from_stroke(stroke) != diffuse_from_stroke(stroke):
@@ -463,7 +473,8 @@ class SVGFillBuilder:
 
     def stroke_to_svg(self, stroke, height, parameters=None):
         if parameters is None:
-            *color, alpha = diffuse_from_stroke(stroke)
+            _3to2list = list(diffuse_from_stroke(stroke))
+            color, alpha, = [_3to2list[:-1]] + _3to2list[-1:]
             color = tuple(int(255 * c) for c in color)
             parameters = {
                 'fill_rule': 'evenodd',
@@ -506,7 +517,7 @@ class SVGFillBuilder:
                 'inkscape:label': name,
                 }
             root.append(lineset_group)
-            print('added new lineset group ', name)
+            print 'added new lineset group ', name
 
 
         # <g> for the fills of the current frame

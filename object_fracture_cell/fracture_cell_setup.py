@@ -20,6 +20,8 @@
 
 # Script copyright (C) Blender Foundation 2012
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 import bmesh
 
@@ -32,14 +34,13 @@ _redraw_yasiamevil.arg = dict(type='DRAW_WIN_SWAP', iterations=1)
 
 def _points_from_object(obj, source):
 
-    _source_all = {
+    _source_all = set([
         'PARTICLE_OWN', 'PARTICLE_CHILD',
         'PENCIL',
-        'VERT_OWN', 'VERT_CHILD',
-        }
+        'VERT_OWN', 'VERT_CHILD',])
 
-    print(source - _source_all)
-    print(source)
+    print source - _source_all
+    print source
     assert(len(source | _source_all) == len(_source_all))
     assert(len(source))
 
@@ -116,13 +117,13 @@ def _points_from_object(obj, source):
             points.extend([p for spline in get_splines(gp)
                              for p in spline])
 
-    print("Found %d points" % len(points))
+    print "Found %d points" % len(points)
 
     return points
 
 
 def cell_fracture_objects(scene, obj,
-                          source={'PARTICLE_OWN'},
+                          source=set(['PARTICLE_OWN']),
                           source_limit=0,
                           source_noise=0.0,
                           clean=True,
@@ -145,10 +146,10 @@ def cell_fracture_objects(scene, obj,
 
     if not points:
         # print using fallback
-        points = _points_from_object(obj, {'VERT_OWN'})
+        points = _points_from_object(obj, set(['VERT_OWN']))
 
     if not points:
-        print("no points found")
+        print "no points found"
         return []
 
     # apply optional clamp
@@ -160,7 +161,7 @@ def cell_fracture_objects(scene, obj,
     # saddly we cant be sure there are no doubles
     from mathutils import Vector
     to_tuple = Vector.to_tuple
-    points = list({to_tuple(p, 4): p for p in points}.values())
+    points = list(dict((to_tuple(p, 4), p) for p in points).values())
     del to_tuple
     del Vector
 
@@ -286,7 +287,7 @@ def cell_fracture_objects(scene, obj,
 
         # support for object materials
         if use_data_match:
-            for i in range(len(mesh_dst.materials)):
+            for i in xrange(len(mesh_dst.materials)):
                 slot_src = obj.material_slots[i]
                 slot_dst = obj_cell.material_slots[i]
 
@@ -439,7 +440,7 @@ def cell_fracture_interior_handle(objects,
         if use_sharp_edges:
             mesh.show_edge_sharp = True
             for bm_edge in bm.edges:
-                if len({bm_face.hide for bm_face in bm_edge.link_faces}) == 2:
+                if len(set(bm_face.hide for bm_face in bm_edge.link_faces)) == 2:
                     bm_edge.smooth = False
 
             if use_sharp_edges_apply:

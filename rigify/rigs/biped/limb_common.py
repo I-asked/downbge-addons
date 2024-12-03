@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+from __future__ import division
+from __future__ import absolute_import
 from math import pi
 
 import bpy
@@ -28,7 +30,7 @@ from ...utils import strip_org, make_mechanism_name, make_deformer_name, insert_
 from ...utils import create_widget, create_limb_widget, create_line_widget, create_sphere_widget
 
 
-class FKLimb:
+class FKLimb(object):
     def __init__(self, obj, bone1, bone2, bone3, primary_rotation_axis, layers):
         self.obj = obj
 
@@ -295,7 +297,7 @@ class FKLimb:
         return [ulimb, flimb, elimb, elimb_mch]
 
 
-class IKLimb:
+class IKLimb(object):
     """ An IK limb rig, with an optional ik/fk switch.
 
     """
@@ -754,7 +756,7 @@ class IKLimb:
         return [ulimb, flimb, elimb, elimb_mch, pole, vispole, viselimb]
 
 
-class RubberHoseLimb:
+class RubberHoseLimb(object):
     def __init__(self, obj, bone1, bone2, bone3, use_complex_limb, junc_base_name, primary_rotation_axis, layers):
         self.obj = obj
 

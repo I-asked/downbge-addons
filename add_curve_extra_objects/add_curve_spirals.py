@@ -13,6 +13,8 @@
     "category": "Add Curve",
 }
 '''
+from __future__ import division
+from __future__ import absolute_import
 import bpy, time
 from bpy.props import *
 from math import sin, cos, pi, exp
@@ -176,7 +178,7 @@ def draw_curve(props, context):
 class spirals(bpy.types.Operator):
     bl_idname = "curve.spirals"
     bl_label = "Spirals"
-    bl_options = {'REGISTER','UNDO', 'PRESET'}            #UNDO needed for operator redo and therefore also to let the addobjecthelp appear!!!
+    bl_options = set(['REGISTER','UNDO', 'PRESET'])            #UNDO needed for operator redo and therefore also to let the addobjecthelp appear!!!
     bl_description = "adds different types of spirals"
 
     spiral_type = IntProperty(default=1, min=1, max=4, description="1:archemedian, 2:logarithmic, 3:spheric, 4:torus")
@@ -244,5 +246,5 @@ class spirals(bpy.types.Operator):
     def execute(self, context):
         time_start = time.time()
         draw_curve(self, context)
-        print("Drawing Spiral Finished: %.4f sec", time.time() - time_start)
-        return {'FINISHED'}
+        print "Drawing Spiral Finished: %.4f sec", time.time() - time_start
+        return set(['FINISHED'])

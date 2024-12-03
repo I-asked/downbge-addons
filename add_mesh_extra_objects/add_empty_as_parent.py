@@ -1,5 +1,7 @@
 # GPL # Original Author Liero #
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 
@@ -14,7 +16,7 @@ class P2E(bpy.types.Operator):
     bl_idname = 'object.parent_to_empty'
     bl_label = 'Parent to Empty'
     bl_description = 'Parent selected objects to a new Empty'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     nombre = StringProperty(name='', default='OBJECTS', description='Give the empty / group a name')
     grupo = bpy.props.BoolProperty(name='Create Group', default=False, description='Also add objects to a group')
@@ -67,14 +69,14 @@ class P2E(bpy.types.Operator):
         for o in objs:
             if self.renom:
                 o.name = self.nombre+'_'+o.name
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class PreFix(bpy.types.Operator):
     bl_idname = 'object.toggle_prefix'
     bl_label = 'Toggle Sufix'
     bl_description = 'Toggle parent name as sufix for c'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     @classmethod
     def poll(cls, context):
@@ -99,7 +101,7 @@ class PreFix(bpy.types.Operator):
             for o in objs:
                 o.name = prefix+o.name
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class PanelP2E(bpy.types.Panel):

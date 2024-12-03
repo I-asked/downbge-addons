@@ -2,6 +2,8 @@
 # Created: 21.03.2011
 # Copyright (C) 2011, Manfred Moitzi
 # License: MIT License
+from __future__ import division
+from __future__ import absolute_import
 from __future__ import unicode_literals
 __author__ = "mozman <mozman@gmx.at>"
 
@@ -13,7 +15,7 @@ def frac(number):
     return number - floor(number)
 
 
-class JulianDate:
+class JulianDate(object):
     def __init__(self, date):
         self.date = date
         self.result = self.julian_date() + self.fractional_day()
@@ -29,7 +31,7 @@ class JulianDate:
         return floor(B) + 1721115.
 
 
-class CalendarDate:
+class CalendarDate(object):
     def __init__(self, juliandate):
         self.jdate = juliandate
         year, month, day = self.get_date()

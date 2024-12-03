@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 
 from ...utils import copy_bone
@@ -25,7 +26,7 @@ from ...utils import strip_org, make_deformer_name
 from ...utils import create_bone_widget, create_circle_widget
 
 
-class Rig:
+class Rig(object):
     """ A "copy" rig.  All it does is duplicate the original bone and
         constrain it.
         This is a control and deformation rig.

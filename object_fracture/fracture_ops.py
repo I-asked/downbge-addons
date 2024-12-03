@@ -16,6 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import absolute_import
 import bpy
 from bpy.props import *
 import os
@@ -110,7 +111,7 @@ def getIslands(shard):
     vgi = [-1] * len(sm.vertices)
 
     gindex = 0
-    for i in range(len(vgi)):
+    for i in xrange(len(vgi)):
         if vgi[i] == -1:
             gproc = [i]
             vgroups.append([i])
@@ -140,26 +141,26 @@ def getIslands(shard):
 
     else:
         shards = []
-        for gi in range(0, gindex):
+        for gi in xrange(0, gindex):
             bpy.ops.object.select_all(action='DESELECT')
             bpy.context.scene.objects.active = shard
             shard.select = True
             bpy.ops.object.duplicate(linked=False, mode='DUMMY')
             a = bpy.context.scene.objects.active
             sm = a.data
-            print (a.name)
+            print a.name
 
             bpy.ops.object.editmode_toggle()
             bpy.ops.mesh.select_all(action='DESELECT')
             bpy.ops.object.editmode_toggle()
 
-            for x in range(len(sm.vertices) - 1, -1, -1):
+            for x in xrange(len(sm.vertices) - 1, -1, -1):
                 if vgi[x] != gi:
                     #print('getIslands: selecting')
                     #print('getIslands: ' + str(x))
                     a.data.vertices[x].select = True
 
-            print(bpy.context.scene.objects.active.name)
+            print bpy.context.scene.objects.active.name
 
             bpy.ops.object.editmode_toggle()
             bpy.ops.mesh.delete()
@@ -210,7 +211,7 @@ def boolop(ob, cutter, op):
         gsize2 = sizex + sizey + sizez
 
         if gsize2 > gsize * 1.01:               # Size check
-            print (gsize2, gsize, ob.name, cutter.name)
+            print gsize2, gsize, ob.name, cutter.name
             fault = 1
             #print ('boolop: sizeerror')
 
@@ -344,7 +345,7 @@ class FractureSimple(bpy.types.Operator):
     """Split object with boolean operations for simulation, uses an object"""
     bl_idname = "object.fracture_simple"
     bl_label = "Fracture Object"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     exe = BoolProperty(name="Execute",
         description="If it shall actually run, for optimal performance",
@@ -390,14 +391,14 @@ class FractureSimple(bpy.types.Operator):
                     self.crack_type,
                     self.roughness)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class FractureGroup(bpy.types.Operator):
     """Split object with boolean operations for simulation, uses a group"""
     bl_idname = "object.fracture_group"
     bl_label = "Fracture Object (Group)"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     exe = BoolProperty(name="Execute",
                        description="If it shall actually run, for optimal performance",
@@ -426,7 +427,7 @@ class FractureGroup(bpy.types.Operator):
         if self.exe and self.group:
             fracture_group(context, self.group)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def draw(self, context):
         layout = self.layout
@@ -446,7 +447,7 @@ def import_object(obname):
 	for p in bpy.utils.script_paths():
 		
 		testfname= p + '%saddons%sobject_fracture%sdata.blend' % (s,s,s)
-		print(testfname)
+		print testfname
 		if os.path.isfile(testfname):
 			fname=testfname
 			dpath = p + \
@@ -473,33 +474,33 @@ class ImportFractureRecorder(bpy.types.Operator):
     """Imports a rigidbody recorder"""
     bl_idname = "object.import_fracture_recorder"
     bl_label = "Add Rigidbody Recorder (Fracture)"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def execute(self, context):
         import_object("RECORDER")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class ImportFractureBomb(bpy.types.Operator):
     """Import a bomb"""
     bl_idname = "object.import_fracture_bomb"
     bl_label = "Add Bomb (Fracture)"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def execute(self, context):
         import_object("BOMB")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class ImportFractureProjectile(bpy.types.Operator, ):
     """Imports a projectile"""
     bl_idname = "object.import_fracture_projectile"
     bl_label = "Add Projectile (Fracture)"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def execute(self, context):
         import_object("PROJECTILE")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])

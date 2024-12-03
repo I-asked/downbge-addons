@@ -18,6 +18,9 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
+from io import open
 bl_info = {
     "name": "Export: Adobe After Effects (.jsx)",
     "description": "Export cameras, selected objects & camera solution "
@@ -76,7 +79,7 @@ def get_active_cam_for_each_frame(scene, start, end):
         sorted_markers = sorted(sorted_markers)
 
         if sorted_markers:
-            for frame in range(start, end + 1):
+            for frame in xrange(start, end + 1):
                 for m, marker in enumerate(sorted_markers):
                     if marker[0] > frame:
                         if m != 0:
@@ -242,7 +245,7 @@ def convert_lens(camera, width, height, aspect):
 # jsx script for AE creation
 def write_jsx_file(file, data, selection, include_animation, include_active_cam, include_selected_cams, include_selected_objects, include_cam_bundles):
 
-    print("\n---------------------------\n- Export to After Effects -\n---------------------------")
+    print "\n---------------------------\n- Export to After Effects -\n---------------------------"
     # store the current frame to restore it at the end of export
     curframe = data['curframe']
     # create array which will contain all keyframes values
@@ -390,8 +393,8 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
         end = data['end'] + 1
     else:
         end = data['start'] + 1
-    for frame in range(data['start'], end):
-        print("working on frame: " + str(frame))
+    for frame in xrange(data['start'], end):
+        print "working on frame: " + str(frame)
         data['scn'].frame_set(frame)
 
         # get time for this loop
@@ -680,8 +683,8 @@ def main(file, context, include_animation, include_active_cam, include_selected_
     data = get_comp_data(context)
     selection = get_selected(context)
     write_jsx_file(file, data, selection, include_animation, include_active_cam, include_selected_cams, include_selected_objects, include_cam_bundles)
-    print ("\nExport to After Effects Completed")
-    return {'FINISHED'}
+    print "\nExport to After Effects Completed"
+    return set(['FINISHED'])
 
 ##########################################
 # ExportJsx class register/unregister
@@ -696,7 +699,7 @@ class ExportJsx(bpy.types.Operator, ExportHelper):
     bl_idname = "export.jsx"
     bl_label = "Export to Adobe After Effects"
     filename_ext = ".jsx"
-    filter_glob = StringProperty(default="*.jsx", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.jsx", options=set(['HIDDEN']))
 
     include_animation = BoolProperty(
             name="Animation",

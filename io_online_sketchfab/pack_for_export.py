@@ -20,10 +20,13 @@
 # to pack and save the file from a blender instance
 # so that the users file is left untouched.
 
+from __future__ import with_statement
+from __future__ import absolute_import
 import os
 import bpy
 import json
 import sys
+from io import open
 
 
 SKETCHFAB_EXPORT_DATA_FILENAME = 'sketchfab-export-data.json'

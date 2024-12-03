@@ -34,6 +34,8 @@ This script simplifies Curve objects and animation F-Curves.
 """
 
 ####################################################
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from bpy.props import *
 import mathutils
@@ -70,7 +72,7 @@ def simplypoly(splineVerts, options):
             pointCurva[i+b+1].append(curva)
 
     # average the curvatures
-    for i in range(len(points)):
+    for i in xrange(len(points)):
         avgCurva = sum(pointCurva[i]) / (order-1)
         curvatures.append(avgCurva)
 
@@ -97,7 +99,7 @@ def simplypoly(splineVerts, options):
 def binom(n, m):
     b = [0] * (n+1)
     b[0] = 1
-    for i in range(1, n+1):
+    for i in xrange(1, n+1):
         b[i] = 1
         j = i-1
         while j > 0:
@@ -111,11 +113,11 @@ def getDerivative(verts, t, nth):
     QVerts = []
 
     if nth:
-        for i in range(nth):
+        for i in xrange(nth):
             if QVerts:
                 verts = QVerts
             derivVerts = []
-            for i in range(len(verts)-1):
+            for i in xrange(len(verts)-1):
                 derivVerts.append(verts[i+1] - verts[i])
             QVerts = derivVerts
     else:
@@ -160,7 +162,7 @@ def altitude(point1, point2, pointn):
 # iterate through verts
 def iterate(points, newVerts, error):
     new = []
-    for newIndex in range(len(newVerts)-1):
+    for newIndex in xrange(len(newVerts)-1):
         bigVert = 0
         alti_store = 0
         for i, point in enumerate(points[newVerts[newIndex]+1:newVerts[newIndex+1]]):
@@ -354,7 +356,7 @@ def fcurves_simplify(context, obj, options, fcurves):
                 newPoints.append(fcurve[v])
 
             #remove all points from curve first
-            for i in range(len(fcurve)-1,0,-1):
+            for i in xrange(len(fcurve)-1,0,-1):
                 fcurve_sel[fcurve_i].keyframe_points.remove(fcurve_sel[fcurve_i].keyframe_points[i])
             # put newPoints into fcurve
             for v in newPoints:
@@ -392,7 +394,7 @@ class GRAPH_OT_simplify(bpy.types.Operator):
     bl_idname = "graph.simplify"
     bl_label = "Simplifiy F-Curves"
     bl_description = "Simplify selected Curves"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     ## Properties
     opModes = [
@@ -487,7 +489,7 @@ class GRAPH_OT_simplify(bpy.types.Operator):
         fcurves_simplify(context, obj, options, self.fcurves)
 
         #print("-------END-------")
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 ###########################
 ##### Curves OPERATOR #####
@@ -497,7 +499,7 @@ class CURVE_OT_simplify(bpy.types.Operator):
     bl_idname = "curve.simplify"
     bl_label = "Simplifiy Curves"
     bl_description = "Simplify Curves"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     ## Properties
     opModes = [
@@ -607,7 +609,7 @@ class CURVE_OT_simplify(bpy.types.Operator):
         bpy.context.user_preferences.edit.use_global_undo = True
 
         #print("-------END-------")
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 #################################################
 #### REGISTER ###################################

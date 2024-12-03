@@ -173,7 +173,7 @@ def advancedRetargetToggle(self, context):
     enduser_obj = context.active_object
     performer_obj = [obj for obj in context.selected_objects if obj != enduser_obj]
     if enduser_obj is None or len(performer_obj) != 1:
-        print("Need active and selected armatures")
+        print "Need active and selected armatures"
         return
     else:
         performer_obj = performer_obj[0]
@@ -187,7 +187,7 @@ def toggleIKBone(self, context):
     #Update function for IK functionality. Is called when IK prop checkboxes are toggled.
     if self.IKRetarget:
         if not self.is_in_ik_chain:
-            print(self.name + " IK toggled ON!")
+            print self.name + " IK toggled ON!"
             ik = self.constraints.new('IK')
             #ik the whole chain up to the root, excluding
             chainLen = 0
@@ -203,7 +203,7 @@ def toggleIKBone(self, context):
                 if bone.is_in_ik_chain:
                     bone.IKRetarget = True
     else:
-        print(self.name + " IK toggled OFF!")
+        print self.name + " IK toggled OFF!"
         cnstrn_bones = []
         newChainLength = []
         if hasIKConstraint(self):
@@ -215,7 +215,7 @@ def toggleIKBone(self, context):
         if cnstrn_bones:
             # remove constraint, and update IK retarget for all parents of cnstrn_bone up to chain_len
             for i, cnstrn_bone in enumerate(cnstrn_bones):
-                print(cnstrn_bone.name)
+                print cnstrn_bone.name
                 if newChainLength:
                     ik = hasIKConstraint(cnstrn_bone)
                     ik.chain_count = newChainLength[i]
@@ -253,6 +253,7 @@ updateIKRetarget()
 '''
 
 
+from __future__ import absolute_import
 def hasIKConstraint(pose_bone):
     #utility function / predicate, returns True if given bone has IK constraint
     ik = [constraint for constraint in pose_bone.constraints if constraint.type == "IK"]
@@ -437,7 +438,7 @@ class OBJECT_OT_RetargetButton(bpy.types.Operator):
     """Retarget animation from selected armature to active armature"""
     bl_idname = "mocap.retarget"
     bl_label = "Retarget"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     def execute(self, context):
         scene = context.scene
@@ -446,18 +447,18 @@ class OBJECT_OT_RetargetButton(bpy.types.Operator):
         enduser_obj = context.active_object
         performer_obj = [obj for obj in context.selected_objects if obj != enduser_obj]
         if enduser_obj is None or len(performer_obj) != 1:
-            print("Need active and selected armatures")
+            print "Need active and selected armatures"
         else:
             performer_obj = performer_obj[0]
             s_frame, e_frame = performer_obj.animation_data.action.frame_range
             s_frame = int(s_frame)
             e_frame = int(e_frame)
         if retarget.isRigAdvanced(enduser_obj) and not enduser_obj.data.advancedRetarget:
-            print("Recommended to use Advanced Retargeting method")
+            print "Recommended to use Advanced Retargeting method"
             enduser_obj.data.advancedRetarget = True
         else:
             retarget.totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -480,7 +481,7 @@ class OBJECT_OT_SaveMappingButton(bpy.types.Operator):
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj][0]
         retarget.createDictionary(performer_obj.data, enduser_obj.data)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -503,7 +504,7 @@ class OBJECT_OT_LoadMappingButton(bpy.types.Operator):
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj][0]
         retarget.loadMapping(performer_obj.data, enduser_obj.data)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -529,13 +530,13 @@ class OBJECT_OT_SelectMapBoneButton(bpy.types.Operator):
         selectedBone = ""
         for bone in enduser_obj.data.bones:
             boneVis = bone.layers
-            for i in range(32):
+            for i in xrange(32):
                 if boneVis[i] and enduser_obj.data.layers[i]:
                     if bone.select:
                         selectedBone = bone.name
                         break
         performer_obj.data.bones[self.perf_bone].map = selectedBone
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -556,7 +557,7 @@ class OBJECT_OT_ConvertSamplesButton(bpy.types.Operator):
 
     def execute(self, context):
         mocap_tools.fcurves_simplify(context, context.active_object)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -572,7 +573,7 @@ class OBJECT_OT_LooperButton(bpy.types.Operator):
 
     def execute(self, context):
         mocap_tools.autoloop_anim()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -588,7 +589,7 @@ class OBJECT_OT_DenoiseButton(bpy.types.Operator):
     def execute(self, context):
         obj = context.active_object
         mocap_tools.denoise(obj, obj.animation_data.action.fcurves)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -606,7 +607,7 @@ class OBJECT_OT_LimitDOFButton(bpy.types.Operator):
     def execute(self, context):
         performer_obj = [obj for obj in context.selected_objects if obj != context.active_object][0]
         mocap_tools.limit_dof(context, performer_obj, context.active_object)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -627,7 +628,7 @@ class OBJECT_OT_RemoveLimitDOFButton(bpy.types.Operator):
 
     def execute(self, context):
         mocap_tools.limit_dof_toggle_off(context, context.active_object)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -646,7 +647,7 @@ class OBJECT_OT_RotateFixArmature(bpy.types.Operator):
 
     def execute(self, context):
         mocap_tools.rotate_fix_armature(context.active_object.data)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -665,7 +666,7 @@ class OBJECT_OT_ScaleFixArmature(bpy.types.Operator):
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj][0]
         mocap_tools.scale_fix_armature(performer_obj, enduser_obj)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -696,7 +697,7 @@ class MOCAP_OT_AddMocapFix(bpy.types.Operator):
         enduser_arm = enduser_obj.data
         new_mcon = enduser_arm.mocap_constraints.add()
         new_mcon.type = self.type
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -721,7 +722,7 @@ class OBJECT_OT_RemoveMocapConstraint(bpy.types.Operator):
             cons_obj = mocap_constraints.getConsObj(bone)
             mocap_constraints.removeConstraint(m_constraint, cons_obj)
         m_constraints.remove(self.constraint)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -737,7 +738,7 @@ class OBJECT_OT_BakeMocapConstraints(bpy.types.Operator):
 
     def execute(self, context):
         mocap_constraints.bakeConstraints(context)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -754,7 +755,7 @@ class OBJECT_OT_UnbakeMocapConstraints(bpy.types.Operator):
 
     def execute(self, context):
         mocap_constraints.unbakeConstraints(context)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -772,7 +773,7 @@ class OBJECT_OT_UpdateMocapConstraints(bpy.types.Operator):
 
     def execute(self, context):
         mocap_constraints.updateConstraints(context.active_object, context)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -790,7 +791,7 @@ class OBJECT_OT_GuessHierachyMapping(bpy.types.Operator):
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj][0]
         mocap_tools.guessMapping(performer_obj, enduser_obj)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -812,7 +813,7 @@ class OBJECT_OT_PathEditing(bpy.types.Operator):
     def execute(self, context):
         path = [obj for obj in context.selected_objects if obj != context.active_object][0]
         mocap_tools.path_editing(context, context.active_object, path)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -831,7 +832,7 @@ class OBJECT_OT_AnimationStitchingButton(bpy.types.Operator):
 
     def execute(self, context):
         mocap_tools.anim_stitch(context, context.active_object)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):
@@ -852,7 +853,7 @@ class OBJECT_OT_GuessAnimationStitchingButton(bpy.types.Operator):
 
     def execute(self, context):
         mocap_tools.guess_anim_stitch(context, context.active_object)
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     @classmethod
     def poll(cls, context):

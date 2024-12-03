@@ -18,6 +18,8 @@
 
 # <pep8-80 compliant>
 
+from __future__ import absolute_import
+from io import open
 bl_info = {
     "name": "UV Layout",
     "author": "Campbell Barton, Matt Ebb",
@@ -59,7 +61,7 @@ class ExportUVLayout(bpy.types.Operator):
 
     bl_idname = "uv.export_layout"
     bl_label = "Export UV Layout"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     filepath = StringProperty(
             subtype='FILE_PATH',
@@ -68,7 +70,7 @@ class ExportUVLayout(bpy.types.Operator):
             name="Check Existing",
             description="Check and warn on overwriting existing files",
             default=True,
-            options={'HIDDEN'},
+            options=set(['HIDDEN']),
             )
     export_all = BoolProperty(
             name="All UVs",
@@ -108,7 +110,7 @@ class ExportUVLayout(bpy.types.Operator):
             name="Tessellated UVs",
             description="Export tessellated UVs instead of polygons ones",
             default=False,
-            options={'HIDDEN'},  # As not working currently :/
+            options=set(['HIDDEN']),  # As not working currently :/
             )
 
     @classmethod
@@ -153,8 +155,8 @@ class ExportUVLayout(bpy.types.Operator):
 
             for i, p in enumerate(polys):
                 # context checks
-                if polys[i].select and local_image in {Ellipsis,
-                                                       uv_tex[i].image}:
+                if polys[i].select and local_image in set([Ellipsis,
+                                                       uv_tex[i].image]):
                     start = p.loop_start
                     end = start + p.loop_total
                     uvs = tuple((uv.uv[0], uv.uv[1])
@@ -210,7 +212,7 @@ class ExportUVLayout(bpy.types.Operator):
 
         file.close()
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def check(self, context):
         filepath = bpy.path.ensure_ext(self.filepath, "." + self.mode.lower())
@@ -226,7 +228,7 @@ class ExportUVLayout(bpy.types.Operator):
         self.filepath = os.path.splitext(bpy.data.filepath)[0]
         wm = context.window_manager
         wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return set(['RUNNING_MODAL'])
 
 
 def menu_func(self, context):

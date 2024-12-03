@@ -17,6 +17,8 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import absolute_import
+from itertools import izip
 bl_info = {
     "name": "Custom Normals Tools",
     "author": "Bastien Montagne (mont29)",
@@ -37,7 +39,7 @@ class MESH_OT_flip_custom_normals(bpy.types.Operator):
     """Flip active mesh's normals, including custom ones (only in Object mode)"""
     bl_idname = "mesh.flip_custom_normals"
     bl_label = "Flip Custom Normals"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     @classmethod
     def poll(cls, context):
@@ -58,7 +60,7 @@ class MESH_OT_flip_custom_normals(bpy.types.Operator):
 
         me = context.object.data
         if me.has_custom_normals:
-            clnors[:] = list(zip(*[(-n for n in clnors)] * 3))
+            clnors[:] = list(izip(*[(-n for n in clnors)] * 3))
             # We also have to take in account that the winding was reverted...
             for p in me.polygons:
                 ls = p.loop_start + 1
@@ -67,7 +69,7 @@ class MESH_OT_flip_custom_normals(bpy.types.Operator):
             me.normals_split_custom_set(clnors)
 
         context.scene.update()
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 def flip_custom_normals_draw_func(self, context):

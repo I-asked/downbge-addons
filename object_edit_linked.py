@@ -17,6 +17,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Edit Linked Library",
     "author": "Jason van Gumster (Fweeb), Bassam Kurdali, Pablo Vazquez",
@@ -45,7 +46,7 @@ settings = {
 def linked_file_check(context):
     if settings["linked_file"] != "":
         if os.path.samefile(settings["linked_file"], bpy.data.filepath):
-            print("Editing a linked library.")
+            print "Editing a linked library."
             bpy.ops.object.select_all(action='DESELECT')
             for ob_name in settings["linked_objects"]:
                 bpy.data.objects[ob_name].select = True  # XXX Assumes selected object is in the active scene
@@ -89,7 +90,7 @@ class EditLinked(bpy.types.Operator):
 
         if target.dupli_group and target.dupli_group.library:
             targetpath = target.dupli_group.library.filepath
-            settings["linked_objects"].extend({ob.name for ob in target.dupli_group.objects})
+            settings["linked_objects"].extend(set(ob.name for ob in target.dupli_group.objects))
         elif target.library:
             targetpath = target.library.filepath
             settings["linked_objects"].append(target.name)
@@ -99,13 +100,13 @@ class EditLinked(bpy.types.Operator):
             settings["linked_objects"].append(target.name)
 
         if targetpath:
-            print(target.name + " is linked to " + targetpath)
+            print target.name + " is linked to " + targetpath
 
             if self.use_autosave:
                 if not bpy.data.filepath:
                     # File is not saved on disk, better to abort!
-                    self.report({'ERROR'}, "Current file does not exist on disk, we cannot autosave it, aborting")
-                    return {'CANCELLED'}
+                    self.report(set(['ERROR']), "Current file does not exist on disk, we cannot autosave it, aborting")
+                    return set(['CANCELLED'])
                 bpy.ops.wm.save_mainfile()
 
             settings["original_file"] = bpy.data.filepath
@@ -116,18 +117,18 @@ class EditLinked(bpy.types.Operator):
                 try:
                     subprocess.Popen([bpy.app.binary_path, settings["linked_file"]])
                 except:
-                    print("Error on the new Blender instance")
+                    print "Error on the new Blender instance"
                     import traceback
                     traceback.print_exc()
             else:
                 bpy.ops.wm.open_mainfile(filepath=settings["linked_file"])
 
-            print("Opened linked file!")
+            print "Opened linked file!"
         else:
-            self.report({'WARNING'}, target.name + " is not linked")
-            print(target.name + " is not linked")
+            self.report(set(['WARNING']), target.name + " is not linked")
+            print target.name + " is not linked"
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class ReturnToOriginal(bpy.types.Operator):
@@ -152,8 +153,8 @@ class ReturnToOriginal(bpy.types.Operator):
 
         settings["original_file"] = ""
         settings["linked_objects"] = []
-        print("Back to the original!")
-        return {'FINISHED'}
+        print "Back to the original!"
+        return set(['FINISHED'])
 
 
 # UI

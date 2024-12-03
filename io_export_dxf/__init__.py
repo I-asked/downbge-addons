@@ -15,6 +15,7 @@
 #  All rights reserved.
 #  ***** GPL LICENSE BLOCK *****
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Export Autocad DXF Format (.dxf)",
     "author": "Remigiusz Fiedler (AKA migius), Vaclav Klecanda",

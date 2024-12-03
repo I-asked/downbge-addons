@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import division
+from __future__ import absolute_import
 bl_info = {
     "name": "Cell Fracture",
     "author": "ideasman42, phymec, Sergey Sharybin",
@@ -93,7 +95,7 @@ def main_object(scene, obj, level, **kw):
                                   type='ORIGIN_GEOMETRY', center='MEDIAN')
 
     if level == 0:
-        for level_sub in range(1, recursion + 1):
+        for level_sub in xrange(1, recursion + 1):
 
             objects_recurse_input = [(i, o) for i, o in enumerate(objects)]
 
@@ -101,13 +103,13 @@ def main_object(scene, obj, level, **kw):
                 from mathutils import Vector
                 if recursion_chance_select == 'RANDOM':
                     random.shuffle(objects_recurse_input)
-                elif recursion_chance_select in {'SIZE_MIN', 'SIZE_MAX'}:
+                elif recursion_chance_select in set(['SIZE_MIN', 'SIZE_MAX']):
                     objects_recurse_input.sort(key=lambda ob_pair:
                         (Vector(ob_pair[1].bound_box[0]) -
                          Vector(ob_pair[1].bound_box[6])).length_squared)
                     if recursion_chance_select == 'SIZE_MAX':
                         objects_recurse_input.reverse()
-                elif recursion_chance_select in {'CURSOR_MIN', 'CURSOR_MAX'}:
+                elif recursion_chance_select in set(['CURSOR_MIN', 'CURSOR_MAX']):
                     c = scene.cursor_location.copy()
                     objects_recurse_input.sort(key=lambda ob_pair:
                         (ob_pair[1].location - c).length_squared)
@@ -210,7 +212,7 @@ def main(context, **kw):
                 min_co = Vector((1000000.0, 1000000.0, 1000000.0))
                 max_co = -min_co
                 matrix = obj_cell.matrix_world
-                for i in range(0, 8):
+                for i in xrange(0, 8):
                     bb_vec = obj_cell.matrix_world * Vector(obj_cell.bound_box[i])
                     min_co[0] = min(bb_vec[0], min_co[0])
                     min_co[1] = min(bb_vec[1], min_co[1])
@@ -240,13 +242,13 @@ def main(context, **kw):
     else:
         assert(0)
 
-    print("Done! %d objects in %.4f sec" % (len(objects), time.time() - t))
+    print "Done! %d objects in %.4f sec" % (len(objects), time.time() - t)
 
 
 class FractureCell(Operator):
     bl_idname = "object.add_fracture_cell_objects"
     bl_label = "Cell fracture selected mesh objects"
-    bl_options = {'PRESET'}
+    bl_options = set(['PRESET'])
 
     # -------------------------------------------------------------------------
     # Source Options
@@ -260,8 +262,8 @@ class FractureCell(Operator):
                                                           "child objects")),
                    ('PENCIL', "Grease Pencil", "This object's grease pencil"),
                    ),
-            options={'ENUM_FLAG'},
-            default={'PARTICLE_OWN'},
+            options=set(['ENUM_FLAG']),
+            default=set(['PARTICLE_OWN']),
             )
 
     source_limit = IntProperty(
@@ -463,11 +465,11 @@ class FractureCell(Operator):
 
         main(context, **keywords)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
     def invoke(self, context, event):
-        print(self.recursion_chance_select)
+        print self.recursion_chance_select
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=600)
 

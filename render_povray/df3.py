@@ -44,15 +44,18 @@
 #
 ################################################################################
 
+from __future__ import division
+from __future__ import absolute_import
 import struct
 import os
 import stat
 import array
 import sys
+from io import open
 
 # -+-+-+- Start df3 Class -+-+-+-
 
-class df3:
+class df3(object):
     __version__ = '0.2'
 
     __arraytype__ = 'f'
@@ -73,7 +76,7 @@ class df3:
 
     def clone(self, indf3):
         self.voxel = array.array(self.__arraytype__)
-        for i in range(indf3.sizeX()*indf3.sizeY()*indf3.sizeZ()):
+        for i in xrange(indf3.sizeX()*indf3.sizeY()*indf3.sizeZ()):
             self.voxel[i] = indf3.voxel[i]
         return self
 
@@ -120,13 +123,13 @@ class df3:
     #### Scalar Functions
 
     def mult(self, val):
-        for i in range(self.sizeX()*self.sizeY()*self.sizeZ()):
+        for i in xrange(self.sizeX()*self.sizeY()*self.sizeZ()):
             self.voxel[i] = self.voxel[i] * val
 
         return self
 
     def add(self, val):
-        for i in range(self.sizeX()*self.sizeY()*self.sizeZ()):
+        for i in xrange(self.sizeX()*self.sizeY()*self.sizeZ()):
             self.voxel[i] = self.voxel[i] + val
 
         return self
@@ -134,7 +137,7 @@ class df3:
     def max(self):
         tmp = self.voxel[0]
 
-        for i in range(self.sizeX()*self.sizeY()*self.sizeZ()):
+        for i in xrange(self.sizeX()*self.sizeY()*self.sizeZ()):
             if (self.voxel[i] > tmp):
                 tmp = self.voxel[i]
 
@@ -143,7 +146,7 @@ class df3:
     def min(self):
         tmp = self.voxel[0]
 
-        for i in range(self.sizeX()*self.sizeY()*self.sizeZ()):
+        for i in xrange(self.sizeX()*self.sizeY()*self.sizeZ()):
             if (self.voxel[i] < tmp):
                 tmp = self.voxel[i]
 
@@ -161,20 +164,20 @@ class df3:
 
     def multV(self, indf3):
         if (self.__samesize__(indf3) == 0):
-            print("Cannot multiply voxels - not same size")
+            print "Cannot multiply voxels - not same size"
             return
 
-        for i in range(self.sizeX()*self.sizeY()*self.sizeZ()):
+        for i in xrange(self.sizeX()*self.sizeY()*self.sizeZ()):
             self.voxel[i] = self.voxel[i]*indf3.voxel[i]
 
         return self
 
     def addV(self, indf3):
         if (self.__samesize__(indf3) == 0):
-            print("Cannot add voxels - not same size")
+            print "Cannot add voxels - not same size"
             return
 
-        for i in range(self.sizeX()*self.sizeY()*self.sizeZ()):
+        for i in xrange(self.sizeX()*self.sizeY()*self.sizeZ()):
             self.voxel[i] = self.voxel[i]+indf3.voxel[i]
 
         return self
@@ -184,13 +187,13 @@ class df3:
         fy = filt.sizeY()
         fz = filt.sizeZ()
         if (fx % 2 != 1):
-            print("Incompatible filter - must be odd number of X")
+            print "Incompatible filter - must be odd number of X"
             return self
         if (fy % 2 != 1):
-            print("Incompatible filter - must be odd number of Y")
+            print "Incompatible filter - must be odd number of Y"
             return self
         if (fz % 2 != 1):
-            print("Incompatible filter - must be odd number of Z")
+            print "Incompatible filter - must be odd number of Z"
             return self
 
         fdx = (fx-1)/2
@@ -200,12 +203,12 @@ class df3:
 
         newV = self.__create__(self.sizeX(), self.sizeY(), self.sizeZ());
 
-        for x in range(self.sizeX()):
-            for y in range(self.sizeY()):
-                for z in range(self.sizeZ()):
+        for x in xrange(self.sizeX()):
+            for y in xrange(self.sizeY()):
+                for z in xrange(self.sizeZ()):
                     rip = self.__rip__(x-fdx, x+fdx, y-fdy, y+fdy, z-fdz, z+fdz)
                     tmp = 0.0
-                    for i in range(flen):
+                    for i in xrange(flen):
                         tmp += rip[i]*filt.voxel[i]
                     newV[self.__voxa__(x,y,z)] = tmp
 
@@ -223,7 +226,7 @@ class df3:
         try:
             f = open(file, 'wb');
         except:
-            print("Could not open " + file + " for write");
+            print "Could not open " + file + " for write";
             return
 
         f.write(struct.pack(self.__struct2byte3__, x, y, z));
@@ -231,13 +234,13 @@ class df3:
         tmp = self.__toInteger__(pow(2,depth)-1, rescale)
 
         if (depth > 16): # 32-bit
-            for i in range( x*y*z ):
+            for i in xrange( x*y*z ):
                 f.write(struct.pack(self.__struct4byte__, tmp[i]))
         elif (depth > 8): # 16-bit
-            for i in range( x*y*z ):
+            for i in xrange( x*y*z ):
                 f.write(struct.pack(self.__struct2byte__, tmp[i]))
         else:
-            for i in range( x*y*z ):
+            for i in xrange( x*y*z ):
                 f.write(struct.pack(self.__struct1byte__, tmp[i]))
 
     def importDF3(self, file, scale=1):
@@ -246,7 +249,7 @@ class df3:
             size = os.stat(file)[stat.ST_SIZE]
 
         except:
-            print("Could not open " + file + " for read");
+            print "Could not open " + file + " for read";
             return []
 
         (x, y, z) = struct.unpack(self.__struct2byte3__, f.read(6) )
@@ -262,13 +265,13 @@ class df3:
         elif (size == 4*x*y*z): format = 32
 
         if (format == 32):
-            for i in range(x*y*z):
+            for i in xrange(x*y*z):
                 self.voxel[i] = float(struct.unpack(self.__struct4byte__, f.read(4) )[0])
         elif (format == 16):
-            for i in range(x*y*z):
+            for i in xrange(x*y*z):
                 self.voxel[i] = float(struct.unpack(self.__struct2byte__, f.read(2) )[0])
         elif (format == 8):
-            for i in range(x*y*z):
+            for i in xrange(x*y*z):
                 self.voxel[i] = float(struct.unpack(self.__struct1byte__, f.read(1) )[0])
 
         return self
@@ -282,9 +285,9 @@ class df3:
 
         tmpV = self.__create__(sizeX, sizeY, sizeZ)
 
-        for x in range(sizeX):
-            for y in range(sizeY):
-                for z in range(sizeZ):
+        for x in xrange(sizeX):
+            for y in xrange(sizeY):
+                for z in xrange(sizeZ):
                     # Check X
                     if ((minX + x) < 0):
                         tmpV[(z*sizeZ+y)*sizeY+x] = 0.0
@@ -322,9 +325,9 @@ class df3:
 
         if (init == 1):
             if tmp in ('f','d'):
-                voxel = array.array(tmp, [0.0 for i in range(x*y*z)])
+                voxel = array.array(tmp, [0.0 for i in xrange(x*y*z)])
             else:
-                voxel = array.array(tmp, [0 for i in range(x*y*z)])
+                voxel = array.array(tmp, [0 for i in xrange(x*y*z)])
         else:
             voxel = array.array(tmp)
 
@@ -340,9 +343,9 @@ class df3:
 
         maxVal = self.max()
 
-        print(scale)
+        print scale
 
-        for i in range(self.sizeX()*self.sizeY()*self.sizeZ()):
+        for i in xrange(self.sizeX()*self.sizeY()*self.sizeZ()):
             if (rescale == 1):
                 tmp[i] = max(0,int(round(scale*self.voxel[i]/maxVal)))
             else:

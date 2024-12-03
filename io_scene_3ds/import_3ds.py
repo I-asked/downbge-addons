@@ -21,12 +21,16 @@
 # Script copyright (C) Bob Holcomb
 # Contributors: Bob Holcomb, Richard L?rk?ng, Damien McGinnes, Campbell Barton, Mario Lapin, Dominique Lorre, Andreas Atteneder
 
+from __future__ import division
+from __future__ import absolute_import
 import os
 import time
 import struct
 
 import bpy
 import mathutils
+import sys
+from io import open
 
 BOUNDS_3DS = []
 
@@ -156,7 +160,7 @@ object_matrix = {}
 
 
 #the chunk class
-class chunk:
+class chunk(object):
     ID = 0
     length = 0
     bytes_read = 0
@@ -170,10 +174,10 @@ class chunk:
         self.bytes_read = 0
 
     def dump(self):
-        print('ID: ', self.ID)
-        print('ID in hex: ', hex(self.ID))
-        print('length: ', self.length)
-        print('bytes_read: ', self.bytes_read)
+        print 'ID: ', self.ID
+        print 'ID in hex: ', hex(self.ID)
+        print 'length: ', self.length
+        print 'bytes_read: ', self.bytes_read
 
 
 def read_chunk(file, chunk):
@@ -190,10 +194,10 @@ def read_chunk(file, chunk):
 
 def read_string(file):
     #read in the characters till we get a null character
-    s = b''
+    s = ''
     while True:
         c = struct.unpack('<c', file.read(1))[0]
-        if c == b'\x00':
+        if c == '\x00':
             break
         s += c
         #print 'string: ',s
@@ -225,8 +229,8 @@ def skip_to_end(file, skip_chunk):
 def add_texture_to_material(image, texture, scale, offset, extension, material, mapto):
     #print('assigning %s to %s' % (texture, material))
 
-    if mapto not in {'COLOR', 'SPECULARITY', 'ALPHA', 'NORMAL'}:
-        print('/tError:  Cannot map to "%s"\n\tassuming diffuse color. modify material "%s" later.' % (mapto, material.name))
+    if mapto not in set(['COLOR', 'SPECULARITY', 'ALPHA', 'NORMAL']):
+        print '/tError:  Cannot map to "%s"\n\tassuming diffuse color. modify material "%s" later.' % (mapto, material.name)
         mapto = "COLOR"
 
     if image:
@@ -309,7 +313,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             eekadoodle_faces = []
             for v1, v2, v3 in myContextMesh_facels:
                 eekadoodle_faces.extend((v3, v1, v2) if v3 == 0 else (v1, v2, v3))
-            bmesh.polygons.foreach_set("loop_start", range(0, nbr_faces * 3, 3))
+            bmesh.polygons.foreach_set("loop_start", xrange(0, nbr_faces * 3, 3))
             bmesh.polygons.foreach_set("loop_total", (3,) * nbr_faces)
             bmesh.loops.foreach_set("vertex_index", eekadoodle_faces)
 
@@ -328,7 +332,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                     if bmat:
                         img = TEXTURE_DICT.get(bmat.name)
                     else:
-                        print("    warning: material %r not defined!" % matName)
+                        print "    warning: material %r not defined!" % matName
                         bmat = MATDICT[matName] = bpy.data.materials.new(matName)
                         img = None
 
@@ -429,7 +433,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                     extension = 'decal'
 
             elif temp_chunk.ID == MAT_MAP_ANG:
-                print("\nwarning: ignoring UV rotation")
+                print "\nwarning: ignoring UV rotation"
 
             skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
@@ -459,7 +463,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             new_chunk.bytes_read += 4  # read the 4 bytes for the version number
             #this loader works with version 3 and below, but may not with 4 and above
             if version > 3:
-                print('\tNon-Fatal Error:  Version greater than 3, may not load correctly: ', version)
+                print '\tNon-Fatal Error:  Version greater than 3, may not load correctly: ', version
 
         #is it an object info chunk?
         elif new_chunk.ID == OBJECTINFO:
@@ -588,7 +592,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                 temp_chunk.bytes_read += STRUCT_SIZE_FLOAT
                 contextMaterial.alpha = 1 - float(struct.unpack('f', temp_data)[0])
             else:
-                print( "Cannot read material transparency")
+                print "Cannot read material transparency"
 
             new_chunk.bytes_read += temp_chunk.bytes_read
 
@@ -645,7 +649,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             temp_data = file.read(STRUCT_SIZE_4UNSIGNED_SHORT * num_faces)
             new_chunk.bytes_read += STRUCT_SIZE_4UNSIGNED_SHORT * num_faces  # 4 short ints x 2 bytes each
             contextMesh_facels = struct.unpack('<%dH' % (num_faces * 4), temp_data)
-            contextMesh_facels = [contextMesh_facels[i - 3:i] for i in range(3, (num_faces * 4) + 3, 4)]
+            contextMesh_facels = [contextMesh_facels[i - 3:i] for i in xrange(3, (num_faces * 4) + 3, 4)]
 
         elif new_chunk.ID == OBJECT_MATERIAL:
             # print 'elif new_chunk.ID == OBJECT_MATERIAL:'
@@ -696,13 +700,13 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             pass
 
         # including these here means their EK_OB_NODE_HEADER are scanned
-        elif new_chunk.ID in {ED_KEY_AMBIENT_NODE,
+        elif new_chunk.ID in set([ED_KEY_AMBIENT_NODE,
                                ED_KEY_OBJECT_NODE,
                                ED_KEY_CAMERA_NODE,
                                ED_KEY_TARGET_NODE,
                                ED_KEY_LIGHT_NODE,
                                ED_KEY_L_TARGET_NODE,
-                               ED_KEY_SPOTLIGHT_NODE}:  # another object is being processed
+                               ED_KEY_SPOTLIGHT_NODE]):  # another object is being processed
             child = None
 
         elif new_chunk.ID == EK_OB_NODE_HEADER:
@@ -746,7 +750,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             nkeys = struct.unpack('<H', temp_data)[0]
             temp_data = file.read(STRUCT_SIZE_UNSIGNED_SHORT)
             new_chunk.bytes_read += STRUCT_SIZE_UNSIGNED_SHORT * 2
-            for i in range(nkeys):
+            for i in xrange(nkeys):
                 temp_data = file.read(STRUCT_SIZE_UNSIGNED_SHORT)
                 nframe = struct.unpack('<H', temp_data)[0]
                 new_chunk.bytes_read += STRUCT_SIZE_UNSIGNED_SHORT
@@ -765,7 +769,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             nkeys = struct.unpack('<H', temp_data)[0]
             temp_data = file.read(STRUCT_SIZE_UNSIGNED_SHORT)
             new_chunk.bytes_read += STRUCT_SIZE_UNSIGNED_SHORT * 2
-            for i in range(nkeys):
+            for i in xrange(nkeys):
                 temp_data = file.read(STRUCT_SIZE_UNSIGNED_SHORT)
                 nframe = struct.unpack('<H', temp_data)[0]
                 new_chunk.bytes_read += STRUCT_SIZE_UNSIGNED_SHORT
@@ -784,7 +788,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             nkeys = struct.unpack('<H', temp_data)[0]
             temp_data = file.read(STRUCT_SIZE_UNSIGNED_SHORT)
             new_chunk.bytes_read += STRUCT_SIZE_UNSIGNED_SHORT * 2
-            for i in range(nkeys):
+            for i in xrange(nkeys):
                 temp_data = file.read(STRUCT_SIZE_UNSIGNED_SHORT)
                 nframe = struct.unpack('<H', temp_data)[0]
                 new_chunk.bytes_read += STRUCT_SIZE_UNSIGNED_SHORT
@@ -848,7 +852,7 @@ def load_3ds(filepath,
 # 	if BPyMessages.Error_NoFile(filepath):
 # 		return
 
-    print("importing 3DS: %r..." % (filepath), end="")
+    print "importing 3DS: %r..." % (filepath),; sys.stdout.write("")
 
     if bpy.ops.object.select_all.poll():
         bpy.ops.object.select_all(action='DESELECT')
@@ -864,7 +868,7 @@ def load_3ds(filepath,
     # print 'reading the first chunk'
     read_chunk(file, current_chunk)
     if current_chunk.ID != PRIMARY:
-        print('\tFatal Error:  Not a valid 3ds file: %r' % filepath)
+        print '\tFatal Error:  Not a valid 3ds file: %r' % filepath
         file.close()
         return
 
@@ -969,7 +973,7 @@ def load_3ds(filepath,
                 obj.matrix_world = scale_mat * obj.matrix_world
 
     # Select all new objects.
-    print(" done in %.4f sec." % (time.clock() - time1))
+    print " done in %.4f sec." % (time.clock() - time1)
     file.close()
 
 
@@ -990,4 +994,4 @@ def load(operator,
              global_matrix=global_matrix,
              )
 
-    return {'FINISHED'}
+    return set(['FINISHED'])

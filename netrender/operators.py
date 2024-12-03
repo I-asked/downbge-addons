@@ -16,9 +16,12 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import with_statement
+from __future__ import absolute_import
 import bpy
 import os
-import http, http.client, http.server
+import http, httplib
+import CGIHTTPServer, SimpleHTTPServer, BaseHTTPServer
 import webbrowser
 import json
 
@@ -48,11 +51,11 @@ class RENDER_OT_netclientsendbake(bpy.types.Operator):
                 # Sending file
                 client.sendJobBaking(conn, scene)
                 conn.close()
-                self.report({'INFO'}, "Job sent to master")
-        except Exception as err:
-            self.report({'ERROR'}, str(err))
+                self.report(set(['INFO']), "Job sent to master")
+        except Exception, err:
+            self.report(set(['ERROR']), str(err))
             
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -79,7 +82,7 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
 
         bpy.ops.render.render('INVOKE_AREA', animation=True)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -96,7 +99,7 @@ class RENDER_OT_netclientrun(bpy.types.Operator):
     def execute(self, context):
         bpy.ops.render.render('INVOKE_AREA', animation=True)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -121,12 +124,12 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
                 # Sending file
                 scene.network_render.job_id = client.sendJob(conn, scene, True)
                 conn.close()
-                self.report({'INFO'}, "Job sent to master")
-        except Exception as err:
-            self.report({'ERROR'}, str(err))
+                self.report(set(['INFO']), "Job sent to master")
+        except Exception, err:
+            self.report(set(['ERROR']), str(err))
 
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -151,12 +154,12 @@ class RENDER_OT_netclientsendframe(bpy.types.Operator):
                 # Sending file
                 scene.network_render.job_id = client.sendJob(conn, scene, False)
                 conn.close()
-                self.report({'INFO'}, "Job sent to master")
-        except Exception as err:
-            self.report({'ERROR'}, str(err))
+                self.report(set(['INFO']), "Job sent to master")
+        except Exception, err:
+            self.report(set(['ERROR']), str(err))
 
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -179,7 +182,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
                 conn.request("GET", "/status")
             response = conn.getresponse()
             content = response.read()
-            print( response.status, response.reason )
+            print response.status, response.reason
 
             jobs = (netrender.model.RenderJob.materialize(j) for j in json.loads(str(content, encoding='utf8')))
 
@@ -197,7 +200,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 
                 job.name = j.name
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -227,7 +230,7 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
             netsettings.slaves.remove(netsettings.active_slave_index)
             netsettings.active_slave_index = -1
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -257,7 +260,7 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
             netsettings.slaves_blacklist.remove(netsettings.active_blacklisted_slave_index)
             netsettings.active_blacklisted_slave_index = -1
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -281,7 +284,7 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
                 conn.request("GET", "/slaves")
             response = conn.getresponse()
             content = response.read()
-            print( response.status, response.reason )
+            print response.status, response.reason
 
             slaves = (netrender.model.RenderSlave.materialize(s) for s in json.loads(str(content, encoding='utf8')))
 
@@ -294,7 +297,7 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
             netrender.slaves = []
 
             for s in slaves:
-                for i in range(len(netrender.blacklist)):
+                for i in xrange(len(netrender.blacklist)):
                     slave = netrender.blacklist[i]
                     if slave.id == s.id:
                         netrender.blacklist[i] = s
@@ -309,7 +312,7 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
                     slave = netsettings.slaves[-1]
                     slave.name = s.name
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -335,11 +338,11 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
                 conn.request("POST", cancelURL(job.id), json.dumps({'clear':False}))
             response = conn.getresponse()
             response.read()
-            print( response.status, response.reason )
+            print response.status, response.reason
 
             netsettings.jobs.remove(netsettings.active_job_index)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -362,12 +365,12 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
                 conn.request("POST", "/clear", json.dumps({'clear':False}))
             response = conn.getresponse()
             response.read()
-            print( response.status, response.reason )
+            print response.status, response.reason
 
             while(len(netsettings.jobs) > 0):
                 netsettings.jobs.remove(0)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -394,9 +397,9 @@ class netclientdownload(bpy.types.Operator):
                 conn.request("GET", "/status", headers={"job-id":job_id})
             response = conn.getresponse()
         
-            if response.status != http.client.OK:
-                self.report({'ERROR'}, "Job ID %i not defined on master" % job_id)
-                return {'ERROR'}
+            if response.status != httplib.OK:
+                self.report(set(['ERROR']), "Job ID %i not defined on master" % job_id)
+                return set(['ERROR'])
             
             content = response.read()
     
@@ -418,15 +421,15 @@ class netclientdownload(bpy.types.Operator):
                     nb_missing += 1
             
             if not finished_frames:
-                self.report({'ERROR'}, "Job doesn't have any finished frames")
-                return {'ERROR'}
+                self.report(set(['ERROR']), "Job doesn't have any finished frames")
+                return set(['ERROR'])
             
             frame_ranges = []
     
             first = None
             last = None
             
-            for i in range(len(finished_frames)):
+            for i in xrange(len(finished_frames)):
                 current = finished_frames[i]
                 
                 if not first:
@@ -447,15 +450,15 @@ class netclientdownload(bpy.types.Operator):
             getResults(netsettings.server_address, netsettings.server_port, job_id, job.resolution[0], job.resolution[1], job.resolution[2], frame_ranges)
             
             if nb_error and nb_missing:
-                self.report({'ERROR'}, "Results downloaded but skipped %i frames with errors and %i unfinished frames" % (nb_error, nb_missing))
+                self.report(set(['ERROR']), "Results downloaded but skipped %i frames with errors and %i unfinished frames" % (nb_error, nb_missing))
             elif nb_error:
-                self.report({'ERROR'}, "Results downloaded but skipped %i frames with errors" % nb_error)
+                self.report(set(['ERROR']), "Results downloaded but skipped %i frames with errors" % nb_error)
             elif nb_missing:
-                self.report({'WARNING'}, "Results downloaded but skipped %i unfinished frames" % nb_missing)
+                self.report(set(['WARNING']), "Results downloaded but skipped %i unfinished frames" % nb_missing)
             else:
-                self.report({'INFO'}, "All results downloaded")
+                self.report(set(['INFO']), "All results downloaded")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -479,7 +482,7 @@ class netclientscan(bpy.types.Operator):
             netsettings.server_port = port
             netrender.valid_address = True
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -510,7 +513,7 @@ class netclientvcsguess(bpy.types.Operator):
             
         
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -539,7 +542,7 @@ class netclientweb(bpy.types.Operator):
                webbrowser.open("https://%s:%i" % (netsettings.server_address, netsettings.server_port))
             else:
                webbrowser.open("http://%s:%i" % (netsettings.server_address, netsettings.server_port)) 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
     def invoke(self, context, event):
         return self.execute(context)

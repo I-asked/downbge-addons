@@ -16,8 +16,12 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import with_statement
+from __future__ import absolute_import
 import sys, os, re, platform
-import http, http.client, http.server, socket
+import http, httplib, socket
+from io import open
+import CGIHTTPServer, SimpleHTTPServer, BaseHTTPServer
 import subprocess, time, hashlib
 
 import netrender, netrender.model
@@ -28,7 +32,7 @@ try:
 except:
   bpy = None
 
-VERSION = bytes(".".join((str(n) for n in netrender.bl_info["version"])), encoding='utf8')
+VERSION =str(".".join((str(n) for n in netrender.bl_info["version"]))).encode('utf8')
 
 try:
     system = platform.system()
@@ -38,7 +42,7 @@ except UnicodeDecodeError:
 
 
 if system == "Darwin":
-    class ConnectionContext:
+    class ConnectionContext(object):
         def __init__(self, timeout = None):
             self.old_timeout = socket.getdefaulttimeout()
             self.timeout = timeout
@@ -51,7 +55,7 @@ if system == "Darwin":
                 socket.setdefaulttimeout(self.old_timeout)
 else:
     # On sane OSes we can use the connection timeout value correctly
-    class ConnectionContext:
+    class ConnectionContext(object):
         def __init__(self, timeout = None):
             pass
             
@@ -61,9 +65,9 @@ else:
         def __exit__(self, exc_type, exc_value, traceback):
             pass
 
-if system in {'Windows', 'win32'} and platform.version() >= '5': # Error mode is only available on Win2k or higher, that's version 5
+if system in set(['Windows', 'win32']) and platform.version() >= '5': # Error mode is only available on Win2k or higher, that's version 5
     import ctypes
-    class NoErrorDialogContext:
+    class NoErrorDialogContext(object):
         def __init__(self):
             self.val = 0
             
@@ -74,7 +78,7 @@ if system in {'Windows', 'win32'} and platform.version() >= '5': # Error mode is
         def __exit__(self, exc_type, exc_value, traceback):
             ctypes.windll.kernel32.SetErrorMode(self.val)
 else:
-    class NoErrorDialogContext:
+    class NoErrorDialogContext(object):
         def __init__(self):
             pass
             
@@ -84,7 +88,7 @@ else:
         def __exit__(self, exc_type, exc_value, traceback):
             pass
 
-class DirectoryContext:
+class DirectoryContext(object):
     def __init__(self, path):
         self.path = path
         
@@ -95,7 +99,7 @@ class DirectoryContext:
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.curdir)
 
-class BreakableIncrementedSleep:
+class BreakableIncrementedSleep(object):
     def __init__(self, increment, default_timeout, max_timeout, break_fct):
         self.increment = increment
         self.default = default_timeout
@@ -110,7 +114,7 @@ class BreakableIncrementedSleep:
         self.current = min(self.current + self.increment, self.max)
         
     def sleep(self):
-        for i in range(self.current):
+        for i in xrange(self.current):
             time.sleep(1)
             if self.break_fct():
                 break
@@ -131,7 +135,7 @@ def reporting(report, message, errorType = None):
         t = 'INFO'
 
     if report:
-        report({t}, message)
+        report(set([t]), message)
         return None
     elif errorType:
         raise errorType(message)
@@ -177,7 +181,7 @@ def clientConnection(netsettings, report = None, scan = True, timeout = 5):
             return None
     conn = None
     try:
-        HTTPConnection = http.client.HTTPSConnection if use_ssl else http.client.HTTPConnection
+        HTTPConnection = httplib.HTTPSConnection if use_ssl else httplib.HTTPConnection
         if platform.system() == "Darwin":
             with ConnectionContext(timeout):
                 conn = HTTPConnection(address, port)
@@ -190,12 +194,12 @@ def clientConnection(netsettings, report = None, scan = True, timeout = 5):
             else:
                 conn.close()
                 reporting(report, "Incorrect master version", ValueError)
-    except BaseException as err:
+    except BaseException, err:
         if report:
-            report({'ERROR'}, str(err))
+            report(set(['ERROR']), str(err))
             return None
         else:
-            print(err)
+            print err
             return None
 
 def clientVerifyVersion(conn, timeout):
@@ -203,15 +207,15 @@ def clientVerifyVersion(conn, timeout):
         conn.request("GET", "/version")
     response = conn.getresponse()
 
-    if response.status != http.client.OK:
+    if response.status != httplib.OK:
         conn.close()
         return False
 
     server_version = response.read()
 
     if server_version != VERSION:
-        print("Incorrect server version!")
-        print("expected", str(VERSION, encoding='utf8'), "received", str(server_version, encoding='utf8'))
+        print "Incorrect server version!"
+        print "expected", str(VERSION, encoding='utf8'), "received", str(server_version, encoding='utf8')
         return False
 
     return True
@@ -249,13 +253,13 @@ def verifyCreateDir(directory_path):
     if not os.path.exists(directory_path):
         try:
             os.makedirs(directory_path)
-            print("Created directory:", directory_path)
+            print "Created directory:", directory_path
             if original_path != directory_path:
-                print("Expanded from the following path:", original_path)
+                print "Expanded from the following path:", original_path
         except:
-            print("Couldn't create directory:", directory_path)
+            print "Couldn't create directory:", directory_path
             if original_path != directory_path:
-                print("Expanded from the following path:", original_path)
+                print "Expanded from the following path:", original_path
             raise
     
 
@@ -346,8 +350,8 @@ def createLocalPath(rfile, prefixdirectory, prefixpath, forcelocal):
 
 def getResults(server_address, server_port, job_id, resolution_x, resolution_y, resolution_percentage, frame_ranges):
     if bpy.app.debug:
-        print("=============================================")
-        print("============= FETCHING RESULTS ==============")
+        print "============================================="
+        print "============= FETCHING RESULTS =============="
 
     frame_arguments = []
     for r in frame_ranges:
@@ -379,25 +383,25 @@ def getResults(server_address, server_port, job_id, resolution_x, resolution_y, 
          ]
         )
     if bpy.app.debug:
-        print("Starting subprocess:")
-        print(" ".join(arguments))
+        print "Starting subprocess:"
+        print " ".join(arguments)
 
     process = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     while process.poll() is None:
         stdout = process.stdout.read(1024)
         if bpy.app.debug:
-            print(str(stdout, encoding='utf-8'), end="")
+            print str(stdout, encoding='utf-8'),; sys.stdout.write("")
         
 
     # read leftovers if needed
     stdout = process.stdout.read()
     if bpy.app.debug:
-        print(str(stdout, encoding='utf-8'))
+        print str(stdout, encoding='utf-8')
     
     os.remove(filepath)
     
     if bpy.app.debug:
-        print("=============================================")
+        print "============================================="
     return
 
 def _getResults(server_address, server_port, job_id, resolution_x, resolution_y, resolution_percentage):
@@ -433,7 +437,7 @@ def getFileInfo(filepath, infos):
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         )
-    stdout = bytes()
+    stdout = str()
     while process.poll() is None:
         stdout += process.stdout.read(1024)
 
@@ -452,10 +456,11 @@ if __name__ == "__main__":
         start = sys.argv.index("--") + 1
     except ValueError:
         start = 0
-    action, *args = sys.argv[start:]
+    _3to2list = list(sys.argv[start:])
+action, args, = _3to2list[:1] + [_3to2list[1:]]
     
     if action == "FileInfo": 
         for info in args:
-            print("$", eval(info))
+            print "$", eval(info)
     elif action == "GetResults":
         _getResults(args[0], args[1], args[2], args[3], args[4], args[5])

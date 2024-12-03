@@ -22,6 +22,8 @@
 Also, vector file representation (Art).
 """
 
+from __future__ import division
+from __future__ import absolute_import
 __author__ = "howard.trickey@gmail.com"
 
 import math
@@ -102,7 +104,7 @@ class Points(object):
         """
 
         vmap = [0] * len(points.pos)
-        for i in range(len(points.pos)):
+        for i in xrange(len(points.pos)):
             vmap[i] = self.AddPoint(points.pos[i], allowdups)
         return vmap
 
@@ -199,7 +201,7 @@ class PolyArea(object):
         pos = self.points.pos
         poly = self.poly
         if len(pos) == 0 or len(pos[0]) == 2 or len(poly) == 0:
-            print("whoops, not enough info to calculate normal")
+            print "whoops, not enough info to calculate normal"
             return (0.0, 0.0, 1.0)
         return Newell(poly, self.points)
 
@@ -224,18 +226,18 @@ class PolyAreas(object):
         if len(self.points.pos) == 0:
             return
         (minv, maxv) = self.bounds()
-        maxside = max([maxv[i] - minv[i] for i in range(2)])
+        maxside = max([maxv[i] - minv[i] for i in xrange(2)])
         if maxside > 0.0:
             scale = scaled_side_target / maxside
         else:
             scale = 1.0
-        translate = [-0.5 * (maxv[i] + minv[i]) for i in range(2)]
+        translate = [-0.5 * (maxv[i] + minv[i]) for i in xrange(2)]
         dim = len(self.points.pos[0])
         if dim == 3:
             translate.append([0.0])
-        for v in range(len(self.points.pos)):
+        for v in xrange(len(self.points.pos)):
             self.points.pos[v] = tuple([scale * (self.points.pos[v][i] + \
-                translate[i]) for i in range(dim)])
+                translate[i]) for i in xrange(dim)])
 
     def bounds(self):
         """Find bounding box of polyareas in xy.
@@ -251,7 +253,7 @@ class PolyAreas(object):
             for face in [pa.poly] + pa.holes:
                 for v in face:
                     vcoords = self.points.pos[v]
-                    for i in range(2):
+                    for i in xrange(2):
                         if vcoords[i] < minv[i]:
                             minv[i] = vcoords[i]
                         if vcoords[i] > maxv[i]:
@@ -524,7 +526,7 @@ def ApproxEqualPoints(p, q):
       bool - True if the 1-norm <= DISTTOL
     """
 
-    for i in range(len(p)):
+    for i in xrange(len(p)):
         if abs(p[i] - q[i]) > DISTTOL:
             return False
         return True
@@ -551,7 +553,7 @@ def PointInside(v, a, points):
     yflag0 = y0 > yv
     inside = False
     n = len(a)
-    for i in range(0, n):
+    for i in xrange(0, n):
         vi = points.pos[a[i]]
         (x1, y1) = (vi[0], vi[1])
         if x1 == xv and y1 == yv:
@@ -588,7 +590,7 @@ def SignedArea(polygon, points):
 
     a = 0.0
     n = len(polygon)
-    for i in range(0, n):
+    for i in xrange(0, n):
         u = points.pos[polygon[i]]
         v = points.pos[polygon[(i + 1) % n]]
         a += u[0] * v[1] - u[1] * v[0]
@@ -607,7 +609,7 @@ def VecAdd(a, b):
 
     n = len(a)
     assert(n == len(b))
-    return tuple([a[i] + b[i] for i in range(n)])
+    return tuple([a[i] + b[i] for i in xrange(n)])
 
 
 def VecSub(a, b):
@@ -622,7 +624,7 @@ def VecSub(a, b):
 
     n = len(a)
     assert(n == len(b))
-    return tuple([a[i] - b[i] for i in range(n)])
+    return tuple([a[i] - b[i] for i in xrange(n)])
 
 
 def VecDot(a, b):
@@ -638,7 +640,7 @@ def VecDot(a, b):
     n = len(a)
     assert(n == len(b))
     sum = 0.0
-    for i in range(n):
+    for i in xrange(n):
         sum += a[i] * b[i]
     return sum
 

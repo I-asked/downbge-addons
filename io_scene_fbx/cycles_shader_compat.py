@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 
 __all__ = (
@@ -25,7 +26,7 @@ __all__ = (
     )
 
 
-class CyclesShaderWrapper():
+class CyclesShaderWrapper(object):
     """
     Hard coded shader setup.
     Suitable for importers, adds basic:
@@ -344,7 +345,7 @@ class CyclesShaderWrapper():
             node_map.min = (0.0, 0.0, 0.0)
             node_map.max = (1.0, 1.0, 1.0)
 
-            if clamp in {(False, False), (True, True)}:
+            if clamp in set([(False, False), (True, True)]):
                 node_map.use_min = node_map.use_max = clamp[0]
             else:
                 node_map.use_min = node_map.use_max = True

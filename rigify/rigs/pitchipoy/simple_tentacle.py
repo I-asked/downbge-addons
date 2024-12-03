@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import bpy
 from ...utils    import copy_bone
 from ...utils    import strip_org, make_deformer_name, connected_children_names
@@ -5,8 +6,9 @@ from ...utils    import make_mechanism_name, put_bone, create_sphere_widget
 from ...utils    import create_widget, create_circle_widget
 from ...utils    import MetarigError
 from rna_prop_ui import rna_idprop_ui_prop_get
+from itertools import izip
 
-class Rig:
+class Rig(object):
     
     def __init__(self, obj, bone_name, params):
         self.obj = obj
@@ -32,7 +34,7 @@ class Rig:
         org_bones = self.org_bones
 
         ctrl_chain = []
-        for i in range( len( org_bones ) ):
+        for i in xrange( len( org_bones ) ):
             name = org_bones[i]
 
             ctrl_bone  = copy_bone(
@@ -59,7 +61,7 @@ class Rig:
         org_bones = self.org_bones
 
         tweak_chain = []
-        for i in range( len( org_bones ) + 1 ):
+        for i in xrange( len( org_bones ) + 1 ):
             if i == len( org_bones ):
                 # Make final tweak at the tip of the tentacle
                 name = org_bones[i-1]
@@ -112,7 +114,7 @@ class Rig:
         org_bones = self.org_bones
 
         def_chain = []
-        for i in range( len( org_bones ) ):
+        for i in xrange( len( org_bones ) ):
             name = org_bones[i]
 
             def_bone  = copy_bone(
@@ -156,7 +158,7 @@ class Rig:
             eb[ bone ].use_connect = True
 
         # Parent org bones ( to tweaks by default, or to the controls )
-        for org, tweak in zip( org_bones, all_bones['tweak'] ):
+        for org, tweak in izip( org_bones, all_bones['tweak'] ):
             eb[ org ].parent = eb[ tweak ]                
         
     
@@ -171,7 +173,7 @@ class Rig:
         tweaks  = all_bones['tweak'  ]
         deforms = all_bones['deform' ]
 
-        for deform, tweak, ctrl in zip( deforms, tweaks, ctrls ):
+        for deform, tweak, ctrl in izip( deforms, tweaks, ctrls ):
             con           = pb[deform].constraints.new('COPY_TRANSFORMS')
             con.target    = self.obj
             con.subtarget = tweak
@@ -231,7 +233,7 @@ def add_parameters(params):
     params.copy_rotaion_axes = bpy.props.BoolVectorProperty(
         size        = 3,
         description = "Layers for the tweak controls to be on",
-        default     = tuple( [ i == 0 for i in range(0, 3) ] )
+        default     = tuple( [ i == 0 for i in xrange(0, 3) ] )
         )
     
     # Setting up extra tweak layers
@@ -244,7 +246,7 @@ def add_parameters(params):
     params.tweak_layers = bpy.props.BoolVectorProperty(
         size        = 32,
         description = "Layers for the tweak controls to be on",
-        default     = tuple( [ i == 1 for i in range(0, 32) ] )
+        default     = tuple( [ i == 1 for i in xrange(0, 32) ] )
         )
 
 
@@ -265,23 +267,23 @@ def parameters_ui(layout, params):
     col = r.column(align=True)
     row = col.row(align=True)
 
-    for i in range( 8 ): # Layers 0-7
+    for i in xrange( 8 ): # Layers 0-7
         row.prop(params, "tweak_layers", index=i, toggle=True, text="")
 
     row = col.row(align=True)
 
-    for i in range( 16, 24 ): # Layers 16-23
+    for i in xrange( 16, 24 ): # Layers 16-23
         row.prop(params, "tweak_layers", index=i, toggle=True, text="")    
     
     col = r.column(align=True)
     row = col.row(align=True)
 
-    for i in range( 8, 16 ): # Layers 8-15
+    for i in xrange( 8, 16 ): # Layers 8-15
         row.prop(params, "tweak_layers", index=i, toggle=True, text="")    
 
     row = col.row(align=True)
 
-    for i in range( 24, 32 ): # Layers 24-31
+    for i in xrange( 24, 32 ): # Layers 24-31
         row.prop(params, "tweak_layers", index=i, toggle=True, text="")
  
 def create_sample(obj):

@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 
 def create(obj):
@@ -25,7 +26,7 @@ def create(obj):
     bpy.ops.object.mode_set(mode='EDIT')
     arm = obj.data
 
-    for i in range(28):
+    for i in xrange(28):
         arm.rigify_layers.add()
 
     arm.rigify_layers[0].name = "head"
@@ -1194,7 +1195,7 @@ def create(obj):
         bone.select_tail = True
         arm.edit_bones.active = bone
 
-    arm.layers = [(x in [0, 2, 4, 6, 9, 12, 15]) for x in range(32)]
+    arm.layers = [(x in [0, 2, 4, 6, 9, 12, 15]) for x in xrange(32)]
 
 if __name__ == "__main__":
     create(bpy.context.active_object)

@@ -23,7 +23,10 @@ This is a pure python module (no blender deps),
 that parses EDL files and could be used outside of blender.
 """
 
-class TimeCode:
+from __future__ import division
+from itertools import ifilter
+from io import open
+class TimeCode(object):
     """
     Simple timecode class
     also supports conversion from other time strings used by EDL
@@ -65,7 +68,7 @@ class TimeCode:
             self.frame = int(text[3])
             return self
         else:
-            print("ERROR: could not convert this into timecode %r" % text)
+            print "ERROR: could not convert this into timecode %r" % text
             return self
 
     def from_frame(self, frame):
@@ -248,12 +251,11 @@ enum += 1
 KEY_OUT = enum  # K O
 enum += 1
 
-BLACK_ID = {
+BLACK_ID = set([
     "bw",
     "bl",
     "blk",
-    "black",
-    }
+    "black",])
 
 
 """
@@ -274,7 +276,7 @@ t /= 2
 print t
 """
 
-class EditDecision:
+class EditDecision(object):
     __slots__ = (
         "number",
         "reel",
@@ -299,7 +301,7 @@ class EditDecision:
 
     @staticmethod
     def strip_digits(text):
-        return "".join(filter(lambda x: not x.isdigit(), text))
+        return "".join(ifilter(lambda x: not x.isdigit(), text))
 
     def __init__(self, text=None, fps=25):
         # print text
@@ -402,7 +404,7 @@ class EditDecision:
 
         index += 1
 
-        if self.transition_type in {TRANSITION_DISSOLVE, TRANSITION_EFFECT, TRANSITION_FADEIN, TRANSITION_FADEOUT, TRANSITION_WIPE}:
+        if self.transition_type in set([TRANSITION_DISSOLVE, TRANSITION_EFFECT, TRANSITION_FADEIN, TRANSITION_FADEOUT, TRANSITION_WIPE]):
             self.transition_duration = TimeCode(line[index], fps)
             index += 1
 
@@ -442,7 +444,7 @@ class EditDecision:
         return "%d_%s_%s" % (self.number, self.reel, cut_type)
 
 
-class M2:
+class M2(object):
     __slots__ = (
         "reel",
         "fps",
@@ -473,7 +475,7 @@ class M2:
         self.data = line
 
 
-class EditList:
+class EditList(object):
     __slots__ = (
         "edits",
         "title",
@@ -507,7 +509,7 @@ class EditList:
                 m2.read(line, fps)
                 edits_m2.append(m2)
             elif not line.split()[0].isdigit():
-                print("Ignoring:", line)
+                print "Ignoring:", line
             else:
                 self.edits.append(EditDecision(line, fps))
                 edits_m2.append(self.edits[-1])
@@ -548,7 +550,7 @@ class EditList:
                     # Note, docs say time should also match with edit start time
                     # but from final cut pro, this seems not to be the case
                     if not isinstance(edit, EditDecision):
-                        print("ERROR!", "M2 incorrect")
+                        print "ERROR!", "M2 incorrect"
                     else:
                         edit.m2 = item
 

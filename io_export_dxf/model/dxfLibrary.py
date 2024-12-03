@@ -1,5 +1,7 @@
 #dxfLibrary.py : provides functions for generating DXF files
 # --------------------------------------------------------------------------
+from __future__ import absolute_import
+from io import open
 __version__ = "v1.35 - 2010.06.23"
 __author__ = "Stani Michiels(Stani), Remigiusz Fiedler(migius)"
 __license__ = "GPL"
@@ -100,15 +102,15 @@ _HEADER_POINTS=['insbase','extmin','extmax']
 #---helper functions-----------------------------------
 def _point(x,index=0):
 	"""Convert tuple to a dxf point"""
-	return '\n'.join([' %s\n%s'%((i+1)*10+index,float(x[i])) for i in range(len(x))])
+	return '\n'.join([' %s\n%s'%((i+1)*10+index,float(x[i])) for i in xrange(len(x))])
 
 def _points(plist):
 	"""Convert a list of tuples to dxf points"""
-	out = '\n'.join([_point(plist[i],i)for i in range(len(plist))])
+	out = '\n'.join([_point(plist[i],i)for i in xrange(len(plist))])
 	return out
 
 #---base classes----------------------------------------
-class _Call:
+class _Call(object):
 	"""Makes a callable class."""
 	def copy(self):
 		"""Returns a copy."""
@@ -158,7 +160,7 @@ class _Entity(_Call):
 		return result
 
 #--------------------------
-class _Entities:
+class _Entities(object):
 	"""Base class to deal with composed objects."""
 	def __dxf__(self):
 		return []
@@ -870,7 +872,7 @@ class Rectangle(_Entity):
 		if self.solid:
 			result+= Solid(points=points[:-1],parent=self.solid)
 		if self.line:
-			for i in range(4):
+			for i in xrange(4):
 				result+= Line(points=[points[i],points[i+1]],parent=self)
 		return result[1:]
 
@@ -886,7 +888,7 @@ class LineList(_Entity):
 			points=self.points+[self.points[0]]
 		else: points=self.points
 		result=''
-		for i in range(len(points)-1):
+		for i in xrange(len(points)-1):
 			result+= Line(points=[points[i][0],points[i+1][0]],parent=self)
 		return result[1:]
 

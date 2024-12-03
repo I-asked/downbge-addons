@@ -20,6 +20,7 @@
 # liero, Kayo Phoenix, sugiany, dommetysk, Phymec, Anthony D'Agostino, Pablo Vazquez, Richard Wilks #
 # xyz presets by elfnor
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Extra Objects",
     "author": "Multiple Authors",

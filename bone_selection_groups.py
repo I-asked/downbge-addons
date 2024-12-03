@@ -16,6 +16,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Bone Selection Groups",
     "author": "Antony Riakiotakis",
@@ -100,7 +101,7 @@ class PluginOperator(Operator):
 class POSE_OT_selection_set_add(PluginOperator):
     bl_idname = "pose.selection_set_add"
     bl_label = "Add Selection Set"
-    bl_options = {'UNDO', 'REGISTER'}
+    bl_options = set(['UNDO', 'REGISTER'])
 
     def execute(self, context):
         keep = False
@@ -121,15 +122,15 @@ class POSE_OT_selection_set_add(PluginOperator):
             numsets = len(armature.selection_sets)
             if (armature.active_selection_set > (numsets - 1) and numsets > 0):
                 armature.active_selection_set = len(armature.selection_sets) - 1
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class POSE_OT_selection_set_remove(PluginOperator):
     bl_idname = "pose.selection_set_remove"
     bl_label = "Delete Selection Set"
-    bl_options = {'UNDO', 'REGISTER'}
+    bl_options = set(['UNDO', 'REGISTER'])
 
     def execute(self, context):
         armature = context.object
@@ -138,13 +139,13 @@ class POSE_OT_selection_set_remove(PluginOperator):
         numsets = len(armature.selection_sets)
         if (armature.active_selection_set > (numsets - 1) and numsets > 0):
             armature.active_selection_set = len(armature.selection_sets) - 1
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class POSE_OT_selection_set_toggle(PluginOperator):
     bl_idname = "pose.selection_set_toggle"
     bl_label = "Toggle Selection Set"
-    bl_options = {'UNDO', 'REGISTER'}
+    bl_options = set(['UNDO', 'REGISTER'])
 
     def execute(self, context):
         armature = context.object
@@ -157,13 +158,13 @@ class POSE_OT_selection_set_toggle(PluginOperator):
         for bone in selection_set.bone_ids:
             pose.bones[bone.name].bone.select = True
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class MotionPathsCopyStartFrame(Operator):
     bl_idname = "anim.motionpaths_copy_scene_startframe"
     bl_label = "Copy Scene Start Frame"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     armature_paths = BoolProperty()
 
@@ -195,9 +196,9 @@ class MotionPathsCopyStartFrame(Operator):
                 motionpath.frame_start = scene.frame_start
                 motionpath.frame_end = scene.frame_end
         else:
-            return {'CANCELLED'}
+            return set(['CANCELLED'])
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 classes = (

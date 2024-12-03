@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 
-class ArcEntity:
+class ArcEntity(object):
     """
     Used in convert.bulge_to_cubic() since bulges define how much a straight polyline segment should be transformed to
     an arc. ArcEntity is just used to call do.arc() without having a real Arc-Entity from dxfgrabber.
@@ -36,7 +36,7 @@ class ArcEntity:
                (str(self.startangle), str(self.endangle), str(self.center), str(self.radius), str(self.angdir))
 
 
-class LineEntity:
+class LineEntity(object):
     """
     Used in do._gen_meshface()
     """

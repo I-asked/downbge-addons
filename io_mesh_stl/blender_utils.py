@@ -18,9 +18,11 @@
 
 # <pep8 compliant>
 
+from __future__ import absolute_import
 import bpy
 import array
 from itertools import chain
+from itertools import izip
 
 
 def create_and_link_mesh(name, faces, face_nors, points, global_matrix):
@@ -36,7 +38,7 @@ def create_and_link_mesh(name, faces, face_nors, points, global_matrix):
         # Note: we store 'temp' normals in loops, since validate() may alter final mesh,
         #       we can only set custom lnors *after* calling it.
         mesh.create_normals_split()
-        lnors = tuple(chain(*chain(*zip(face_nors, face_nors, face_nors))))
+        lnors = tuple(chain(*chain(*izip(face_nors, face_nors, face_nors))))
         mesh.loops.foreach_set("normal", lnors)
 
     mesh.transform(global_matrix)
@@ -50,7 +52,7 @@ def create_and_link_mesh(name, faces, face_nors, points, global_matrix):
 
         mesh.polygons.foreach_set("use_smooth", [True] * len(mesh.polygons))
 
-        mesh.normals_split_custom_set(tuple(zip(*(iter(clnors),) * 3)))
+        mesh.normals_split_custom_set(tuple(izip(*(iter(clnors),) * 3)))
         mesh.use_auto_smooth = True
         mesh.show_edge_sharp = True
         mesh.free_normals_split()

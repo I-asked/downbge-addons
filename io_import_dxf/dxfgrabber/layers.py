@@ -3,6 +3,7 @@
 # Copyright (C) 2012, Manfred Moitzi
 # License: MIT License
 
+from __future__ import absolute_import
 __author__ = "mozman <mozman@gmx.at>"
 
 from .tags import TagGroups
@@ -88,8 +89,8 @@ class DXF12Layer(DXFEntity):
         'color': DXFAttr(62),  # dxf color index, if < 0 layer is off
         'linetype': DXFAttr(6),
         }))
-    LOCK = 0b00000100
-    FROZEN = 0b00000001
+    LOCK = __builtins__.long("00000100", 2)
+    FROZEN = __builtins__.long("00000001", 2)
 
     def is_frozen(self):
         return self.get_dxf_attrib('flags') & DXF12Layer.FROZEN > 0

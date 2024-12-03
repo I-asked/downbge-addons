@@ -31,8 +31,10 @@
 # Please send any fixes,updates,bugs to Slow67_at_Gmail.com
 # Bill Niewuendorp
 
+from __future__ import absolute_import
 import bpy
 from struct import unpack
+from io import open
 
 def set_linear_interpolation(obj, shapekey):
     anim_data = obj.data.shape_keys.animation_data
@@ -85,7 +87,7 @@ def load(operator, context, filepath, frame_start=0, frame_step=1):
     scene = context.scene
     obj = context.object
 
-    print('\n\nimporting mdd %r' % filepath)
+    print '\n\nimporting mdd %r' % filepath
 
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -94,8 +96,8 @@ def load(operator, context, filepath, frame_start=0, frame_step=1):
     frames, points = unpack(">2i", file.read(8))
     time = unpack((">%df" % frames), file.read(frames * 4))
 
-    print('\tpoints:%d frames:%d' % (points, frames))
-    print('\tstart frame:%d step:%d' % (frame_start, frame_step))
+    print '\tpoints:%d frames:%d' % (points, frames)
+    print '\tstart frame:%d step:%d' % (frame_start, frame_step)
 
     # If target object doesn't have Basis shape key, create it.
     if not obj.data.shape_keys:
@@ -103,7 +105,7 @@ def load(operator, context, filepath, frame_start=0, frame_step=1):
         basis.name = "Basis"
         obj.data.update()
 
-    for i in range(frames):
+    for i in xrange(frames):
         obj_update_frame(file, scene, obj, frame_start, i, frame_step)
 
-    return {'FINISHED'}
+    return set(['FINISHED'])

@@ -20,6 +20,9 @@
 
 # Script copyright (C) 2013 Campbell Barton
 
+from __future__ import with_statement
+from __future__ import absolute_import
+from io import open
 try:
     from . import data_types
 except:
@@ -30,23 +33,23 @@ import array
 import zlib
 
 _BLOCK_SENTINEL_LENGTH = 13
-_BLOCK_SENTINEL_DATA = (b'\0' * _BLOCK_SENTINEL_LENGTH)
+_BLOCK_SENTINEL_DATA = ('\0' * _BLOCK_SENTINEL_LENGTH)
 _IS_BIG_ENDIAN = (__import__("sys").byteorder != 'little')
-_HEAD_MAGIC = b'Kaydara FBX Binary\x20\x20\x00\x1a\x00'
+_HEAD_MAGIC = 'Kaydara FBX Binary\x20\x20\x00\x1a\x00'
 
 # fbx has very strict CRC rules, all based on file timestamp
 # until we figure these out, write files at a fixed time. (workaround!)
 
 # Assumes: CreationTime
-_TIME_ID = b'1970-01-01 10:00:00:000'
-_FILE_ID = b'\x28\xb3\x2a\xeb\xb6\x24\xcc\xc2\xbf\xc8\xb0\x2a\xa9\x2b\xfc\xf1'
-_FOOT_ID = b'\xfa\xbc\xab\x09\xd0\xc8\xd4\x66\xb1\x76\xfb\x83\x1c\xf7\x26\x7e'
+_TIME_ID = '1970-01-01 10:00:00:000'
+_FILE_ID = '\x28\xb3\x2a\xeb\xb6\x24\xcc\xc2\xbf\xc8\xb0\x2a\xa9\x2b\xfc\xf1'
+_FOOT_ID = '\xfa\xbc\xab\x09\xd0\xc8\xd4\x66\xb1\x76\xfb\x83\x1c\xf7\x26\x7e'
 
 # Awful exceptions: those "classes" of elements seem to need block sentinel even when having no children and some props.
-_ELEMS_ID_ALWAYS_BLOCK_SENTINEL = {b"AnimationStack", b"AnimationLayer"}
+_ELEMS_ID_ALWAYS_BLOCK_SENTINEL = set(["AnimationStack", "AnimationLayer"])
 
 
-class FBXElem:
+class FBXElem(object):
     __slots__ = (
         "id",
         "props",
@@ -109,14 +112,14 @@ class FBXElem:
         self.props.append(data)
 
     def add_bytes(self, data):
-        assert(isinstance(data, bytes))
+        assert(isinstance(data, str))
         data = pack('<I', len(data)) + data
 
         self.props_type.append(data_types.BYTES)
         self.props.append(data)
 
     def add_string(self, data):
-        assert(isinstance(data, bytes))
+        assert(isinstance(data, str))
         data = pack('<I', len(data)) + data
 
         self.props_type.append(data_types.STRING)
@@ -229,11 +232,11 @@ class FBXElem:
 
         write(pack('<3I', self._end_offset, len(self.props), self._props_length))
 
-        write(bytes((len(self.id),)))
+        write(str((len(self.id),)))
         write(self.id)
 
         for i, data in enumerate(self.props):
-            write(bytes((self.props_type[i],)))
+            write(str((self.props_type[i],)))
             write(data)
 
         self._write_children(write, tell, is_last)
@@ -246,7 +249,7 @@ class FBXElem:
         if self.elems:
             elem_last = self.elems[-1]
             for elem in self.elems:
-                assert(elem.id != b'')
+                assert(elem.id != '')
                 elem._write(write, tell, (elem is elem_last))
             write(_BLOCK_SENTINEL_DATA)
         elif not self.props or self.id in _ELEMS_ID_ALWAYS_BLOCK_SENTINEL:
@@ -261,16 +264,16 @@ def _write_timedate_hack(elem_root):
 
     ok = 0
     for elem in elem_root.elems:
-        if elem.id == b'FileId':
-            assert(elem.props_type[0] == b'R'[0])
+        if elem.id == 'FileId':
+            assert(elem.props_type[0] == 'R'[0])
             assert(len(elem.props_type) == 1)
             elem.props.clear()
             elem.props_type.clear()
 
             elem.add_bytes(_FILE_ID)
             ok += 1
-        elif elem.id == b'CreationTime':
-            assert(elem.props_type[0] == b'S'[0])
+        elif elem.id == 'CreationTime':
+            assert(elem.props_type[0] == 'S'[0])
             assert(len(elem.props_type) == 1)
             elem.props.clear()
             elem.props_type.clear()
@@ -282,11 +285,11 @@ def _write_timedate_hack(elem_root):
             break
 
     if ok != 2:
-        print("Missing fields!")
+        print "Missing fields!"
 
 
 def write(fn, elem_root, version):
-    assert(elem_root.id == b'')
+    assert(elem_root.id == '')
 
     with open(fn, 'wb') as f:
         write = f.write
@@ -303,7 +306,7 @@ def write(fn, elem_root, version):
         elem_root._write_children(write, tell, False)
 
         write(_FOOT_ID)
-        write(b'\x00' * 4)
+        write('\x00' * 4)
 
         # padding for alignment (values between 1 & 16 observed)
         # if already aligned to 16, add a full 16 bytes padding.
@@ -312,10 +315,10 @@ def write(fn, elem_root, version):
         if pad == 0:
             pad = 16
 
-        write(b'\0' * pad)
+        write('\0' * pad)
 
         write(pack('<I', version))
 
         # unknown magic (always the same)
-        write(b'\0' * 120)
-        write(b'\xf8\x5a\x8c\x6a\xde\xf5\xd9\x7e\xec\xe9\x0c\xe3\x75\x8f\x29\x0b')
+        write('\0' * 120)
+        write('\xf8\x5a\x8c\x6a\xde\xf5\xd9\x7e\xec\xe9\x0c\xe3\x75\x8f\x29\x0b')

@@ -31,6 +31,8 @@
 
 
 #import python stuff
+from __future__ import division
+from __future__ import absolute_import
 from random import (
         randrange,
         )
@@ -88,14 +90,14 @@ from bpy.app import (
         )
 
 
-class Ms3dUi:
+class Ms3dUi(object):
     VERBOSE_MODE_NONE = 'NONE'
     VERBOSE_MODE_NORMAL = 'NORMAL'
     VERBOSE_MODE_MAXIMAL = 'MAXIMAL'
 
     VERBOSE_NONE = {}
-    VERBOSE_NORMAL = {True, VERBOSE_MODE_NORMAL, VERBOSE_MODE_MAXIMAL, }
-    VERBOSE_MAXIMAL = {True, VERBOSE_MODE_MAXIMAL, }
+    VERBOSE_NORMAL = set([True, VERBOSE_MODE_NORMAL, VERBOSE_MODE_MAXIMAL,])
+    VERBOSE_MAXIMAL = set([True, VERBOSE_MODE_MAXIMAL,])
 
     DEFAULT_VERBOSE = VERBOSE_MODE_NONE
 
@@ -263,13 +265,13 @@ class Ms3dImportOperator(Operator, ImportHelper):
     bl_idname = 'import_scene.ms3d'
     bl_label = ms3d_str['BL_LABEL_IMPORTER']
     bl_description = ms3d_str['BL_DESCRIPTION_IMPORTER']
-    bl_options = {'UNDO', 'PRESET', }
+    bl_options = set(['UNDO', 'PRESET',])
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
 
     filepath = StringProperty(
             subtype='FILE_PATH',
-            options={'HIDDEN', }
+            options=set(['HIDDEN',])
             )
 
     verbose = EnumProperty(
@@ -341,12 +343,12 @@ class Ms3dImportOperator(Operator, ImportHelper):
 
     filename_ext = StringProperty(
             default=ms3d_str['FILE_EXT'],
-            options={'HIDDEN', }
+            options=set(['HIDDEN',])
             )
 
     filter_glob = StringProperty(
             default=ms3d_str['FILE_FILTER'],
-            options={'HIDDEN', }
+            options=set(['HIDDEN',])
             )
 
 
@@ -410,12 +412,12 @@ class Ms3dImportOperator(Operator, ImportHelper):
                         )
         if finished:
             blender_context.scene.update()
-            return {"FINISHED"}
-        return {"CANCELLED"}
+            return set(["FINISHED"])
+        return set(["CANCELLED"])
 
     def invoke(self, blender_context, event):
         blender_context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL', }
+        return set(['RUNNING_MODAL',])
 
     @staticmethod
     def menu_func(cls, blender_context):
@@ -430,13 +432,13 @@ class Ms3dExportOperator(Operator, ExportHelper):
     bl_idname = 'export_scene.ms3d'
     bl_label = ms3d_str['BL_LABEL_EXPORTER']
     bl_description = ms3d_str['BL_DESCRIPTION_EXPORTER']
-    bl_options = {'UNDO', 'PRESET', }
+    bl_options = set(['UNDO', 'PRESET',])
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
 
     filepath = StringProperty(
             subtype='FILE_PATH',
-            options={'HIDDEN', }
+            options=set(['HIDDEN',])
             )
 
     verbose = EnumProperty(
@@ -521,17 +523,17 @@ class Ms3dExportOperator(Operator, ExportHelper):
 
     check_existing = BoolProperty(
             default=False,
-            options={'HIDDEN', }
+            options=set(['HIDDEN',])
             )
 
     filename_ext = StringProperty(
             default=ms3d_str['FILE_EXT'],
-            options={'HIDDEN', }
+            options=set(['HIDDEN',])
             )
 
     filter_glob = StringProperty(
             default=ms3d_str['FILE_FILTER'],
-            options={'HIDDEN', }
+            options=set(['HIDDEN',])
             )
 
     ##def object_items(self, blender_context):
@@ -549,7 +551,7 @@ class Ms3dExportOperator(Operator, ExportHelper):
     def poll(cls, blender_context):
         return (blender_context
                 and blender_context.active_object
-                and blender_context.active_object.type in {'MESH', }
+                and blender_context.active_object.type in set(['MESH',])
                 and blender_context.active_object.data
                 and blender_context.active_object.data.ms3d is not None
                 )
@@ -619,13 +621,13 @@ class Ms3dExportOperator(Operator, ExportHelper):
                         )
         if finished:
             blender_context.scene.update()
-            return {"FINISHED"}
-        return {"CANCELLED"}
+            return set(["FINISHED"])
+        return set(["CANCELLED"])
 
     #
     def invoke(self, blender_context, event):
         blender_context.window_manager.fileselect_add(self)
-        return {"RUNNING_MODAL", }
+        return set(["RUNNING_MODAL",])
 
     @staticmethod
     def menu_func(cls, blender_context):
@@ -644,18 +646,18 @@ class Ms3dExportOperator(Operator, ExportHelper):
 class Ms3dSetSmoothingGroupOperator(Operator):
     bl_idname = Ms3dUi.OPT_SMOOTHING_GROUP_APPLY
     bl_label = ms3d_str['BL_LABEL_SMOOTHING_GROUP_OPERATOR']
-    bl_options = {'UNDO', 'INTERNAL', }
+    bl_options = set(['UNDO', 'INTERNAL',])
 
     smoothing_group_index = IntProperty(
             name=ms3d_str['PROP_SMOOTHING_GROUP_INDEX'],
-            options={'HIDDEN', 'SKIP_SAVE', },
+            options=set(['HIDDEN', 'SKIP_SAVE',]),
             )
 
     @classmethod
     def poll(cls, blender_context):
         return (blender_context
                 and blender_context.object
-                and blender_context.object.type in {'MESH', }
+                and blender_context.object.type in set(['MESH',])
                 and blender_context.object.data
                 and blender_context.object.data.ms3d is not None
                 and blender_context.mode == 'EDIT_MESH'
@@ -668,7 +670,7 @@ class Ms3dSetSmoothingGroupOperator(Operator):
         bm = from_edit_mesh(blender_mesh)
         layer_smoothing_group = bm.faces.layers.int.get(
                 ms3d_str['OBJECT_LAYER_SMOOTHING_GROUP'])
-        if custom_data.apply_mode in {'SELECT', 'DESELECT', }:
+        if custom_data.apply_mode in set(['SELECT', 'DESELECT',]):
             if layer_smoothing_group is not None:
                 is_select = (custom_data.apply_mode == 'SELECT')
                 for bmf in bm.faces:
@@ -714,13 +716,13 @@ class Ms3dSetSmoothingGroupOperator(Operator):
         bm.free()
         enable_edit_mode(False, blender_context)
         enable_edit_mode(True, blender_context)
-        return {'FINISHED', }
+        return set(['FINISHED',])
 
 
 class Ms3dGroupOperator(Operator):
     bl_idname = Ms3dUi.OPT_GROUP_APPLY
     bl_label = ms3d_str['BL_LABEL_GROUP_OPERATOR']
-    bl_options = {'UNDO', 'INTERNAL', }
+    bl_options = set(['UNDO', 'INTERNAL',])
 
     mode = EnumProperty(
             items=( ('', "", ""),
@@ -743,14 +745,14 @@ class Ms3dGroupOperator(Operator):
                             ms3d_str['ENUM_DESELECT_1'],
                             ms3d_str['ENUM_DESELECT_2_GROUP']),
                     ),
-            options={'HIDDEN', 'SKIP_SAVE', },
+            options=set(['HIDDEN', 'SKIP_SAVE',]),
             )
 
     @classmethod
     def poll(cls, blender_context):
         return (blender_context
                 and blender_context.object
-                and blender_context.object.type in {'MESH', }
+                and blender_context.object.type in set(['MESH',])
                 and blender_context.object.data
                 and blender_context.object.data.ms3d is not None
                 and blender_context.mode == 'EDIT_MESH'
@@ -775,7 +777,7 @@ class Ms3dGroupOperator(Operator):
 
         elif (custom_data.selected_group_index >= 0) and (
                 custom_data.selected_group_index < len(custom_data.groups)):
-            if self.mode in {'SELECT', 'DESELECT', }:
+            if self.mode in set(['SELECT', 'DESELECT',]):
                 layer_group = bm.faces.layers.int.get(
                         ms3d_str['OBJECT_LAYER_GROUP'])
                 if layer_group is not None:
@@ -786,7 +788,7 @@ class Ms3dGroupOperator(Operator):
                         if bmf[layer_group] == id:
                             bmf.select_set(is_select)
 
-            elif self.mode in {'ASSIGN', 'REMOVE', }:
+            elif self.mode in set(['ASSIGN', 'REMOVE',]):
                 layer_group = bm.faces.layers.int.get(
                         ms3d_str['OBJECT_LAYER_GROUP'])
                 if layer_group is None:
@@ -805,13 +807,13 @@ class Ms3dGroupOperator(Operator):
             bm.free()
         enable_edit_mode(False, blender_context)
         enable_edit_mode(True, blender_context)
-        return {'FINISHED', }
+        return set(['FINISHED',])
 
 
 class Ms3dMaterialOperator(Operator):
     bl_idname = Ms3dUi.OPT_MATERIAL_APPLY
     bl_label = ms3d_str['BL_LABEL_MATERIAL_OPERATOR']
-    bl_options = {'UNDO', 'INTERNAL', }
+    bl_options = set(['UNDO', 'INTERNAL',])
 
     mode = EnumProperty(
             items=( ('', "", ""),
@@ -822,14 +824,14 @@ class Ms3dMaterialOperator(Operator):
                             ms3d_str['ENUM_TO_BLENDER_1'],
                             ms3d_str['ENUM_TO_BLENDER_2']),
                     ),
-            options={'HIDDEN', 'SKIP_SAVE', },
+            options=set(['HIDDEN', 'SKIP_SAVE',]),
             )
 
     @classmethod
     def poll(cls, blender_context):
         return (blender_context
                 and blender_context.object
-                and blender_context.object.type in {'MESH', }
+                and blender_context.object.type in set(['MESH',])
                 and blender_context.object.data
                 and blender_context.object.data.ms3d is not None
                 and blender_context.material
@@ -849,7 +851,7 @@ class Ms3dMaterialOperator(Operator):
             # not implemented
             pass
 
-        return {'FINISHED', }
+        return set(['FINISHED',])
 
     # entrypoint for option via UI
     def invoke(self, blender_context, event):
@@ -901,7 +903,7 @@ class Ms3dGroupProperties(PropertyGroup):
                             Ms3dSpec.FLAG_MARKED),
                     ),
             default=Ms3dUi.flags_from_ms3d(Ms3dSpec.DEFAULT_FLAGS),
-            options={'ENUM_FLAG', 'ANIMATABLE', },
+            options=set(['ENUM_FLAG', 'ANIMATABLE',]),
             )
 
     comment = StringProperty(
@@ -911,7 +913,7 @@ class Ms3dGroupProperties(PropertyGroup):
             #options={'HIDDEN', },
             )
 
-    id = IntProperty(options={'HIDDEN', },)
+    id = IntProperty(options=set(['HIDDEN',]),)
 
 
 class Ms3dModelProperties(PropertyGroup):
@@ -985,13 +987,13 @@ class Ms3dModelProperties(PropertyGroup):
                             ms3d_str['ENUM_DESELECT_2_SMOOTHING_GROUP']),
                     ),
             default='SELECT',
-            options={'HIDDEN', 'SKIP_SAVE', },
+            options=set(['HIDDEN', 'SKIP_SAVE',]),
             )
 
     selected_group_index = IntProperty(
             default=-1,
             min=-1,
-            options={'HIDDEN', 'SKIP_SAVE', },
+            options=set(['HIDDEN', 'SKIP_SAVE',]),
             )
     #
     # ms3d group handling
@@ -1078,7 +1080,7 @@ class Ms3dJointProperties(PropertyGroup):
                             Ms3dSpec.FLAG_MARKED),
                     ),
             default=Ms3dUi.flags_from_ms3d(Ms3dSpec.DEFAULT_FLAGS),
-            options={'ENUM_FLAG', 'ANIMATABLE', },
+            options=set(['ENUM_FLAG', 'ANIMATABLE',]),
             )
 
     color = FloatVectorProperty(
@@ -1097,7 +1099,7 @@ class Ms3dJointProperties(PropertyGroup):
             )
 
 
-class Ms3dMaterialHelper:
+class Ms3dMaterialHelper(object):
     @staticmethod
     def copy_to_blender_ambient(cls, blender_context):
         pass
@@ -1266,7 +1268,7 @@ class Ms3dMaterialProperties(PropertyGroup):
                     ),
             default=Ms3dUi.texture_mode_from_ms3d(
                     Ms3dSpec.DEFAULT_MATERIAL_MODE),
-            options={'ANIMATABLE', 'ENUM_FLAG', },
+            options=set(['ANIMATABLE', 'ENUM_FLAG',]),
             )
 
     texture = StringProperty(
@@ -1302,12 +1304,12 @@ class Ms3dMaterialProperties(PropertyGroup):
 # http://git.blender.org/gitweb/gitweb.cgi/blender.git/commit/4c52e737df39e538d3b41a232035a4a1e240505d
 class Ms3dGroupUILise(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        if self.layout_type in {'DEFAULT', 'COMPACT', }:
+        if self.layout_type in set(['DEFAULT', 'COMPACT',]):
             if item:
                 layout.prop(item, "name", text="", emboss=False, icon_value=icon)
             else:
                 layout.label(text="", icon_value=icon)
-        elif self.layout_type in {'GRID', }:
+        elif self.layout_type in set(['GRID',]):
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
 
@@ -1322,7 +1324,7 @@ class Ms3dMeshPanel(Panel):
     def poll(cls, blender_context):
         return (blender_context
                 and blender_context.object
-                and blender_context.object.type in {'MESH', }
+                and blender_context.object.type in set(['MESH',])
                 and blender_context.object.data
                 and blender_context.object.data.ms3d is not None
                 )
@@ -1360,7 +1362,7 @@ class Ms3dMaterialPanel(Panel):
     def poll(cls, blender_context):
         return (blender_context
                 and blender_context.object
-                and blender_context.object.type in {'MESH', }
+                and blender_context.object.type in set(['MESH',])
                 and blender_context.object.data
                 and blender_context.object.data.ms3d is not None
                 and blender_context.material
@@ -1416,7 +1418,7 @@ class Ms3dBonePanel(Panel):
     @classmethod
     def poll(cls, blender_context):
         return (blender_context
-                and blender_context.object.type in {'ARMATURE', }
+                and blender_context.object.type in set(['ARMATURE',])
                 and blender_context.active_bone
                 and isinstance(blender_context.active_bone, Bone)
                 and blender_context.active_bone.ms3d is not None
@@ -1451,7 +1453,7 @@ class Ms3dGroupPanel(Panel):
     def poll(cls, blender_context):
         return (blender_context
                 and blender_context.object
-                and blender_context.object.type in {'MESH', }
+                and blender_context.object.type in set(['MESH',])
                 and blender_context.object.data
                 and blender_context.object.data.ms3d is not None
                 )
@@ -1552,7 +1554,7 @@ class Ms3dSmoothingGroupPanel(Panel):
     def poll(cls, blender_context):
         return (blender_context
                 and blender_context.object
-                and blender_context.object.type in {'MESH', }
+                and blender_context.object.type in set(['MESH',])
                 and blender_context.object.data
                 and blender_context.object.data.ms3d is not None
                 )

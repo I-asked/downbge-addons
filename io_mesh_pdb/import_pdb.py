@@ -16,11 +16,14 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 import bmesh
 from math import pi, cos, sin, sqrt, ceil
 from mathutils import Vector, Matrix
 from copy import copy
+from io import open
 
 # -----------------------------------------------------------------------------
 #                                                  Atom, stick and element data
@@ -272,8 +275,8 @@ def read_pdb_file(filepath_pdb, radiustype):
                 if line[13:14].isalpha() == True:
                     short_name = short_name + line[13:14]
             else:
-                print("Atomic Blender: Strange error in PDB file.\n" 
-                      "Look for element names at positions 13-16 and 78-79.\n")
+                print "Atomic Blender: Strange error in PDB file.\n" 
+                      "Look for element names at positions 13-16 and 78-79.\n"
                 return -1
                 
             if len(line) >= 78:
@@ -403,7 +406,7 @@ def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
 
         # List of atoms
         atom_list = []
-        for i in range(loops):
+        for i in xrange(loops):
             number = line[5*i:5*(i+1)].rsplit()
             if number != []:
                 if number[0].isdigit() == True:
@@ -451,7 +454,7 @@ def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
             # couple of times. (Only god knows why ...)
             # So, does a stick between the considered atoms already exist?
             FLAG_BAR = False
-            for k in range(Number_of_sticks):
+            for k in xrange(Number_of_sticks):
                 if ((all_sticks[k].atom1 == atom1 and all_sticks[k].atom2 == atom2) or
                     (all_sticks[k].atom2 == atom1 and all_sticks[k].atom1 == atom2)):
                     sticks_double += 1
@@ -483,7 +486,7 @@ def build_stick(radius, length, sectors):
     vertices_top    = [Vector((0,0,length / 2.0))]
     vertices_bottom = [Vector((0,0,-length / 2.0))]
     vertices = []
-    for i in range(sectors-1):
+    for i in xrange(sectors-1):
         x = radius * cos( dphi * i )
         y = radius * sin( dphi * i )
         z =  length / 2.0
@@ -496,7 +499,7 @@ def build_stick(radius, length, sectors):
 
     # Side facets (Cylinder)
     faces1 = []    
-    for i in range(sectors-1):
+    for i in xrange(sectors-1):
         if i == sectors-2:
             faces1.append(  [i+1, 1, 1+sectors, i+1+sectors] )
         else:
@@ -504,14 +507,14 @@ def build_stick(radius, length, sectors):
 
     # Top facets
     faces2 = []    
-    for i in range(sectors-1):
+    for i in xrange(sectors-1):
         if i == sectors-2:
             face_top = [0,sectors-1,1]
             face_bottom = [sectors,2*sectors-1,sectors+1]
         else:
             face_top    = [0]
             face_bottom = [sectors]
-            for j in range(2):
+            for j in xrange(2):
                 face_top.append(i+j+1)
                 face_bottom.append(i+j+1+sectors)
         faces2.append(face_top)
@@ -721,7 +724,7 @@ def draw_sticks_dupliverts(all_atoms,
             sticks_list = []
             for stick in all_sticks:
                             
-                for repeat in range(stick.number):
+                for repeat in xrange(stick.number):
                                 
                     atom1 = copy(all_atoms[stick.atom1-1].location)-center
                     atom2 = copy(all_atoms[stick.atom2-1].location)-center               
@@ -766,7 +769,7 @@ def draw_sticks_dupliverts(all_atoms,
             if stick.number > 3:
                 stick.number = 1
              
-            for repeat in range(stick.number):              
+            for repeat in xrange(stick.number):              
                                 
                 atom1 = copy(all_atoms[stick.atom1-1].location)-center
                 atom2 = copy(all_atoms[stick.atom2-1].location)-center
@@ -818,7 +821,7 @@ def draw_sticks_dupliverts(all_atoms,
             else:
                 loops = int(ceil(dv.length / dl))
                 
-            for j in range(loops):
+            for j in xrange(loops):
 
                 g  = v1 - n * dl / 2.0 - n * dl * j
                 p1 = g + n_b * Stick_diameter

@@ -50,6 +50,8 @@ Limitations:
 """
 
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from mathutils import Vector, Matrix
 
@@ -75,7 +77,7 @@ def extract_mapped_coords(ob, shape_verts):
     # cheating, the original mapped verts happen
     # to be at the end of the vertex array
     verts = mesh.vertices
-    arr = [verts[i].co.copy() for i in range(len(verts) - totvert, len(verts))]
+    arr = [verts[i].co.copy() for i in xrange(len(verts) - totvert, len(verts))]
 
     mesh.user_clear()
     bpy.data.meshes.remove(mesh)
@@ -126,13 +128,13 @@ def func_add_corrective_pose_shape(source, target):
 
     targetx = extract_vert_coords(ob_2, mesh_2.vertices)
 
-    for iteration in range(0, iterations):
+    for iteration in xrange(0, iterations):
         dx = [[], [], [], [], [], []]
 
         mapx = extract_mapped_coords(ob_1, mesh_1_key_verts)
 
         # finite differencing in X/Y/Z to get approximate gradient
-        for i in range(0, len(mesh_1.vertices)):
+        for i in xrange(0, len(mesh_1.vertices)):
             epsilon = (targetx[i] - mapx[i]).length
 
             if epsilon < threshold:
@@ -145,12 +147,12 @@ def func_add_corrective_pose_shape(source, target):
             dx[4] += [x[i] + 0.5 * epsilon * Vector((0, 0, 1))]
             dx[5] += [x[i] + 0.5 * epsilon * Vector((0, 0, -1))]
 
-        for j in range(0, 6):
+        for j in xrange(0, 6):
             apply_vert_coords(ob_1, mesh_1_key_verts, dx[j])
             dx[j] = extract_mapped_coords(ob_1, mesh_1_key_verts)
 
         # take a step in the direction of the gradient
-        for i in range(0, len(mesh_1.vertices)):
+        for i in xrange(0, len(mesh_1.vertices)):
             epsilon = (targetx[i] - mapx[i]).length
 
             if epsilon >= threshold:
@@ -186,8 +188,8 @@ class add_corrective_pose_shape(bpy.types.Operator):
     def execute(self, context):
         selection = context.selected_objects
         if len(selection) != 2:
-            self.report({'ERROR'}, "Select source and target objects")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "Select source and target objects")
+            return set(['CANCELLED'])
 
         target = context.active_object
         if context.active_object == selection[0]:
@@ -197,7 +199,7 @@ class add_corrective_pose_shape(bpy.types.Operator):
 
         func_add_corrective_pose_shape(source, target)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 def func_object_duplicate_flatten_modifiers(scene, obj):
@@ -231,7 +233,7 @@ class object_duplicate_flatten_modifiers(bpy.types.Operator):
         scene.objects.active = new_object
         new_object.select = True
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 def unposeMesh(meshObToUnpose, meshObToUnposeWeightSrc, armatureOb):
@@ -268,7 +270,7 @@ def unposeMesh(meshObToUnpose, meshObToUnposeWeightSrc, armatureOb):
                 if is_bone:
                     listOfBoneNameWeightPairs.append([name, weight])
             except:
-                print('error')
+                print 'error'
                 pass
 
         weightedAverageDictionary = {}
@@ -343,7 +345,7 @@ def func_add_corrective_pose_shape_fast(source, target):
 
     # copy the local vertex positions to the new shape
     verts = source.data.vertices
-    for n in range(len(verts)):
+    for n in xrange(len(verts)):
         shape_key_verts[n].co = verts[n].co
 
     # go to all armature modifies and unpose the shape
@@ -383,8 +385,8 @@ class add_corrective_pose_shape_fast(bpy.types.Operator):
     def execute(self, context):
         selection = context.selected_objects
         if len(selection) != 2:
-            self.report({'ERROR'}, "Select source and target objects")
-            return {'CANCELLED'}
+            self.report(set(['ERROR']), "Select source and target objects")
+            return set(['CANCELLED'])
 
         target = context.active_object
         if context.active_object == selection[0]:
@@ -394,7 +396,7 @@ class add_corrective_pose_shape_fast(bpy.types.Operator):
 
         func_add_corrective_pose_shape_fast(source, target)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 # -----------------------------------------------------------------------------

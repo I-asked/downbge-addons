@@ -47,6 +47,7 @@ Import:
     - Does not handle endien
 """
 
+from __future__ import absolute_import
 if "bpy" in locals():
     import importlib
     if "stl_utils" in locals():
@@ -83,13 +84,13 @@ class ImportSTL(Operator, ImportHelper, IOSTLOrientationHelper):
     """Load STL triangle mesh data"""
     bl_idname = "import_mesh.stl"
     bl_label = "Import STL"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     filename_ext = ".stl"
 
     filter_glob = StringProperty(
             default="*.stl",
-            options={'HIDDEN'},
+            options=set(['HIDDEN']),
             )
     files = CollectionProperty(
             name="File Path",
@@ -152,7 +153,7 @@ class ImportSTL(Operator, ImportHelper, IOSTLOrientationHelper):
             tri_nors = tri_nors if self.use_facet_normal else None
             blender_utils.create_and_link_mesh(objName, tris, tri_nors, pts, global_matrix)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 class ExportSTL(Operator, ExportHelper, IOSTLOrientationHelper):
@@ -161,7 +162,7 @@ class ExportSTL(Operator, ExportHelper, IOSTLOrientationHelper):
     bl_label = "Export STL"
 
     filename_ext = ".stl"
-    filter_glob = StringProperty(default="*.stl", options={'HIDDEN'})
+    filter_glob = StringProperty(default="*.stl", options=set(['HIDDEN']))
 
     global_scale = FloatProperty(
             name="Scale",
@@ -217,7 +218,7 @@ class ExportSTL(Operator, ExportHelper, IOSTLOrientationHelper):
 
         stl_utils.write_stl(faces=faces, **keywords)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 def menu_import(self, context):

@@ -17,10 +17,12 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+from __future__ import absolute_import
 import bpy
 from bpy.props import *
 from io_coat3D import tex
 import os
+from io import open
 
 
 bpy.coat3D = dict()
@@ -114,7 +116,7 @@ def set_working_folders():
                 
     return folder_objects,folder_textures
 
-class ObjectButtonsPanel():
+class ObjectButtonsPanel(object):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"
@@ -173,7 +175,7 @@ class SCENE_OT_export(bpy.types.Operator):
     bl_idname = "export_applink.pilgway_3d_coat"
     bl_label = "Export your custom property"
     bl_description = "Export your custom property"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
 
     def invoke(self, context, event):
         checkname = ''
@@ -188,16 +190,16 @@ class SCENE_OT_export(bpy.types.Operator):
         folder_objects,folder_textures = set_working_folders()
 
         if(coat3D.exchange_found == False):
-            return {'FINISHED'}
+            return set(['FINISHED'])
 
         if(bpy.context.selected_objects == []):
-            return {'FINISHED'}
+            return set(['FINISHED'])
         else:
             for objec in bpy.context.selected_objects:
                 if objec.type == 'MESH':
                     export_ok = True
             if(export_ok == False):
-                return {'FINISHED'}
+                return set(['FINISHED'])
 
         importfile = coat3D.exchangedir
         texturefile = coat3D.exchangedir
@@ -256,13 +258,13 @@ class SCENE_OT_export(bpy.types.Operator):
         
         
                
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 class SCENE_OT_import(bpy.types.Operator):
     bl_idname = "import_applink.pilgway_3d_coat"
     bl_label = "import your custom property"
     bl_description = "import your custom property"
-    bl_options = {'UNDO'}
+    bl_options = set(['UNDO'])
     
     def invoke(self, context, event):
         scene = context.scene
@@ -495,7 +497,7 @@ class SCENE_OT_import(bpy.types.Operator):
             mat_list.append(new_obj.material_slots[0].material)
             tex.gettex(mat_list, new_obj, scene,export)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])
 
 
 

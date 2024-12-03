@@ -3,6 +3,8 @@
 # Created: 21.07.2012
 # License: MIT License
 
+from __future__ import with_statement
+from __future__ import absolute_import
 version = (0, 7, 4)
 VERSION = "%d.%d.%d" % version
 

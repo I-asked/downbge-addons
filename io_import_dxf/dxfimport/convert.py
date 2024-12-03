@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from __future__ import division
+from __future__ import absolute_import
 import itertools
 from . import is_
 from .fake_entities import ArcEntity
@@ -48,25 +50,25 @@ def bspline_to_cubic(do, en, curve, errors=None):
 
         if start.count(start[0]) < degree + 1:
             maxa = max(start)
-            for i in range(degree + 1):
+            for i in xrange(degree + 1):
                 knots[i] = maxa
 
         if end.count(end[0]) < degree + 1:
             mina = min(end)
             lenk = len(knots)
-            for i in range(lenk - degree - 1, lenk):
+            for i in xrange(lenk - degree - 1, lenk):
                 knots[i] = mina
 
     def insert_knot(t, k, p):
         """ http://www.cs.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/NURBS-knot-insert.html """
         def a(t, ui, uip):
             if uip == ui:
-                print("zero!")
+                print "zero!"
                 return 0
             return (t - ui) / (uip - ui)
 
         new_spline = spline.copy()
-        for pp in range(p, 1, -1):
+        for pp in xrange(p, 1, -1):
             i = k - pp + 1
             ai = a(t, knots[i], knots[i + p])
             new_spline[i] = (1 - ai) * spline[i - 1] + ai * spline[i]
@@ -189,7 +191,7 @@ def bulgepoly_to_cubic(do, lwpolyline):
     bulges = lwpolyline.bulge
     lenpo = len(points)
     spline = []
-    for i in range(1, lenpo):
+    for i in xrange(1, lenpo):
         spline += handle_segment(Vector(points[i - 1]), Vector(points[i]), bulges[i - 1])[:-1]
 
     if lwpolyline.is_closed:
@@ -218,7 +220,7 @@ def bulgepoly_to_lenlist(lwpolyline):
     bulges = lwpolyline.bulge
     lenpo = len(points)
     lenlist = []
-    for i in range(1, lenpo):
+    for i in xrange(1, lenpo):
         handle_segment(Vector(points[i - 1][:2]), Vector(points[i][:2]), bulges[i - 1])
 
     if lwpolyline.is_closed:
@@ -251,7 +253,7 @@ def split_by_width(entity):
     """
     Used to split a curve (polyline, lwpolyline) into smaller segments if their width is varying in the overall curve.
     """
-    class WidthTuple:
+    class WidthTuple(object):
         def __init__(self, w):
             self.w1 = w[0]
             self.w2 = w[1]

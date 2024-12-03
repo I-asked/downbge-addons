@@ -33,6 +33,8 @@ Known issues:
     Can't get the texture array associated with material * not the UV ones;
 """
 
+from __future__ import division
+from __future__ import absolute_import
 import math
 import os
 
@@ -40,6 +42,8 @@ import bpy
 import mathutils
 
 from bpy_extras.io_utils import create_derived_objects, free_derived_objects
+from io import open
+from itertools import izip
 
 
 # h3d defines
@@ -572,21 +576,21 @@ def export(file,
                                      for i, fuv in enumerate(mesh.tessface_uv_textures.active.data)]
 
                 mesh_faces_image_unique = set(mesh_faces_image)
-            elif len(set(mesh_material_images) | {None}) > 1:  # make sure there is at least one image
+            elif len(set(mesh_material_images) | set([None])) > 1:  # make sure there is at least one image
                 mesh_faces_image = [mesh_material_images[material_index] for material_index in mesh_faces_materials]
                 mesh_faces_image_unique = set(mesh_faces_image)
             else:
                 mesh_faces_image = [None] * len(mesh_faces)
-                mesh_faces_image_unique = {None}
+                mesh_faces_image_unique = set([None])
 
             # group faces
             face_groups = {}
-            for material_index in range(len(mesh_materials)):
+            for material_index in xrange(len(mesh_materials)):
                 for image in mesh_faces_image_unique:
                     face_groups[material_index, image] = []
             del mesh_faces_image_unique
 
-            for i, (material_index, image) in enumerate(zip(mesh_faces_materials, mesh_faces_image)):
+            for i, (material_index, image) in enumerate(izip(mesh_faces_materials, mesh_faces_image)):
                 face_groups[material_index, image].append(i)
 
             # same as face_groups.items() but sorted so we can get predictable output.
@@ -624,7 +628,7 @@ def export(file,
                             if 1:  # XXX DEBUG
                                 gpu_shader_tmp = gpu.export_shader(scene, material)
                                 import pprint
-                                print('\nWRITING MATERIAL:', material.name)
+                                print '\nWRITING MATERIAL:', material.name
                                 del gpu_shader_tmp['fragment']
                                 del gpu_shader_tmp['vertex']
                                 pprint.pprint(gpu_shader_tmp, width=120)
@@ -727,9 +731,9 @@ def export(file,
                                 return None
 
                         # build a mesh mapping dict
-                        vertex_hash = [{} for i in range(len(mesh.vertices))]
+                        vertex_hash = [{} for i in xrange(len(mesh.vertices))]
                         # worst case every face is a quad
-                        face_tri_list = [[None, None, None] for i in range(len(mesh.tessfaces) * 2)]
+                        face_tri_list = [[None, None, None] for i in xrange(len(mesh.tessfaces) * 2)]
                         vert_tri_list = []
                         totvert = 0
                         totface = 0
@@ -1206,7 +1210,7 @@ def export(file,
                         if 1:
                             tex = uniform['texpixels']
                             value = []
-                            for i in range(0, len(tex) - 1, 4):
+                            for i in xrange(0, len(tex) - 1, 4):
                                 col = tex[i:i + 4]
                                 value.append('0x%.2x%.2x%.2x%.2x' % (col[0], col[1], col[2], col[3]))
 
@@ -1237,7 +1241,7 @@ def export(file,
                     else:
                         assert(0)
                 else:
-                    print("SKIPPING", uniform['type'])
+                    print "SKIPPING", uniform['type']
 
             file_frag = open(os.path.join(base_dst, shader_url_frag), 'w', encoding='utf-8')
             file_frag.write(gpu_shader['fragment'])
@@ -1303,7 +1307,7 @@ def export(file,
 
         grd_triple = clamp_color(world.horizon_color)
         sky_triple = clamp_color(world.zenith_color)
-        mix_triple = clamp_color((grd_triple[i] + sky_triple[i]) / 2.0 for i in range(3))
+        mix_triple = clamp_color((grd_triple[i] + sky_triple[i]) / 2.0 for i in xrange(3))
 
         ident_step = ident + (' ' * (-len(ident) + \
         fw('%s<Background ' % ident)))
@@ -1408,7 +1412,7 @@ def export(file,
                     is_dummy_tx = True
                     ident += '\t'
 
-            elif obj_type in {'MESH', 'CURVE', 'SURFACE', 'FONT'}:
+            elif obj_type in set(['MESH', 'CURVE', 'SURFACE', 'FONT']):
                 if (obj_type != 'MESH') or (use_mesh_modifiers and obj.is_modified(scene, 'PREVIEW')):
                     try:
                         me = obj.to_mesh(scene, use_mesh_modifiers, 'PREVIEW')
@@ -1488,7 +1492,7 @@ def export(file,
         else:
             objects = [obj for obj in scene.objects if obj.is_visible(scene)]
 
-        print('Info: starting X3D export to %r...' % file.name)
+        print 'Info: starting X3D export to %r...' % file.name
         ident = ''
         ident = writeHeader(ident)
 
@@ -1522,7 +1526,7 @@ def export(file,
     # print(copy_set)
     bpy_extras.io_utils.path_reference_copy(copy_set)
 
-    print('Info: finished X3D export to %r' % file.name)
+    print 'Info: finished X3D export to %r' % file.name
 
 
 ##########################################################
@@ -1586,4 +1590,4 @@ def save(operator, context, filepath="",
            name_decorations=name_decorations,
            )
 
-    return {'FINISHED'}
+    return set(['FINISHED'])

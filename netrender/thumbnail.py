@@ -16,6 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import absolute_import
 import sys, os
 import subprocess
 
@@ -76,9 +77,9 @@ def _internal(filename):
             process = subprocess.Popen(["convert", thumbname, "-resize", "300x300", thumbname])
             process.wait()
             return thumbname
-        except Exception as exp:
-            print("Error while generating thumbnail")
-            print(exp)
+        except Exception, exp:
+            print "Error while generating thumbnail"
+            print exp
 
     return None
 

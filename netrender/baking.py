@@ -16,6 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import absolute_import
 import bpy
 import sys, subprocess, re
 
@@ -77,10 +78,10 @@ def bake_cache(obj, point_cache, task_index):
     
     results = cache_results(obj, point_cache)
     
-    print()
+    print
     
     for filename in results:
-        print("BAKE FILE[", task_index, "]:", filename)
+        print "BAKE FILE[", task_index, "]:", filename
   
 
 def cache_results(obj, point_cache):
@@ -146,7 +147,7 @@ if __name__ == "__main__":
     
     if i:
         task_args = sys.argv[i+1:]
-        for i in range(0, len(task_args), 3):
+        for i in xrange(0, len(task_args), 3):
             bake_type = task_args[i]
             obj = bpy.data.objects[task_args[i+1]]
             index = int(task_args[i+2])

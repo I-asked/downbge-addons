@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Icons",
     "author": "Crouch, N.tox, PKHG, Campbell Barton, Dany Lebel",
@@ -67,8 +68,8 @@ class WM_OT_icon_info(bpy.types.Operator):
 
     def invoke(self, context, event):
         bpy.data.window_managers['WinMan'].clipboard = self.icon
-        self.report({'INFO'}, "Icon ID: %s" % self.icon)
-        return {'FINISHED'}
+        self.report(set(['INFO']), "Icon ID: %s" % self.icon)
+        return set(['FINISHED'])
 
 
 class OBJECT_PT_icons(bpy.types.Panel):
@@ -115,7 +116,7 @@ class OBJECT_PT_icons(bpy.types.Panel):
                     row.operator("wm.icon_info", text=" ", icon=icon,
                         emboss=False).icon = icon
                 if len(self.icon_list) < self.amount:
-                    for i in range(self.amount - len(self.icon_list) \
+                    for i in xrange(self.amount - len(self.icon_list) \
                     % self.amount):
                         row.label("")
 
@@ -143,7 +144,7 @@ class OBJECT_PT_icons(bpy.types.Panel):
                         row = col.row(align=True)
                     row.operator("wm.icon_info", text=" ", icon=icon,
                         emboss=False).icon = icon
-                for i in range(self.amount - len(self.icon_list) \
+                for i in xrange(self.amount - len(self.icon_list) \
                 % self.amount):
                     row.label("")
 

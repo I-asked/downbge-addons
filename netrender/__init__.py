@@ -18,6 +18,7 @@
 
 # This directory is a Python package.
 
+from __future__ import absolute_import
 bl_info = {
     "name": "Network Renderer",
     "author": "Martin Poirier",

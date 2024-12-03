@@ -16,9 +16,13 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from __future__ import with_statement
+from __future__ import absolute_import
 import bpy
 import os, re
-import http, http.client, http.server
+import http, httplib
+from io import open
+import CGIHTTPServer, SimpleHTTPServer, BaseHTTPServer
 import time
 import json
 
@@ -70,7 +74,7 @@ def addPointCache(job, ob, point_cache, default_path):
             cache_frame, cache_file = cache_files[0]
             job.addFile(os.path.join(cache_path, cache_file), cache_frame, cache_frame)
         else:
-            for i in range(len(cache_files)):
+            for i in xrange(len(cache_files)):
                 current_item = cache_files[i]
                 next_item = cache_files[i+1] if i + 1 < len(cache_files) else None
                 previous_item = cache_files[i - 1] if i > 0 else None
@@ -127,7 +131,7 @@ def sendJobVCS(conn, scene, anim = False):
     job = netrender.model.RenderJob()
 
     if anim:
-        for f in range(scene.frame_start, scene.frame_end + 1):
+        for f in xrange(scene.frame_start, scene.frame_end + 1):
             job.addFrame(f)
     else:
         job.addFrame(scene.frame_current)
@@ -140,7 +144,7 @@ def sendJobVCS(conn, scene, anim = False):
 
     filename = filename[len(netsettings.vcs_wpath):]
     
-    if filename[0] in {os.sep, os.altsep}:
+    if filename[0] in set([os.sep, os.altsep]):
         filename = filename[1:]
     
     job.addFile(filename, signed=False)
@@ -241,7 +245,7 @@ def sendJobBaking(conn, scene, can_save = True):
     job_id = response.getheader("job-id")
 
     # if not ACCEPTED (but not processed), send files
-    if response.status == http.client.ACCEPTED:
+    if response.status == httplib.ACCEPTED:
         for rfile in job.files:
             f = open(rfile.filepath, "rb")
             with ConnectionContext():
@@ -259,7 +263,7 @@ def sendJobBlender(conn, scene, anim = False, can_save = True):
     job = netrender.model.RenderJob()
 
     if anim:
-        for f in range(scene.frame_start, scene.frame_end + 1):
+        for f in xrange(scene.frame_start, scene.frame_end + 1):
             job.addFrame(f)
     else:
         job.addFrame(scene.frame_current)
@@ -331,7 +335,7 @@ def sendJobBlender(conn, scene, anim = False, can_save = True):
     job_id = response.getheader("job-id")
 
     # if not ACCEPTED (but not processed), send files
-    if response.status == http.client.ACCEPTED:
+    if response.status == httplib.ACCEPTED:
         for rfile in job.files:
             f = open(rfile.filepath, "rb")
             with ConnectionContext():
@@ -361,9 +365,9 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
             elif scene.network_render.mode == "RENDER_MASTER":
                 self.render_master(scene)
             else:
-                print("UNKNOWN OPERATION MODE")
-        except Exception as e:
-            self.report({'ERROR'}, str(e))
+                print "UNKNOWN OPERATION MODE"
+        except Exception, e:
+            self.report(set(['ERROR']), str(e))
             raise e
 
     def render_master(self, scene):
@@ -411,7 +415,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
             response = conn.getresponse()
             buf = response.read()
 
-            if response.status == http.client.NO_CONTENT:
+            if response.status == httplib.NO_CONTENT:
                 new_job = True
                 netsettings.job_id = sendJob(conn, scene, can_save = False)
                 job_id = netsettings.job_id
@@ -420,7 +424,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
                 response = conn.getresponse()
                 buf = response.read()
                 
-            while response.status == http.client.ACCEPTED and not self.test_break():
+            while response.status == httplib.ACCEPTED and not self.test_break():
                 time.sleep(1)
                 requestResult(conn, job_id, scene.frame_current)
                 response = conn.getresponse()
@@ -432,10 +436,10 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
                     conn.request("POST", cancelURL(job_id))
                 response = conn.getresponse()
                 response.read()
-                print( response.status, response.reason )
+                print response.status, response.reason
                 netsettings.job_id = 0
 
-            if response.status != http.client.OK:
+            if response.status != httplib.OK:
                 conn.close()
                 return
 

@@ -20,11 +20,12 @@
 
 # Interface for this addon.
 
+from __future__ import absolute_import
 import bmesh
 from bpy.types import Panel
 from . import report
 
-class Print3DToolBar:
+class Print3DToolBar(object):
     bl_label = "Print3D"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'

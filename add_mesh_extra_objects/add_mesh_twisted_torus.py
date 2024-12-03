@@ -1,5 +1,7 @@
 # GPL # by Paulo_Gomes
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from bpy.props import *
 
@@ -63,7 +65,7 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
             faces.append(face)
 
     # Bridge the rest of the faces.
-    for num in range(total - 1):
+    for num in xrange(total - 1):
         if flipped:
             if fan:
                 face = [vertIdx2[num], vertIdx1[0], vertIdx2[num + 1]]
@@ -89,14 +91,14 @@ def add_twisted_torus(major_rad, minor_rad, major_seg, minor_seg, twists):
     faces = []
 
     edgeloop_prev = []
-    for major_index in range(major_seg):
+    for major_index in xrange(major_seg):
         quat = Quaternion(z_axis, (major_index / major_seg) * PI_2)
         rot_twists = PI_2 * major_index / major_seg * twists
 
         edgeloop = []
 
         # Create section ring
-        for minor_index in range(minor_seg):
+        for minor_index in xrange(minor_seg):
             angle = (PI_2 * minor_index / minor_seg) + rot_twists
 
             vec = Vector((
@@ -129,7 +131,7 @@ class AddTwistedTorus(bpy.types.Operator):
     """Add a torus mesh"""
     bl_idname = "mesh.primitive_twisted_torus_add"
     bl_label = "Add Torus"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
 
     major_radius = FloatProperty(name="Major Radius",
         description="Radius from the origin to the" \
@@ -189,4 +191,4 @@ class AddTwistedTorus(bpy.types.Operator):
         # Actually create the mesh object from this geometry data.
         obj = create_mesh_object(context, verts, [], faces, "TwistedTorus")
 
-        return {'FINISHED'}
+        return set(['FINISHED'])

@@ -2,6 +2,8 @@
 # Copyright (c) 2015 sugiany
 # This file is distributed under the MIT License. See the LICENSE.md for more details.
 
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 
 from bpy.props import IntProperty, BoolProperty, FloatVectorProperty, FloatProperty
@@ -28,9 +30,9 @@ class MengerSponge(object):
         self.__face_visibility = {}
         self.__faces = []
 
-        for x in range(3):
-            for y in range(3):
-                for z in range(3):
+        for x in xrange(3):
+            for y in xrange(3):
+                for z in xrange(3):
                     self.__face_visibility[(x, y, z)] = [
                         x == 0 or x == 2 and (y == 1 or z == 1),
                         x == 2 or x == 0 and (y == 1 or z == 1),
@@ -95,18 +97,18 @@ class MengerSponge(object):
         base = cur_points[0]
         width = (cur_points[1][0] - base[0]) / 3
         local_vert_map = {}
-        for z in range(4):
-            for y in range(4):
-                for x in range(4):
+        for z in xrange(4):
+            for y in xrange(4):
+                for x in xrange(4):
                     local_vert_map[(x, y, z)] = (
                         width * x + base[0],
                         width * y + base[1],
                         width * z + base[2],
                         )
 
-        for x in range(3):
-            for y in range(3):
-                for z in range(3):
+        for x in xrange(3):
+            for y in xrange(3):
+                for z in xrange(3):
                     if [x, y, z].count(1) > 1:
                         continue
                     next_points = [
@@ -137,7 +139,7 @@ class AddMengerSponge(bpy.types.Operator):
     """Add a menger sponge"""
     bl_idname = "mesh.menger_sponge_add"
     bl_label = "Menger Sponge"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = set(['REGISTER', 'UNDO'])
 
     level = IntProperty(
         name="Level",
@@ -182,4 +184,4 @@ class AddMengerSponge(bpy.types.Operator):
         from bpy_extras import object_utils
         object_utils.object_data_add(context, mesh, operator=self)
 
-        return {'FINISHED'}
+        return set(['FINISHED'])

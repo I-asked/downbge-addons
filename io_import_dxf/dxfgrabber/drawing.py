@@ -3,6 +3,7 @@
 # Copyright (C) 2012, Manfred Moitzi
 # License: MIT License
 
+from __future__ import absolute_import
 __author__ = "mozman <mozman@gmx.at>"
 
 from .tags import TagIterator

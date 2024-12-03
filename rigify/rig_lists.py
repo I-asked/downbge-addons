@@ -16,6 +16,7 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+from __future__ import absolute_import
 import os
 
 from . import utils
@@ -38,7 +39,7 @@ def get_rig_list(path):
         if f[0] in [".", "_"]:
             continue
         if f.count(".") >= 2 or (is_dir and "." in f):
-            print("Warning: %r, filename contains a '.', skipping" % os.path.join(SEARCH_DIR_ABS, f))
+            print "Warning: %r, filename contains a '.', skipping" % os.path.join(SEARCH_DIR_ABS, f)
             continue
 
         if is_dir:

@@ -68,6 +68,8 @@ Strata type:     Strata types, Smooth, Sharp-sub, Sharp-add
 """
 
 # import modules
+from __future__ import division
+from __future__ import absolute_import
 import bpy
 from bpy.props import *
 from mathutils import *
@@ -142,7 +144,7 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
             faces.append(face)
 
     # Bridge the rest of the faces.
-    for num in range(total - 1):
+    for num in xrange(total - 1):
         if flipped:
             if fan:
                 face = [vertIdx2[num], vertIdx1[0], vertIdx2[num + 1]]
@@ -379,10 +381,10 @@ def grid_gen( sub_d, size_me, options ):
     delta = size_me / (sub_d - 1)
     start = -(size_me / 2.0)
 
-    for row_x in range(sub_d):
+    for row_x in xrange(sub_d):
         edgeloop_cur = []
         x = start + row_x * delta
-        for row_y in range(sub_d):
+        for row_y in xrange(sub_d):
             y = start + row_y * delta
             z = landscape_gen(x,y,0.0,size_me,options)
 
@@ -405,9 +407,9 @@ def sphere_gen( sub_d, size_me, options ):
     faces = []
     edgeloop_prev = []
 
-    for row_x in range(sub_d):
+    for row_x in xrange(sub_d):
         edgeloop_cur = []
-        for row_y in range(sub_d):
+        for row_y in xrange(sub_d):
             u = sin(row_y*pi*2/(sub_d-1)) * cos(-pi/2+row_x*pi/(sub_d-1)) * size_me/2
             v = cos(row_y*pi*2/(sub_d-1)) * cos(-pi/2+row_x*pi/(sub_d-1)) * size_me/2
             w = sin(-pi/2+row_x*pi/(sub_d-1)) * size_me/2
@@ -432,7 +434,7 @@ class landscape_add(bpy.types.Operator):
     """Add a landscape mesh"""
     bl_idname = "mesh.landscape_add"
     bl_label = "Landscape"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    bl_options = set(['REGISTER', 'UNDO', 'PRESET'])
     bl_description = "Add landscape mesh"
 
     # properties
@@ -793,9 +795,9 @@ class landscape_add(bpy.types.Operator):
             # restore pre operator undo state
             bpy.context.user_preferences.edit.use_global_undo = undo
 
-            return {'FINISHED'}
+            return set(['FINISHED'])
         else:
-            return {'PASS_THROUGH'}
+            return set(['PASS_THROUGH'])
 
 
 ###------------------------------------------------------------
