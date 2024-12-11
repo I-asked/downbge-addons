@@ -17,6 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8-80 compliant>
+from __future__ import absolute_import
 
 bl_info = {
     "name": "STL format",
@@ -47,7 +48,6 @@ Import:
     - Does not handle endien
 """
 
-from __future__ import absolute_import
 if "bpy" in locals():
     import importlib
     if "stl_utils" in locals():
