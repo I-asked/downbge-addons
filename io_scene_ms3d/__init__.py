@@ -51,7 +51,6 @@ bl_info = {
 if 'bpy' in locals():
     import importlib
     if 'io_scene_ms3d.ms3d_ui' in locals():
-        importlib.reload(io_scene_ms3d.ms3d_ui)
 else:
     from io_scene_ms3d.ms3d_ui import (
             Ms3dImportOperator,
@@ -76,7 +75,6 @@ def register():
     ####################
     # F8 - key
     import importlib
-    importlib.reload(ms3d_ui)
     # F8 - key
     ####################
 

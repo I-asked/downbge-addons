@@ -35,9 +35,6 @@ bl_info = {
 
 if "bpy" in locals():
     import importlib
-    importlib.reload(operator)
-    importlib.reload(panel)
-    importlib.reload(translations)
 
 else:
     from . import (

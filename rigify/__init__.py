@@ -34,11 +34,6 @@ bl_info = {
 
 if "bpy" in locals():
     import importlib
-    importlib.reload(generate)
-    importlib.reload(ui)
-    importlib.reload(utils)
-    importlib.reload(metarig_menu)
-    importlib.reload(rig_lists)
 else:
     from . import utils, rig_lists, generate, ui, metarig_menu
 

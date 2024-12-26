@@ -35,9 +35,7 @@ bl_info = {
 if "bpy" in locals():
     import importlib
     if "import_3ds" in locals():
-        importlib.reload(import_3ds)
     if "export_3ds" in locals():
-        importlib.reload(export_3ds)
 
 
 import bpy

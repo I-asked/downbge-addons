@@ -35,7 +35,6 @@ bl_info = {
 if "bpy" in locals():
     import importlib
     if "config" in locals():
-        importlib.reload(config)
 
 
 import bpy

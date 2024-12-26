@@ -39,9 +39,7 @@ bl_info = {
 if "bpy" in locals():
     import importlib
     if "export_ply" in locals():
-        importlib.reload(export_ply)
     if "import_ply" in locals():
-        importlib.reload(import_ply)
 
 
 import os

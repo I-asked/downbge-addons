@@ -34,7 +34,6 @@ bl_info = {
 if "bpy" in locals():
     import importlib
     if "export_vrml2" in locals():
-        importlib.reload(export_vrml2)
 
 
 import os

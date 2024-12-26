@@ -23,9 +23,6 @@ import bpy
 import importlib
 from . import fk, ik, deform
 
-importlib.reload(fk)
-importlib.reload(ik)
-importlib.reload(deform)
 
 script = """
 fk_arm = ["%s", "%s", "%s"]

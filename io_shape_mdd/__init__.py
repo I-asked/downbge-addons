@@ -35,9 +35,7 @@ bl_info = {
 if "bpy" in locals():
     import importlib
     if "import_mdd" in locals():
-        importlib.reload(import_mdd)
     if "export_mdd" in locals():
-        importlib.reload(export_mdd)
 
 
 import bpy

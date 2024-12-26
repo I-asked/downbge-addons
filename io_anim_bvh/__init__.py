@@ -34,9 +34,7 @@ bl_info = {
 if "bpy" in locals():
     import importlib
     if "import_bvh" in locals():
-        importlib.reload(import_bvh)
     if "export_bvh" in locals():
-        importlib.reload(export_bvh)
 
 import bpy
 from bpy.props import (

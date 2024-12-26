@@ -36,18 +36,6 @@ bl_info = {
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "init_data" in locals():
     import importlib
-    importlib.reload(model)
-    importlib.reload(operators)
-    importlib.reload(client)
-    importlib.reload(slave)
-    importlib.reload(master)
-    importlib.reload(master_html)
-    importlib.reload(utils)
-    importlib.reload(balancing)
-    importlib.reload(ui)
-    importlib.reload(repath)
-    importlib.reload(versioning)
-    importlib.reload(baking)
 else:
     from netrender import model
     from netrender import operators

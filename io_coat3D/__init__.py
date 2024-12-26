@@ -33,8 +33,6 @@ bl_info = {
 
 if "bpy" in locals():
     import importlib
-    importlib.reload(coat)
-    importlib.reload(tex)
 else:
     from . import coat
     from . import tex

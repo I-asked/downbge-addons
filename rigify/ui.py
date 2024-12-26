@@ -279,7 +279,6 @@ class Generate(bpy.types.Operator):
 
     def execute(self, context):
         import importlib
-        importlib.reload(generate)
 
         use_global_undo = context.user_preferences.edit.use_global_undo
         context.user_preferences.edit.use_global_undo = False

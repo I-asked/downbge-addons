@@ -35,9 +35,7 @@ bl_info = {
 if "bpy" in locals():
     import importlib
     if "import_x3d" in locals():
-        importlib.reload(import_x3d)
     if "export_x3d" in locals():
-        importlib.reload(export_x3d)
 
 import bpy
 from bpy.props import (

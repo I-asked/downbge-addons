@@ -38,11 +38,8 @@ from io import open
 if "bpy" in locals():
     import importlib
     if "encode_bin" in locals():
-        importlib.reload(encode_bin)
     if "data_types" in locals():
-        importlib.reload(data_types)
     if "fbx_utils" in locals():
-        importlib.reload(fbx_utils)
 
 import bpy
 import bpy_extras

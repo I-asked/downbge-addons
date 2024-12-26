@@ -38,7 +38,6 @@ bl_info = {
 if "bpy" in locals():
     import importlib
     if "import_svg" in locals():
-        importlib.reload(import_svg)
 
 
 import bpy

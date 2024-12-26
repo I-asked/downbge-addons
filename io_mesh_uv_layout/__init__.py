@@ -39,11 +39,8 @@ bl_info = {
 if "bpy" in locals():
     import importlib
     if "export_uv_eps" in locals():
-        importlib.reload(export_uv_eps)
     if "export_uv_png" in locals():
-        importlib.reload(export_uv_png)
     if "export_uv_svg" in locals():
-        importlib.reload(export_uv_svg)
 
 import bpy
 

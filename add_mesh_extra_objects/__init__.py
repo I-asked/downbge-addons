@@ -35,23 +35,6 @@ bl_info = {
 
 if "bpy" in locals():
     import importlib
-    importlib.reload(add_mesh_star)
-    importlib.reload(add_mesh_twisted_torus)
-    importlib.reload(add_mesh_gemstones)
-    importlib.reload(add_mesh_gears)
-    importlib.reload(add_mesh_3d_function_surface)
-    importlib.reload(add_mesh_round_cube)
-    importlib.reload(add_mesh_supertoroid)
-    importlib.reload(add_mesh_pyramid)
-    importlib.reload(add_mesh_torusknot)
-    importlib.reload(add_mesh_honeycomb)
-    importlib.reload(add_mesh_teapot)
-    importlib.reload(add_mesh_pipe_joint)
-    importlib.reload(add_mesh_solid)
-    importlib.reload(add_mesh_round_brilliant)
-    importlib.reload(add_mesh_menger_sponge)
-    importlib.reload(add_mesh_vertex)
-    importlib.reload(add_empty_as_parent)
 else:
     from . import add_mesh_star
     from . import add_mesh_twisted_torus

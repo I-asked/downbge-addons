@@ -35,11 +35,6 @@ bl_info = {
 
 if "bpy" in locals():
     import importlib
-    importlib.reload(settings)
-    importlib.reload(edit_translation)
-    importlib.reload(update_svn)
-    importlib.reload(update_addon)
-    importlib.reload(update_ui)
 else:
     import bpy
     from . import (

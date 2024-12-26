@@ -51,9 +51,7 @@ Import:
 if "bpy" in locals():
     import importlib
     if "stl_utils" in locals():
-        importlib.reload(stl_utils)
     if "blender_utils" in locals():
-        importlib.reload(blender_utils)
 
 import os
 

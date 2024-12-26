@@ -38,9 +38,7 @@ bl_info = {
 if "bpy" in locals():
     import importlib
     if "import_nuke_chan" in locals():
-        importlib.reload(import_nuke_chan)
     if "export_nuke_chan" in locals():
-        importlib.reload(export_nuke_chan)
 
 
 import bpy

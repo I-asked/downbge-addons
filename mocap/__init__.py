@@ -15,6 +15,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
+from __future__ import absolute_import
 
 # <pep8 compliant>
 
@@ -33,13 +34,7 @@ bl_info = {
 }
 
 if "bpy" in locals():
-    import importlib
-    if "mocap_constraints" in locals():
-        importlib.reload(mocap_constraints)
-    if "retarget" in locals():
-        importlib.reload(retarget)
-    if "mocap_tools" in locals():
-        importlib.reload(mocap_tools)
+    pass
 else:
     import bpy
     from bpy.props import (
@@ -253,7 +248,6 @@ updateIKRetarget()
 '''
 
 
-from __future__ import absolute_import
 def hasIKConstraint(pose_bone):
     #utility function / predicate, returns True if given bone has IK constraint
     ik = [constraint for constraint in pose_bone.constraints if constraint.type == "IK"]

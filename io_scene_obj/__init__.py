@@ -36,9 +36,7 @@ bl_info = {
 if "bpy" in locals():
     import importlib
     if "import_obj" in locals():
-        importlib.reload(import_obj)
     if "export_obj" in locals():
-        importlib.reload(export_obj)
 
 
 import bpy

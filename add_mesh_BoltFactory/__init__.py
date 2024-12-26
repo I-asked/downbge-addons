@@ -32,7 +32,6 @@ bl_info = {
 
 if "bpy" in locals():
     import importlib
-    importlib.reload(Boltfactory)
 else:
     from add_mesh_BoltFactory import Boltfactory
 

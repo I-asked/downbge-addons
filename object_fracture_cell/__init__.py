@@ -33,7 +33,6 @@ bl_info = {
 
 #if "bpy" in locals():
 #    import importlib
-#    importlib.reload(fracture_cell_setup)
 
 import bpy
 from bpy.props import (
